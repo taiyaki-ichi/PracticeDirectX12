@@ -2,23 +2,18 @@
 #include<Windows.h>
 #include<optional>
 
-namespace ggg
+namespace graphics
 {
 
 	namespace {
 
 		LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
-			switch (msg) {
-			case WM_DESTROY:
+			if (msg == WM_DESTROY) {
 				PostQuitMessage(0);
-				break;
-
-			default:
-				return DefWindowProc(hWnd, msg, wParam, lParam);
-				break;
-
+				return 0;
 			}
+			return DefWindowProc(hWnd, msg, wParam, lParam);
 		}
 	}
 
@@ -38,7 +33,7 @@ namespace ggg
 		RegisterClassEx(&wcex);
 
 		//ウィンドウサイズの設定
-		RECT rect{ 0,0,width,height };
+		RECT rect{ 0,0,static_cast<LONG>(width),static_cast<LONG>(height) };
 		AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 
 		HWND hwnd = CreateWindow(
