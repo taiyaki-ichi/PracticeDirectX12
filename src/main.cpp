@@ -15,11 +15,12 @@ int main()
 	auto allocator = create_command_allocator(device);
 	auto list = create_command_list(device, allocator);
 	auto queue = create_command_queue(device, list);
-	auto swapChain = create_swap_chain(factory, hwnd, queue);
+	auto swapChain = create_swap_chain(factory, queue, hwnd);
 	auto descriptorHeap = create_descriptor_heap(device);
 	auto buffers = create_buffers(device, swapChain, descriptorHeap);
 	auto [fence, fenceVal] = create_fence(device);
 
+	/*
 	while (graphics::process_window_message())
 	{
 		auto bbIdx = swapChain->GetCurrentBackBufferIndex();
@@ -27,7 +28,7 @@ int main()
 		D3D12_RESOURCE_BARRIER BarrierDesc = {};
 		BarrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		BarrierDesc.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		BarrierDesc.Transition.pResource = buffers[bbIdx].Get();
+		BarrierDesc.Transition.pResource = buffers[bbIdx];
 		BarrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 		BarrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 		BarrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -51,10 +52,10 @@ int main()
 
 
 		//コマンドリストの実行
-		ID3D12CommandList* cmdlists[] = { list.Get() };
+		ID3D12CommandList* cmdlists[] = { list };
 		queue->ExecuteCommandLists(1, cmdlists);
 		////待ち
-		queue->Signal(fence.Get(), ++fenceVal);
+		queue->Signal(fence, ++fenceVal);
 
 		if (fence->GetCompletedValue() != fenceVal) {
 			auto event = CreateEvent(nullptr, false, false, nullptr);
@@ -63,14 +64,29 @@ int main()
 			CloseHandle(event);
 		}
 		allocator->Reset();//キューをクリア
-		list->Reset(allocator.Get(), nullptr);//再びコマンドリストをためる準備
+		list->Reset(allocator, nullptr);//再びコマンドリストをためる準備
 
 
 		//フリップ
 		swapChain->Present(1, 0);
 	}
+	*/
 
 	UnregisterClass(L"aaaa", GetModuleHandle(nullptr));
 
+	//factory->Release();
+	//adapter->Release();
+
+	device->Release();
+	allocator->Release();
+	list->Release();
+	queue->Release();
+	swapChain->Release();
+	descriptorHeap->Release();
+	for (auto b : buffers)
+		b->Release();
+	fence->Release();
+
+	
 	return 0;
 }

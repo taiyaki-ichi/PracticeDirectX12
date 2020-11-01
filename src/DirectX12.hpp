@@ -6,7 +6,6 @@
 #include<array>
 #include<vector>
 #include<iostream>
-#include<wrl.h>
 
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
@@ -15,8 +14,6 @@ namespace graphics
 {
 
 	//namespace {
-
-		using namespace Microsoft::WRL;
 
 		//デバックのとき用
 		bool init_debug() {
@@ -33,10 +30,10 @@ namespace graphics
 		}
 
 		//ファクトリの生成
-		ComPtr<IDXGIFactory6> create_dxgi_factory()
+		IDXGIFactory6* create_dxgi_factory()
 		{
 			//とりあえず6でやる
-			ComPtr<IDXGIFactory6> factory = nullptr;
+			IDXGIFactory6* factory = nullptr;
 
 			//とりあえず1のほうを使ってやってみる
 			if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory)))) {
@@ -57,9 +54,9 @@ namespace graphics
 		}
 
 		//適切なアダプターの取得
-		ComPtr<IDXGIAdapter1> get_adapter(const ComPtr<IDXGIFactory6>& factory)
+		IDXGIAdapter1* get_adapter(IDXGIFactory6* factory)
 		{
-			ComPtr<IDXGIAdapter1> adapter = nullptr;
+			IDXGIAdapter1* adapter = nullptr;
 
 			for (UINT adapterIndex = 0; DXGI_ERROR_NOT_FOUND != factory->EnumAdapters1(adapterIndex, &adapter); ++adapterIndex)
 			{
@@ -80,9 +77,9 @@ namespace graphics
 		}
 
 		//デバイスの取得
-		ComPtr<ID3D12Device> create_device(const ComPtr<IDXGIAdapter1>& adapter)
+		ID3D12Device* create_device(IDXGIAdapter1* adapter)
 		{
-			ComPtr<ID3D12Device> device = nullptr;
+			ID3D12Device* device = nullptr;
 
 			//フィーチャレベルを列挙しておく
 			std::array levels{
@@ -94,7 +91,7 @@ namespace graphics
 
 			for (auto l : levels) {
 				//適切に生成できた場合
-				if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), l, IID_PPV_ARGS(&device))))
+				if (SUCCEEDED(D3D12CreateDevice(adapter, l, IID_PPV_ARGS(&device))))
 					return device;
 			}
 
@@ -104,8 +101,8 @@ namespace graphics
 		}
 
 		//コマンドアロケータの作製
-		ComPtr<ID3D12CommandAllocator> create_command_allocator(const ComPtr<ID3D12Device>& device) {
-			ComPtr<ID3D12CommandAllocator> allocator = nullptr;
+		ID3D12CommandAllocator* create_command_allocator(ID3D12Device* device) {
+			ID3D12CommandAllocator* allocator = nullptr;
 			//成功の場合
 			if (SUCCEEDED(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&allocator))))
 				return allocator;
@@ -117,10 +114,10 @@ namespace graphics
 		}
 
 		//コマンドリストの作製
-		ComPtr<ID3D12GraphicsCommandList> create_command_list(const ComPtr<ID3D12Device>& device,const ComPtr<ID3D12CommandAllocator>& allocator) {
-			ComPtr<ID3D12GraphicsCommandList> list = nullptr;
+		ID3D12GraphicsCommandList* create_command_list(ID3D12Device* device,ID3D12CommandAllocator* allocator) {
+			ID3D12GraphicsCommandList* list = nullptr;
 			//成功
-			if (SUCCEEDED(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, allocator.Get(), nullptr, IID_PPV_ARGS(&list))))
+			if (SUCCEEDED(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, allocator, nullptr, IID_PPV_ARGS(&list))))
 				return list;
 			//失敗
 			else {
@@ -130,15 +127,15 @@ namespace graphics
 		}
 
 		//コマンドキューの生成。タイプを合わせるためlistも参照
-		ComPtr<ID3D12CommandQueue> create_command_queue(const ComPtr<ID3D12Device>& device, const ComPtr<ID3D12GraphicsCommandList>& list)
+		ID3D12CommandQueue* create_command_queue(ID3D12Device* device,ID3D12GraphicsCommandList* list)
 		{
 			D3D12_COMMAND_QUEUE_DESC cmdQueueDesc{};
 			cmdQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;		//タイムアウトナシ
 			cmdQueueDesc.NodeMask = 0;
 			cmdQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;	//プライオリティ特に指定なし
-			cmdQueueDesc.Type = list.Get()->GetType();			//ここはコマンドリストと合わせる
+			cmdQueueDesc.Type = list->GetType();			//ここはコマンドリストと合わせる
 
-			ComPtr<ID3D12CommandQueue> queue = nullptr;
+			ID3D12CommandQueue* queue = nullptr;
 			if(SUCCEEDED(device->CreateCommandQueue(&cmdQueueDesc, IID_PPV_ARGS(&queue))))
 				return queue;
 			else {
@@ -148,7 +145,7 @@ namespace graphics
 		}
 
 		//スワップチェインの作製、1でやってみる
-		ComPtr<IDXGISwapChain4> create_swap_chain(const ComPtr<IDXGIFactory6> factory, HWND hwnd,const ComPtr<ID3D12CommandQueue>& queue)
+		IDXGISwapChain4* create_swap_chain(IDXGIFactory6* factory,ID3D12CommandQueue* queue, HWND hwnd)
 		{
 			IDXGISwapChain4* swapChainPtr = nullptr;
 
@@ -170,8 +167,8 @@ namespace graphics
 			swapchainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 			swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
-			if (SUCCEEDED(factory->CreateSwapChainForHwnd(queue.Get(), hwnd, &swapchainDesc, nullptr, nullptr, (IDXGISwapChain1**)&swapChainPtr)))
-				return ComPtr<IDXGISwapChain4>{swapChainPtr};
+			if (SUCCEEDED(factory->CreateSwapChainForHwnd(queue, hwnd, &swapchainDesc, nullptr, nullptr, (IDXGISwapChain1**)&swapChainPtr)))
+				return swapChainPtr;
 			else {
 				std::cout << __func__ << " is failed\n";
 				return nullptr;
@@ -179,7 +176,7 @@ namespace graphics
 		}
 
 		//でスクリプタヒープの生成
-		ComPtr<ID3D12DescriptorHeap> create_descriptor_heap(const ComPtr<ID3D12Device>& device)
+		ID3D12DescriptorHeap* create_descriptor_heap(ID3D12Device* device)
 		{
 			D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
 			heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;//レンダーターゲットビューなので当然RTV
@@ -190,7 +187,7 @@ namespace graphics
 			
 			ID3D12DescriptorHeap* descriptorHeap = nullptr;
 			if (SUCCEEDED(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&descriptorHeap))))
-				return ComPtr<ID3D12DescriptorHeap>{descriptorHeap};
+				return descriptorHeap;
 			else {
 				std::cout << __func__ << " is failed\n";
 				return nullptr;
@@ -200,11 +197,11 @@ namespace graphics
 		}
 
 		//バッファの設定、戻り値はどっかに束縛しておくべきかも
-		std::vector<ComPtr<ID3D12Resource>> create_buffers(const ComPtr<ID3D12Device>& device,const ComPtr<IDXGISwapChain1>& sc,const ComPtr<ID3D12DescriptorHeap>& dh)
+		std::vector<ID3D12Resource*> create_buffers(ID3D12Device* device,IDXGISwapChain1* sc,ID3D12DescriptorHeap* dh)
 		{
 			DXGI_SWAP_CHAIN_DESC swcDesc{};
 			sc->GetDesc(&swcDesc);
-			std::vector< ComPtr<ID3D12Resource>> backBuffers(swcDesc.BufferCount);
+			std::vector<ID3D12Resource*> backBuffers(swcDesc.BufferCount);
 			D3D12_CPU_DESCRIPTOR_HANDLE handle = dh->GetCPUDescriptorHandleForHeapStart();
 			for (size_t i = 0; i < swcDesc.BufferCount; ++i) {
 				//失敗した場合
@@ -214,16 +211,16 @@ namespace graphics
 					return backBuffers;
 				}
 					
-				device->CreateRenderTargetView(backBuffers[i].Get(), nullptr, handle);
+				device->CreateRenderTargetView(backBuffers[i], nullptr, handle);
 				handle.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 			}
 			return backBuffers;
 		}
 
 		//フェンスの生成
-		std::pair<ComPtr<ID3D12Fence>,UINT64> create_fence(const ComPtr<ID3D12Device>& device)
+		std::pair<ID3D12Fence*,UINT64> create_fence(ID3D12Device* device)
 		{
-			ComPtr<ID3D12Fence> fence = nullptr;
+			ID3D12Fence* fence = nullptr;
 			UINT64 val = 0;
 			if (SUCCEEDED(device->CreateFence(val, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence))))
 				return { fence,val };
