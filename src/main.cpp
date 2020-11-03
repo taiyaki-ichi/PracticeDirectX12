@@ -1,9 +1,11 @@
 #include"window.hpp"
 #include<iostream>
-#include"DirectX12.hpp"
+#include"DirectX12/init.hpp"
 
 int main()
 {
+
+
 	auto hwnd = graphics::create_window(L"aaaa", 400, 300);
 
 	using namespace graphics;
@@ -20,7 +22,7 @@ int main()
 	auto buffers = create_buffers(device, swapChain, descriptorHeap);
 	auto [fence, fenceVal] = create_fence(device);
 
-	/*
+	
 	while (graphics::process_window_message())
 	{
 		auto bbIdx = swapChain->GetCurrentBackBufferIndex();
@@ -70,7 +72,7 @@ int main()
 		//ƒtƒŠƒbƒv
 		swapChain->Present(1, 0);
 	}
-	*/
+	
 
 	UnregisterClass(L"aaaa", GetModuleHandle(nullptr));
 
