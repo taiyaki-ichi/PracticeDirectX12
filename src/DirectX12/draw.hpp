@@ -24,7 +24,14 @@ namespace graphics
 
 		auto result = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &rootSigBlob, &errorBlob);
 		if (FAILED(result)) {
-			std::cout << __func__ << " is failed : D3D12SerializeRootSignature\n";
+			std::cout << __func__ << " is failed : D3D12SerializeRootSignature ";
+
+			//ƒGƒ‰[“à—e
+			std::string errstr;
+			errstr.resize(errorBlob->GetBufferSize());
+			std::copy_n((char*)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize(), errstr.begin());
+			std::cout << " : " << errstr << "\n";
+
 			return nullptr;
 		}
 

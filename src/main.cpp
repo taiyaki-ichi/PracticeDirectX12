@@ -15,8 +15,6 @@ int main()
 	constexpr unsigned int WINDOW_WIDTH = 400;
 	constexpr unsigned int WINDOW_HEIGHT = 300;
 
-	DirectX::Image i{};
-
 	auto hwnd = graphics::create_window(WINDOW_NAME,WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	using namespace graphics;
