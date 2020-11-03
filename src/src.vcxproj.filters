@@ -3,8 +3,15 @@
   <ItemGroup>
     <ClInclude Include="window.hpp" />
     <ClInclude Include="DirectX12\init.hpp" />
+    <ClInclude Include="DirectX12\buffer.hpp" />
+    <ClInclude Include="DirectX12\shader.hpp" />
+    <ClInclude Include="DirectX12\draw.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shader\VertexShader1.hlsl" />
+    <FxCompile Include="shader\PixelShader1.hlsl" />
   </ItemGroup>
 </Project>

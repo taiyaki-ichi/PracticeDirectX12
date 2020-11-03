@@ -2,7 +2,6 @@
 #include<Windows.h>
 #include<d3d12.h>
 #include<dxgi1_6.h>
-#include<memory>
 #include<array>
 #include<vector>
 #include<iostream>
@@ -197,7 +196,7 @@ namespace graphics
 	}
 
 	//バッファの設定、戻り値はどっかに束縛しておくべきかも
-	std::vector<ID3D12Resource*> create_buffers(ID3D12Device* device, IDXGISwapChain1* sc, ID3D12DescriptorHeap* dh)
+	std::vector<ID3D12Resource*> create_double_buffer(ID3D12Device* device, IDXGISwapChain1* sc, ID3D12DescriptorHeap* dh)
 	{
 		DXGI_SWAP_CHAIN_DESC swcDesc{};
 		sc->GetDesc(&swcDesc);
