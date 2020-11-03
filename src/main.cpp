@@ -5,12 +5,17 @@
 #include"DirectX12/draw.hpp"
 #include"DirectX12/shader.hpp"
 
+#include<DirectXTex.h>
+#pragma comment(lib,"DirectXTex.lib")
+
 int main()
 {
 	const wchar_t* WINDOW_NAME = L"aaa";
 
 	constexpr unsigned int WINDOW_WIDTH = 400;
 	constexpr unsigned int WINDOW_HEIGHT = 300;
+
+	DirectX::Image i{};
 
 	auto hwnd = graphics::create_window(WINDOW_NAME,WINDOW_WIDTH, WINDOW_HEIGHT);
 
