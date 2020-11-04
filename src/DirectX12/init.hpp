@@ -202,6 +202,12 @@ namespace graphics
 		sc->GetDesc(&swcDesc);
 		std::vector<ID3D12Resource*> backBuffers(swcDesc.BufferCount);
 		D3D12_CPU_DESCRIPTOR_HANDLE handle = dh->GetCPUDescriptorHandleForHeapStart();
+
+		//SRGBレンダーターゲットビュー設定
+		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+
 		for (size_t i = 0; i < swcDesc.BufferCount; ++i) {
 			//失敗した場合
 			if (FAILED(sc->GetBuffer(static_cast<UINT>(i), IID_PPV_ARGS(&backBuffers[i])))) {
@@ -210,7 +216,7 @@ namespace graphics
 				return backBuffers;
 			}
 
-			device->CreateRenderTargetView(backBuffers[i], nullptr, handle);
+			device->CreateRenderTargetView(backBuffers[i], &rtvDesc, handle);
 			handle.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 		}
 		return backBuffers;
