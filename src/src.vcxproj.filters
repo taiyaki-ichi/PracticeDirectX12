@@ -8,6 +8,7 @@
     <ClInclude Include="DirectX12\draw.hpp" />
     <ClInclude Include="DirectX12\texture.hpp" />
     <ClInclude Include="DirectX12\descriptor_heap.hpp" />
+    <ClInclude Include="DirectX12\utility.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

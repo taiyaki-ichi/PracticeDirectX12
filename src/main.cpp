@@ -12,8 +12,8 @@ int main()
 	
 	const wchar_t* WINDOW_NAME = L"aaa";
 
-	constexpr unsigned int WINDOW_WIDTH = 400;
-	constexpr unsigned int WINDOW_HEIGHT = 300;
+	constexpr unsigned int WINDOW_WIDTH = 800;
+	constexpr unsigned int WINDOW_HEIGHT = 600;
 
 	auto hwnd = graphics::create_window(WINDOW_NAME,WINDOW_WIDTH, WINDOW_HEIGHT);
 
@@ -37,10 +37,10 @@ int main()
 	};
 
 	Vertex vertices[] = {
-		{{-0.4f,-0.7f,0.0f},{0.0f,1.0f} },//左下
-		{{-0.4f,0.7f,0.0f} ,{0.0f,0.0f}},//左上
-		{{0.4f,-0.7f,0.0f} ,{1.0f,1.0f}},//右下
-		{{0.4f,0.7f,0.0f} ,{1.0f,0.0f}},//右上
+		{{-1.f,-1.f,0.0f},{0.0f,1.0f} },//左下
+		{{-1.f,1.f,0.0f} ,{0.0f,0.0f}},//左上
+		{{1.f,-1.f,0.0f} ,{1.0f,1.0f}},//右下
+		{{1.f,1.f,0.0f} ,{1.0f,0.0f}},//右上
 	};
 
 	auto vertBuffer = create_buffer(device, sizeof(vertices));
@@ -95,9 +95,29 @@ int main()
 	//コマンド実行
 	copy_texture(commandAllocator, commandList, commandQueue, fence, fenceVal, uploadLocation, textureLocation);
 
-	//テクスチャのディスクリプタヒープの設定
-	auto texureDescHeap = create_texture_descriptor_heap(device);
-	set_texture_view(device, texureDescHeap, textureBuffer);
+
+	//
+	//定数
+	//
+	auto worldMat = DirectX::XMMatrixRotationY(DirectX::XM_PIDIV4);
+	DirectX::XMFLOAT3 eye(0, 0, -5);
+	DirectX::XMFLOAT3 target(0, 0, 0);
+	DirectX::XMFLOAT3 up(0, 1, 0);
+	auto viewMat = DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
+	auto projMat = DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2,//画角は90°
+		static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT),//アス比
+		1.0f,//近い方
+		10.0f//遠い方
+	);
+
+	auto constBuffer = create_buffer(device, (sizeof(DirectX::XMMATRIX) + 0xff) & ~0xff);
+	map(constBuffer, worldMat* viewMat* projMat);
+
+
+
+	//ディスクリプタヒープの設定
+	auto basicDescHeap = create_basic_descriptor_heap(device, 2);
+	set_basic_view(device, basicDescHeap, textureBuffer,constBuffer);
 
 	while (graphics::process_window_message())
 	{
@@ -136,8 +156,8 @@ int main()
 		commandList->IASetIndexBuffer(&indexBufferView);
 
 		commandList->SetGraphicsRootSignature(rootSignature);
-		commandList->SetDescriptorHeaps(1, &texureDescHeap);
-		commandList->SetGraphicsRootDescriptorTable(0, texureDescHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetDescriptorHeaps(1, &basicDescHeap);
+		commandList->SetGraphicsRootDescriptorTable(0, basicDescHeap->GetGPUDescriptorHandleForHeapStart());
 
 		//インデックスで描写
 		commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
@@ -196,8 +216,9 @@ int main()
 
 	uploadBuffer->Release();
 	textureBuffer->Release();
+	constBuffer->Release();
 
-	texureDescHeap->Release();
+	basicDescHeap->Release();
 
 	rootSignature->Release();
 
