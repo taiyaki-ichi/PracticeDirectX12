@@ -94,17 +94,27 @@ namespace graphics
 		graphicsPipelineDesc.BlendState.AlphaToCoverageEnable = false;
 		graphicsPipelineDesc.BlendState.IndependentBlendEnable = false;
 
-		D3D12_RENDER_TARGET_BLEND_DESC renderTargetBlendDesc{};
+		//ラスタライザーステート設定用構造体の設定
+		D3D12_RENDER_TARGET_BLEND_DESC renderBlend{};
+		renderBlend.BlendEnable = FALSE;
+		renderBlend.BlendOp = D3D12_BLEND_OP_ADD;
+		renderBlend.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+		renderBlend.DestBlend = D3D12_BLEND_ZERO;
+		renderBlend.DestBlendAlpha = D3D12_BLEND_ZERO;
+		renderBlend.LogicOp = D3D12_LOGIC_OP_NOOP;
+		renderBlend.LogicOpEnable = FALSE;
+		renderBlend.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+		renderBlend.SrcBlend = D3D12_BLEND_ONE;
+		renderBlend.SrcBlendAlpha = D3D12_BLEND_ONE;
 
-		//ひとまず加算や乗算やαブレンディングは使用しない
-		renderTargetBlendDesc.BlendEnable = false;
-		renderTargetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+		//ブレンドステート設定用構造体
+		D3D12_BLEND_DESC blend{};
+		blend.AlphaToCoverageEnable = TRUE;
+		blend.IndependentBlendEnable = FALSE;
+		//とりあえず0だけにしておく
+		blend.RenderTarget[0] = renderBlend;
 
-		//ひとまず論理演算は使用しない
-		renderTargetBlendDesc.LogicOpEnable = false;
-
-		graphicsPipelineDesc.BlendState.RenderTarget[0] = renderTargetBlendDesc;
-
+		graphicsPipelineDesc.BlendState = blend;
 
 		graphicsPipelineDesc.RasterizerState.MultisampleEnable = false;//まだアンチェリは使わない
 		graphicsPipelineDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;//カリングしない

@@ -99,15 +99,15 @@ int main()
 	//
 	//íËêî
 	//
-	auto worldMat = DirectX::XMMatrixRotationY(DirectX::XM_PIDIV4);
+	auto worldMat = DirectX::XMMatrixIdentity();
 	DirectX::XMFLOAT3 eye(0, 0, -5);
 	DirectX::XMFLOAT3 target(0, 0, 0);
 	DirectX::XMFLOAT3 up(0, 1, 0);
 	auto viewMat = DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
 	auto projMat = DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2,//âÊäpÇÕ90Åã
 		static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT),//ÉAÉXî‰
-		1.0f,//ãﬂÇ¢ï˚
-		10.0f//âìÇ¢ï˚
+		0.1f,//ãﬂÇ¢ï˚
+		100.0f//âìÇ¢ï˚
 	);
 
 	auto constBuffer = create_buffer(device, (sizeof(DirectX::XMMATRIX) + 0xff) & ~0xff);
@@ -119,8 +119,15 @@ int main()
 	auto basicDescHeap = create_basic_descriptor_heap(device, 2);
 	set_basic_view(device, basicDescHeap, textureBuffer,constBuffer);
 
+	int frameCnt = 0;
+
 	while (graphics::process_window_message())
 	{
+		eye = DirectX::XMFLOAT3(std::sin(frameCnt / 20.0) * 3.0, std::cos(frameCnt / 20.0) * 3.0, -5);
+		target = DirectX::XMFLOAT3(std::sin(frameCnt / 20.0) * 3.0, std::cos(frameCnt / 20.0) * 3.0, 0);
+		viewMat = DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
+		map(constBuffer, worldMat* viewMat* projMat);
+		frameCnt++;
 
 		auto bbIdx = swapChain->GetCurrentBackBufferIndex();
 
