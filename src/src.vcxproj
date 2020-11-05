@@ -147,10 +147,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DirectX12\descriptor_heap.hpp" />
     <ClInclude Include="DirectX12\draw.hpp" />
     <ClInclude Include="DirectX12\init.hpp" />
     <ClInclude Include="DirectX12\buffer.hpp" />
     <ClInclude Include="DirectX12\shader.hpp" />
+    <ClInclude Include="DirectX12\texture.hpp" />
     <ClInclude Include="window.hpp" />
   </ItemGroup>
   <ItemGroup>

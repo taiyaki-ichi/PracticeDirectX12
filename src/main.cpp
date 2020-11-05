@@ -4,26 +4,11 @@
 #include"DirectX12/buffer.hpp"
 #include"DirectX12/draw.hpp"
 #include"DirectX12/shader.hpp"
+#include"DirectX12/texture.hpp"
+#include"DirectX12/descriptor_heap.hpp"
 
 int main()
 {
-
-	/*
-	using namespace DirectX;
-
-	//ないと動かった
-	auto hoge = CoInitializeEx(0, COINIT_MULTITHREADED);
-
-	TexMetadata meta{};
-	ScratchImage scratch{};
-
-	auto result = LoadFromWICFile(L"../texture/icon.png", WIC_FLAGS_NONE, &meta, scratch);
-
-	std::cout << "result : " << result << "\n";
-
-	if (SUCCEEDED(result))
-		std::cout << meta.depth*meta.width*meta.height << "\n" << scratch.GetPixelsSize() << "\n" << scratch.GetImage(0, 0, 0)->slicePitch << "\n";
-		*/
 	
 	const wchar_t* WINDOW_NAME = L"aaa";
 
@@ -101,9 +86,6 @@ int main()
 	auto uploadBuffer = create_texture_unload_buffer(device, image);
 	auto textureBuffer = create_texture_buffer(device, metaData);
 
-	uploadBuffer->GetDesc();
-	textureBuffer->GetDesc();
-
 	//テクスチャをマップ
 	map(uploadBuffer, image);
 	
@@ -113,34 +95,9 @@ int main()
 	//コマンド実行
 	copy_texture(commandAllocator, commandList, commandQueue, fence, fenceVal, uploadLocation, textureLocation);
 
-	//
-	//仮
-	//
-
-	ID3D12DescriptorHeap* texDescHeap = nullptr;
-	D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc{};
-	descHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;//シェーダから見えるように
-	descHeapDesc.NodeMask = 0;//マスクは0
-	descHeapDesc.NumDescriptors = 1;//ビューは今のところ１つだけ
-	descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;//シェーダリソースビュー(および定数、UAVも)
-	result = device->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(&texDescHeap));//生成
-
-	//通常テクスチャビュー作成
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Format = metaData.format;//DXGI_FORMAT_R8G8B8A8_UNORM;//RGBA(0.0f～1.0fに正規化)
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;//後述
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;//2Dテクスチャ
-	srvDesc.Texture2D.MipLevels = 1;//ミップマップは使用しないので1
-
-	device->CreateShaderResourceView(textureBuffer, //ビューと関連付けるバッファ
-		&srvDesc, //先ほど設定したテクスチャ設定情報
-		texDescHeap->GetCPUDescriptorHandleForHeapStart()//ヒープのどこに割り当てるか
-	);
-	
-	//
-	//
-	//
-
+	//テクスチャのディスクリプタヒープの設定
+	auto texureDescHeap = create_texture_descriptor_heap(device);
+	set_texture_view(device, texureDescHeap, textureBuffer);
 
 	while (graphics::process_window_message())
 	{
@@ -179,8 +136,8 @@ int main()
 		commandList->IASetIndexBuffer(&indexBufferView);
 
 		commandList->SetGraphicsRootSignature(rootSignature);
-		commandList->SetDescriptorHeaps(1, &texDescHeap);
-		commandList->SetGraphicsRootDescriptorTable(0, texDescHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetDescriptorHeaps(1, &texureDescHeap);
+		commandList->SetGraphicsRootDescriptorTable(0, texureDescHeap->GetGPUDescriptorHandleForHeapStart());
 
 		//インデックスで描写
 		commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
@@ -197,7 +154,7 @@ int main()
 		//コマンドリストの実行
 		ID3D12CommandList* cmdlists[] = { commandList };
 		commandQueue->ExecuteCommandLists(1, cmdlists);
-		////待ち
+		//待ち
 		commandQueue->Signal(fence, ++fenceVal);
 
 		if (fence->GetCompletedValue() != fenceVal) {
@@ -207,7 +164,7 @@ int main()
 			CloseHandle(event);
 		}
 		commandAllocator->Reset();//キューをクリア
-		commandList->Reset(commandAllocator, nullptr);//再びコマンドリストをためる準備
+		commandList->Reset(commandAllocator, graphicsPipeline);//再びコマンドリストをためる準備
 
 
 		//フリップ
@@ -226,6 +183,7 @@ int main()
 	commandQueue->Release();
 	swapChain->Release();
 	descriptorHeap->Release();
+
 	for (auto b : buffers)
 		b->Release();
 	fence->Release();
@@ -235,6 +193,11 @@ int main()
 
 	vertShaderBlob->Release();
 	pixcShaderBlob->Release();
+
+	uploadBuffer->Release();
+	textureBuffer->Release();
+
+	texureDescHeap->Release();
 
 	rootSignature->Release();
 

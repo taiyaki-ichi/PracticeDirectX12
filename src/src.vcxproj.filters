@@ -6,6 +6,8 @@
     <ClInclude Include="DirectX12\buffer.hpp" />
     <ClInclude Include="DirectX12\shader.hpp" />
     <ClInclude Include="DirectX12\draw.hpp" />
+    <ClInclude Include="DirectX12\texture.hpp" />
+    <ClInclude Include="DirectX12\descriptor_heap.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
