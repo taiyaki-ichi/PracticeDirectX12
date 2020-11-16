@@ -36,7 +36,7 @@ namespace graphics
 				std::string errstr;
 				errstr.resize(errorBlob->GetBufferSize());
 				std::copy_n((char*)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize(), errstr.begin());
-				std::cout << " : " << errstr << "\n";
+				std::cout << " : " << errstr << " : " << fileName << "\n";
 			}
 
 			return nullptr;

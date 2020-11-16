@@ -9,13 +9,17 @@
     <ClInclude Include="DirectX12\texture.hpp" />
     <ClInclude Include="DirectX12\descriptor_heap.hpp" />
     <ClInclude Include="DirectX12\utility.hpp" />
+    <ClInclude Include="DirectX12\rect.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="DirectX12\rect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader\VertexShader1.hlsl" />
     <FxCompile Include="shader\PixelShader1.hlsl" />
+    <FxCompile Include="shader\RectVertexShader.hlsl" />
+    <FxCompile Include="shader\RectPixcelShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\BasicType.hlsli" />

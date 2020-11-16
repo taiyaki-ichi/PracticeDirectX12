@@ -6,6 +6,7 @@
 #include"DirectX12/shader.hpp"
 #include"DirectX12/texture.hpp"
 #include"DirectX12/descriptor_heap.hpp"
+#include"DirectX12/rect.hpp"
 
 int main()
 {
@@ -35,7 +36,7 @@ int main()
 		DirectX::XMFLOAT3 pos;//XYZ座標
 		DirectX::XMFLOAT2 uv;//UV座標
 	};
-
+	
 	Vertex vertices[] = {
 		{{-1.f,-1.f,0.0f},{0.0f,1.0f} },//左下
 		{{-1.f,1.f,0.0f} ,{0.0f,0.0f}},//左上
@@ -43,10 +44,10 @@ int main()
 		{{1.f,1.f,0.0f} ,{1.0f,0.0f}},//右上
 	};
 
-	auto vertBuffer = create_buffer(device, sizeof(vertices));
-	map(vertBuffer, vertices);
-	auto vertBufferView = get_vertex_buffer_view(vertBuffer, sizeof(vertices), sizeof(vertices[0]));
-
+		auto vertBuffer = create_buffer(device, sizeof(vertices));
+		map(vertBuffer, vertices);
+		auto vertBufferView = get_vertex_buffer_view(vertBuffer, sizeof(vertices), sizeof(vertices[0]));
+	
 	//インデックス情報
 	unsigned short indices[] = { 0,1,2, 2,1,3 };
 	auto indexBuffer = create_buffer(device, sizeof(indices));
@@ -99,35 +100,33 @@ int main()
 	//
 	//定数
 	//
-	auto worldMat = DirectX::XMMatrixIdentity();
-	DirectX::XMFLOAT3 eye(0, 0, -5);
-	DirectX::XMFLOAT3 target(0, 0, 0);
-	DirectX::XMFLOAT3 up(0, 1, 0);
-	auto viewMat = DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
-	auto projMat = DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2,//画角は90°
-		static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT),//アス比
-		0.1f,//近い方
-		100.0f//遠い方
-	);
-
+	auto pos = DirectX::XMMatrixIdentity();
 	auto constBuffer = create_buffer(device, (sizeof(DirectX::XMMATRIX) + 0xff) & ~0xff);
-	map(constBuffer, worldMat* viewMat* projMat);
+	map(constBuffer, pos);
 
-
-
+	//
 	//ディスクリプタヒープの設定
+	//
 	auto basicDescHeap = create_basic_descriptor_heap(device, 2);
-	set_basic_view(device, basicDescHeap, textureBuffer,constBuffer);
+	set_basic_view(device, basicDescHeap, textureBuffer, constBuffer);
 
 	int frameCnt = 0;
 
+	//
+	//ステンシル
+	//
+
+
+
+	//
+	//
+	//
+	rect r1{ device,WINDOW_WIDTH,WINDOW_HEIGHT };
+
+
 	while (graphics::process_window_message())
 	{
-		eye = DirectX::XMFLOAT3(std::sin(frameCnt / 20.0) * 3.0, std::cos(frameCnt / 20.0) * 3.0, -5);
-		target = DirectX::XMFLOAT3(std::sin(frameCnt / 20.0) * 3.0, std::cos(frameCnt / 20.0) * 3.0, 0);
-		viewMat = DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
-		map(constBuffer, worldMat* viewMat* projMat);
-		frameCnt++;
+		
 
 		auto bbIdx = swapChain->GetCurrentBackBufferIndex();
 
@@ -141,22 +140,24 @@ int main()
 
 		commandList->ResourceBarrier(1, &BarrierDesc);
 
-		commandList->SetPipelineState(graphicsPipeline);
+		//commandList->SetPipelineState(graphicsPipeline);
 
+		
 		//レンダーターゲットを指定
 		auto rtvH = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
 		rtvH.ptr += static_cast<ULONG_PTR>(bbIdx * device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
 		commandList->OMSetRenderTargets(1, &rtvH, false, nullptr);
-
+		
 		//画面クリア
 		float clearColor[] = { 1.0f,1.0f,0.0f,1.0f };//黄色
 		commandList->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
+		
 
 		//いろいろ
 		commandList->RSSetViewports(1, &viewPort);
 		commandList->RSSetScissorRects(1, &scissorRect);
-		commandList->SetGraphicsRootSignature(rootSignature);
 
+		/*
 		//Bufferview
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		commandList->IASetVertexBuffers(0, 1, &vertBufferView);
@@ -168,11 +169,17 @@ int main()
 
 		//インデックスで描写
 		commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+		*/
+		
 
+		r1.draw_command(commandList);
 
 		BarrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		BarrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 		commandList->ResourceBarrier(1, &BarrierDesc);
+
+		
+
 
 		//命令のクローズ
 		commandList->Close();

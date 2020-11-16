@@ -30,7 +30,8 @@ namespace graphics
 		D3D12_ROOT_PARAMETER rootparam{};
 		rootparam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		rootparam.DescriptorTable.pDescriptorRanges = &descTblRange[0];//デスクリプタレンジのアドレス
-		rootparam.DescriptorTable.NumDescriptorRanges = sizeof(descTblRange) / sizeof(descTblRange[0]);//デスクリプタレンジ数
+		//これじゃダメ
+		rootparam.DescriptorTable.NumDescriptorRanges = 2;//sizeof(descTblRange) / sizeof(descTblRange[0]);//デスクリプタレンジ数
 		rootparam.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;//全てのシェーダから見える
 
 		rootSignatureDesc.pParameters = &rootparam;//ルートパラメータの先頭アドレス
@@ -129,10 +130,9 @@ namespace graphics
 		graphicsPipelineDesc.RasterizerState.AntialiasedLineEnable = false;
 		graphicsPipelineDesc.RasterizerState.ForcedSampleCount = 0;
 		graphicsPipelineDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
-
-
 		graphicsPipelineDesc.DepthStencilState.DepthEnable = false;
 		graphicsPipelineDesc.DepthStencilState.StencilEnable = false;
+
 
 		D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
 			{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },

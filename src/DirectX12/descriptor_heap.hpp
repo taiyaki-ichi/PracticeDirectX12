@@ -11,7 +11,7 @@
 namespace graphics
 {
 	//ディスクリプタヒープの生成
-	ID3D12DescriptorHeap* create_basic_descriptor_heap(ID3D12Device* device,unsigned int viewNum)
+	inline ID3D12DescriptorHeap* create_basic_descriptor_heap(ID3D12Device* device,unsigned int viewNum)
 	{
 		ID3D12DescriptorHeap* descHeap = nullptr;
 		D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc{};
@@ -28,7 +28,7 @@ namespace graphics
 	}
 
 	//テクスチャ１つと定数１つ
-	void set_basic_view(ID3D12Device* device, ID3D12DescriptorHeap* dscHeap, ID3D12Resource* textureBuffer, ID3D12Resource* constBuffer)
+	inline void set_basic_view(ID3D12Device* device, ID3D12DescriptorHeap* dscHeap, ID3D12Resource* textureBuffer, ID3D12Resource* constBuffer)
 	{
 		//デスクリプタの先頭ハンドルを取得しておく
 		auto basicHeapHandle = dscHeap->GetCPUDescriptorHandleForHeapStart();
@@ -58,7 +58,7 @@ namespace graphics
 	}
 
 	//テクスチャのでスクリプタレンジ
-	D3D12_DESCRIPTOR_RANGE get_texture_descriptor_range(unsigned int slotNum=0)
+	inline D3D12_DESCRIPTOR_RANGE get_texture_descriptor_range(unsigned int slotNum=0)
 	{
 		D3D12_DESCRIPTOR_RANGE desc{};
 		//テクスチャの数
@@ -72,7 +72,7 @@ namespace graphics
 	}
 
 	//定数バッファのでぇすくりぷたレンジ
-	D3D12_DESCRIPTOR_RANGE get_constant_descriptor_range(unsigned int slotNum)
+	inline D3D12_DESCRIPTOR_RANGE get_constant_descriptor_range(unsigned int slotNum)
 	{
 		D3D12_DESCRIPTOR_RANGE desc{};
 		desc.NumDescriptors = 1;
