@@ -2,8 +2,17 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="DirectX12\device.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="window.hpp" />
+    <ClInclude Include="DirectX12\descriptor_heap.hpp" />
+    <ClInclude Include="DirectX12\device.hpp" />
+    <ClInclude Include="DirectX12\command_list.hpp" />
+    <ClInclude Include="DirectX12\texture2D_resource.hpp" />
+    <ClInclude Include="DirectX12\constant_resource.hpp" />
+    <ClInclude Include="DirectX12\vertex_index_buffer.hpp" />
+    <ClInclude Include="DirectX12\double_buffer.hpp" />
+    <ClInclude Include="DirectX12\pipeline_state.hpp" />
   </ItemGroup>
 </Project>

@@ -3,8 +3,8 @@
 int main()
 {
 
-	auto hwnd = graphics::create_window(L"aaaaa", 400.f, 400.f);
-	while (graphics::update_window()) {
+	auto hwnd = ichi::create_window(L"aaaaa", 400.f, 400.f);
+	while (ichi::update_window()) {
 
 	}
 

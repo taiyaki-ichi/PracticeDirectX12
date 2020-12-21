@@ -174,9 +174,9 @@ int main()
 
 		r1.draw_command(commandList);
 
-		BarrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-		BarrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-		commandList->ResourceBarrier(1, &BarrierDesc);
+		//BarrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		//BarrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+		//commandList->ResourceBarrier(1, &BarrierDesc);
 
 		
 

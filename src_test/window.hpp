@@ -2,9 +2,8 @@
 #include<Windows.h>
 #include<optional>
 
-namespace graphics
+namespace ichi
 {
-
 	namespace {
 
 		LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
