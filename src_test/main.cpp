@@ -14,22 +14,23 @@ int main()
 	constexpr float window_height = 400.f;
 	auto hwnd = ichi::create_window(L"aaaaa", window_width, window_height);
 
-	ichi::device device{};
-	if (!device.initialize()) {
+	//解放めんどいのでとりあえずスマートポインタ使っておく
+	auto device = std::make_shared<ichi::device>();
+	if (!device->initialize()) {
 		std::cout << "device is failed\n";
 		return 0;
 	}
 
-	auto commList = device.create_command_list();
+	//とりま
+	auto commList = std::shared_ptr<ichi::command_list>(device->create_command_list());
 	if (!commList) {
 		std::cout << "comList is failed\n";
 		return 0;
 	}
 
-	auto doubleBuffer = device.create_double_buffer(hwnd, commList);
+	auto doubleBuffer = std::shared_ptr<ichi::double_buffer>(device->create_double_buffer(hwnd, commList.get()));
 	if (!doubleBuffer) {
 		std::cout << "douebl is failed\n";
-		delete commList;
 		return 0;
 	}
 
@@ -38,11 +39,9 @@ int main()
 	auto pixcShaderBlob = ichi::create_shader_blob(L"shader/PixelShader1.hlsl", "main", "ps_5_0");
 
 	
-	auto pipelineState = device.create_pipline_state(vertShaderBlob,pixcShaderBlob);
+	auto pipelineState = std::shared_ptr<ichi::pipeline_state>(device->create_pipline_state(vertShaderBlob, pixcShaderBlob));
 	if (!pipelineState) {
 		std::cout << "pipe is failed\n";
-		delete commList;
-		delete doubleBuffer;
 		return 0;
 	}
 	
@@ -65,14 +64,16 @@ int main()
 
 	while (ichi::update_window()) {
 
-		doubleBuffer->begin_drawing_to_backbuffer(commList);
+		doubleBuffer->begin_drawing_to_backbuffer(commList.get());
 
 		//コマンドリストのメンバにまとめてしまうか
 		commList->get()->RSSetViewports(1, &viewport);
 		commList->get()->RSSetScissorRects(1, &scissorrect);
 
 
-		doubleBuffer->end_drawing_to_backbuffer(commList);
+
+
+		doubleBuffer->end_drawing_to_backbuffer(commList.get());
 		commList->get()->Close();
 
 		commList->execute();
@@ -84,19 +85,8 @@ int main()
 		
 	}
 
-	if (commList)
-		delete commList;
-	
-	if (doubleBuffer)
-		delete doubleBuffer;
-
 	vertShaderBlob->Release();
 	pixcShaderBlob->Release();
-
-	if (pipelineState)
-		delete pipelineState;
-		
-	
 
 	return 0;
 }
