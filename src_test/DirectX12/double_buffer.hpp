@@ -21,6 +21,10 @@ namespace ichi
 
 		std::array<ID3D12Resource*, 2> m_buffer = { nullptr,nullptr };
 
+		//バッファをインクリメントするようにメモしておく
+		//begin_drawing_to_backbafferでdeviceを参照したくない
+		UINT m_descriptor_handle_increment_size = 0;
+
 	public:
 		double_buffer() = default;
 		~double_buffer();
@@ -30,15 +34,13 @@ namespace ichi
 		//queueはdeviceに持たせるか？？
 		bool initialize(device*,HWND,command_list*);
 
-		//描写開始時のリソースバリア
-		//バックバッファが描写ターゲットになるまで待つ
-		void begin_resource_barrior(command_list*);
-		//描写終了時のリソースバリア
-		//バックバッファへの描写完了を待つ
-		void end_resource_barrior(command_list*);
-
-		//連だーターゲットの取得
-		D3D12_CPU_DESCRIPTOR_HANDLE get_render_target(device*);
+		//バックバッファへの描写を開始する
+		//バックバッファをリソースバリアし、レンダーターゲットに指定
+		//あと、バッファのクリア
+		void begin_drawing_to_backbuffer(command_list*);
+		//バックバッファへの描写を終了する
+		//描写が完了するまでバリアする
+		void end_drawing_to_backbuffer(command_list*);
 
 		//バッファをフリップ
 		void flip();

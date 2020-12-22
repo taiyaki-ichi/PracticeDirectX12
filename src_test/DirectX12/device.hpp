@@ -19,7 +19,8 @@ namespace ichi
 	{
 		ID3D12Device* m_device = nullptr;
 
-		//deveice作るのに必要っぽい
+		//deveice作るのに必要
+		//6とか1とかの数字はいまいち理解していない
 		IDXGIFactory6* m_factory = nullptr;
 		IDXGIAdapter1* m_adaptor = nullptr;
 

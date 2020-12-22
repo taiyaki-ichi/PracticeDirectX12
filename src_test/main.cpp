@@ -65,21 +65,14 @@ int main()
 
 	while (ichi::update_window()) {
 
-		//順番注意
-		//今のところ
-		doubleBuffer->begin_resource_barrior(commList);
-		auto rtvH = doubleBuffer->get_render_target(&device);
-		
-		commList->get()->OMSetRenderTargets(1, &rtvH, false, nullptr);
+		doubleBuffer->begin_drawing_to_backbuffer(commList);
 
-		float clearColor[] = { 1.0f,1.0f,0.0f,1.0f };//黄色
-		commList->get()->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
-
+		//コマンドリストのメンバにまとめてしまうか
 		commList->get()->RSSetViewports(1, &viewport);
 		commList->get()->RSSetScissorRects(1, &scissorrect);
 
-		doubleBuffer->end_resource_barrior(commList);
 
+		doubleBuffer->end_drawing_to_backbuffer(commList);
 		commList->get()->Close();
 
 		commList->execute();
