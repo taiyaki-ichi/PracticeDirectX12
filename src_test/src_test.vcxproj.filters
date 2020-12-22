@@ -3,6 +3,9 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="DirectX12\device.cpp" />
+    <ClCompile Include="DirectX12\command_list.cpp" />
+    <ClCompile Include="DirectX12\double_buffer.cpp" />
+    <ClCompile Include="DirectX12\pipeline_state.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="window.hpp" />
@@ -14,5 +17,13 @@
     <ClInclude Include="DirectX12\vertex_index_buffer.hpp" />
     <ClInclude Include="DirectX12\double_buffer.hpp" />
     <ClInclude Include="DirectX12\pipeline_state.hpp" />
+    <ClInclude Include="DirectX12\shader.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\BasicType.hlsli" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shader\PixelShader1.hlsl" />
+    <FxCompile Include="shader\VertexShader1.hlsl" />
   </ItemGroup>
 </Project>

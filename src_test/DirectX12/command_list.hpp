@@ -28,6 +28,10 @@ namespace ichi
 		bool initialize(device*);
 
 		ID3D12GraphicsCommandList* get();
+		ID3D12CommandQueue* get_queue();
+		ID3D12CommandAllocator* get_allocator();
+
+		void execute();
 
 		//
 		//‚»‚Ì‘¼‚Ìƒƒ“ƒoŠÖ”‚Í“K‹X’Ç‰Á‚µ‚Ä‚¢‚­

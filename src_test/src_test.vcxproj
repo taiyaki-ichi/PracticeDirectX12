@@ -98,6 +98,11 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+      <ShaderType>
+      </ShaderType>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -145,7 +150,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DirectX12\command_list.cpp" />
     <ClCompile Include="DirectX12\device.cpp" />
+    <ClCompile Include="DirectX12\double_buffer.cpp" />
+    <ClCompile Include="DirectX12\pipeline_state.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -155,9 +163,19 @@
     <ClInclude Include="DirectX12\descriptor_heap.hpp" />
     <ClInclude Include="DirectX12\device.hpp" />
     <ClInclude Include="DirectX12\pipeline_state.hpp" />
+    <ClInclude Include="DirectX12\shader.hpp" />
     <ClInclude Include="DirectX12\texture2D_resource.hpp" />
     <ClInclude Include="DirectX12\vertex_index_buffer.hpp" />
     <ClInclude Include="window.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\BasicType.hlsli" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shader\PixelShader1.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shader\VertexShader1.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

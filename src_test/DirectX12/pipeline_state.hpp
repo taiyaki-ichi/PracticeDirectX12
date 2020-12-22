@@ -19,7 +19,9 @@ namespace ichi
 		pipeline_state() = default;
 		~pipeline_state();
 	
-		bool initialize(device*);
+		bool initialize(device*, ID3DBlob* vertexShader, ID3DBlob* pixelShader);
+
+		ID3D12PipelineState* get();
 
 	};
 }

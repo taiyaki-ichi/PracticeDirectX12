@@ -7,11 +7,13 @@
 
 namespace ichi
 {
+	class command_list;
 	class vertex_buffer;
 	class index_buffer;
 	class constant_resource;
 	class texture2D_resource;
 	class double_buffer;
+	class pipeline_state;
 
 	class device
 	{
@@ -27,11 +29,15 @@ namespace ichi
 
 		bool initialize();
 
-		vertex_buffer* create_vertex_buffer(unsigned int size);
-		index_buffer* create_index_buffer(unsigned int size);
-		constant_resource* create_constant_resource(unsigned int size);
-		texture2D_resource* create_texture2D_resource(unsigned int size);
-		double_buffer* create_double_buffer();
+		command_list* create_command_list();
+		double_buffer* create_double_buffer(HWND,command_list*);
+		pipeline_state* create_pipline_state(ID3DBlob* vertexShader, ID3DBlob* pixelShader);
+	
+		//vertex_buffer* create_vertex_buffer(unsigned int size);
+		//index_buffer* create_index_buffer(unsigned int size);
+		//constant_resource* create_constant_resource(unsigned int size);
+		//texture2D_resource* create_texture2D_resource(unsigned int size);
+		
 		
 		ID3D12Device* get();
 
