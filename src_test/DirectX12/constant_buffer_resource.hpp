@@ -1,4 +1,5 @@
 #pragma once
+#include"utility.hpp"
 #include<d3d12.h>
 #include<dxgi1_6.h>
 
@@ -20,17 +21,15 @@ namespace ichi
 		~constant_buffer_resource();
 
 		//device内で使用
-		//sizeはアライメントされた値
+		//アライメントは関数内でやる
 		bool initialize(device*,unsigned int size);
 
 		template<typename T>
-		bool map(T&&) {
-
+		bool map(T&& t) {
+			return ichi::map_func(m_resource, std::forward<T>(t));
 		}
 
 		//ディスクリプタヒープに関連づけるときに使用する
-		ID3D12Resource* get();
-
-
+		ID3D12Resource* get() const noexcept;
 	};
 }

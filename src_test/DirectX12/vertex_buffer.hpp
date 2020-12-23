@@ -24,7 +24,7 @@ namespace ichi
 		//データのマップ
 		template<typename T>
 		bool map(T&& t){
-			return ichi::map(m_resource, std::forward<T>(t));
+			return ichi::map_func(m_resource, std::forward<T>(t));
 		}
 
 		const D3D12_VERTEX_BUFFER_VIEW& get_view() const noexcept;

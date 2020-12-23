@@ -6,6 +6,7 @@
 #include"DirectX12/shader.hpp"
 #include"DirectX12/vertex_buffer.hpp"
 #include"DirectX12/index_buffer.hpp"
+#include"DirectX12/constant_buffer_resource.hpp"
 #include<DirectXMath.h>
 #include<memory>
 
@@ -89,6 +90,13 @@ int main()
 		return 0;
 	}
 	indexBuffer->map(indices);
+
+	//íËêî
+	auto pos = DirectX::XMMatrixIdentity();
+	auto constantBuffer = std::shared_ptr<ichi::constant_buffer_resource>{
+		device->create<ichi::constant_buffer_resource>(sizeof(decltype(pos)))
+	};
+	constantBuffer->map(pos);
 	
 
 	while (ichi::update_window()) {
