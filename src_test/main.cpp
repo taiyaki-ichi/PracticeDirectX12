@@ -4,7 +4,11 @@
 #include"DirectX12/command_list.hpp"
 #include"DirectX12/pipeline_state.hpp"
 #include"DirectX12/shader.hpp"
+#include"DirectX12/vertex_buffer.hpp"
+#include"DirectX12/index_buffer.hpp"
+#include<DirectXMath.h>
 #include<memory>
+
 
 #include<iostream>
 
@@ -21,14 +25,13 @@ int main()
 		return 0;
 	}
 
-	//とりま
-	auto commList = std::shared_ptr<ichi::command_list>(device->create_command_list());
+	auto commList = std::shared_ptr<ichi::command_list>(device->create<ichi::command_list>());
 	if (!commList) {
 		std::cout << "comList is failed\n";
 		return 0;
 	}
 
-	auto doubleBuffer = std::shared_ptr<ichi::double_buffer>(device->create_double_buffer(hwnd, commList.get()));
+	auto doubleBuffer = std::shared_ptr<ichi::double_buffer>(device->create<ichi::double_buffer>(hwnd, commList.get()));
 	if (!doubleBuffer) {
 		std::cout << "douebl is failed\n";
 		return 0;
@@ -38,8 +41,7 @@ int main()
 	auto vertShaderBlob = ichi::create_shader_blob(L"shader/VertexShader1.hlsl", "main", "vs_5_0");
 	auto pixcShaderBlob = ichi::create_shader_blob(L"shader/PixelShader1.hlsl", "main", "ps_5_0");
 
-	
-	auto pipelineState = std::shared_ptr<ichi::pipeline_state>(device->create_pipline_state(vertShaderBlob, pixcShaderBlob));
+	auto pipelineState = std::shared_ptr<ichi::pipeline_state>(device->create<ichi::pipeline_state>(vertShaderBlob, pixcShaderBlob));
 	if (!pipelineState) {
 		std::cout << "pipe is failed\n";
 		return 0;
@@ -59,6 +61,23 @@ int main()
 	scissorrect.left = 0;//切り抜き左座標
 	scissorrect.right = scissorrect.left + window_width;//切り抜き右座標
 	scissorrect.bottom = scissorrect.top + window_height;//切り抜き下座標
+
+
+	struct Vertex {
+		DirectX::XMFLOAT3 pos;//XYZ座標
+		DirectX::XMFLOAT2 uv;//UV座標
+	};
+
+	Vertex vertices[] = {
+		{{-1.f,-1.f,0.0f},{0.0f,1.0f} },//左下
+		{{-1.f,1.f,0.0f} ,{0.0f,0.0f}},//左上
+		{{1.f,-1.f,0.0f} ,{1.0f,1.0f}},//右下
+		{{1.f,1.f,0.0f} ,{1.0f,0.0f}},//右上
+	};
+
+	//auto vertBuffer = std::shared_ptr<ichi::vertex_buffer>{d}
+	
+
 
 	commList->get()->SetPipelineState(pipelineState->get());
 

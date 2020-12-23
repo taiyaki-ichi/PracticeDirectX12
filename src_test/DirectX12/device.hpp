@@ -1,4 +1,6 @@
 #pragma once
+#include<type_traits>
+#include<iostream>
 #include<d3d12.h>
 #include<dxgi1_6.h>
 
@@ -30,15 +32,28 @@ namespace ichi
 
 		bool initialize();
 
-		command_list* create_command_list();
-		double_buffer* create_double_buffer(HWND,command_list*);
-		pipeline_state* create_pipline_state(ID3DBlob* vertexShader, ID3DBlob* pixelShader);
-	
-		//vertex_buffer* create_vertex_buffer(unsigned int size);
-		//index_buffer* create_index_buffer(unsigned int size);
 		//constant_resource* create_constant_resource(unsigned int size);
 		//texture2D_resource* create_texture2D_resource(unsigned int size);
 		
+		template<typename T,typename... Args>
+		T* create(Args... args) {
+			//デフォルト構築が可能
+			static_assert(std::is_default_constructible_v<T>);
+			//メンバ関数にinitializeを持っておりその第一引数はdevice
+			static_assert(std::is_invocable_v<decltype(&T::initialize), T, ichi::device*, Args...>);
+
+			auto t = new T{};
+			if (t->initialize(this, std::forward<Args>(args)...)) {
+				return t;
+			}
+			else {
+				std::cout << "device create is failed ";
+				delete t;
+				return nullptr;
+			}
+		
+		}
+		//std::is_invocable<decltype(&has_member::member_function), has_member*, std::vector<char>>:
 		
 		ID3D12Device* get();
 

@@ -2,6 +2,8 @@
 #include"command_list.hpp"
 #include"double_buffer.hpp"
 #include"pipeline_state.hpp"
+#include"vertex_buffer.hpp"
+#include"index_buffer.hpp"
 #include<array>
 
 #include<iostream>
@@ -77,44 +79,6 @@ namespace ichi
 		std::cout << "D3D12CreateDevice is failed\n";
 
 		return false;
-	}
-
-	command_list* device::create_command_list()
-	{
-		auto commandList = new command_list{};
-		if (commandList->initialize(this))
-			return commandList;
-		else {
-			std::cout << "create_commandlist is failed\n";
-			delete commandList;
-			return nullptr;
-		}
-	}
-
-	double_buffer* device::create_double_buffer(HWND hwnd, command_list* cl)
-	{
-		auto doubleBuffer = new double_buffer{};
-		if (doubleBuffer->initialize(this, hwnd, cl)) {
-			return doubleBuffer;
-		}
-		else {
-			std::cout << "create_double_buffer is failed\n";
-			delete doubleBuffer;
-			return nullptr;
-		}	
-	}
-
-	pipeline_state* device::create_pipline_state(ID3DBlob* vertexShader, ID3DBlob* pixelShader)
-	{
-		auto pipelineState = new pipeline_state{};
-		if (pipelineState->initialize(this,vertexShader,pixelShader)) {
-			return pipelineState;
-		}
-		else {
-			std::cout << "create_pipline_state is failed\n";
-			delete pipelineState;
-			return nullptr;
-		}
 	}
 
 	ID3D12Device* device::get()

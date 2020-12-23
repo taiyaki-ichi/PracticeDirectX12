@@ -6,6 +6,8 @@
     <ClCompile Include="DirectX12\command_list.cpp" />
     <ClCompile Include="DirectX12\double_buffer.cpp" />
     <ClCompile Include="DirectX12\pipeline_state.cpp" />
+    <ClCompile Include="DirectX12\vertex_buffer.cpp" />
+    <ClCompile Include="DirectX12\index_buffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="window.hpp" />
@@ -18,6 +20,9 @@
     <ClInclude Include="DirectX12\double_buffer.hpp" />
     <ClInclude Include="DirectX12\pipeline_state.hpp" />
     <ClInclude Include="DirectX12\shader.hpp" />
+    <ClInclude Include="DirectX12\vertex_buffer.hpp" />
+    <ClInclude Include="DirectX12\utility.hpp" />
+    <ClInclude Include="DirectX12\index_buffer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\BasicType.hlsli" />
