@@ -22,9 +22,9 @@ namespace ichi
 		bool initialize(device*,unsigned int size);
 
 		//データのマップ
-		template<typename Value, size_t N>
-		bool map(const Value(&a)[N]) {
-			return map(m_resource, a[N]);
+		template<typename T>
+		bool map(T&& t) {
+			return ichi::map(m_resource, std::forward<T>(t));
 		}
 
 		const D3D12_INDEX_BUFFER_VIEW& get_view();

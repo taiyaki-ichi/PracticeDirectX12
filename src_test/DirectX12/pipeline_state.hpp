@@ -22,6 +22,7 @@ namespace ichi
 		bool initialize(device*, ID3DBlob* vertexShader, ID3DBlob* pixelShader);
 
 		ID3D12PipelineState* get();
+		ID3D12RootSignature* get_root_signature();
 
 	};
 }

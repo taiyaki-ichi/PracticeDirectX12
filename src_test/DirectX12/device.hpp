@@ -47,13 +47,12 @@ namespace ichi
 				return t;
 			}
 			else {
-				std::cout << "device create is failed ";
+				std::cout << "device create is failed\n";
 				delete t;
 				return nullptr;
 			}
 		
 		}
-		//std::is_invocable<decltype(&has_member::member_function), has_member*, std::vector<char>>:
 		
 		ID3D12Device* get();
 

@@ -75,11 +75,22 @@ int main()
 		{{1.f,1.f,0.0f} ,{1.0f,0.0f}},//右上
 	};
 
-	//auto vertBuffer = std::shared_ptr<ichi::vertex_buffer>{d}
+	auto vertexBuffer = std::shared_ptr<ichi::vertex_buffer>{ device->create<ichi::vertex_buffer>(sizeof(vertices), sizeof(vertices[0])) };
+	if (!vertexBuffer) {
+		std::cout << "vert buffer is failed\n";
+		return 0;
+	}
+	vertexBuffer->map(vertices);
+
+	//インデックス情報
+	unsigned short indices[] = { 0,1,2, 2,1,3 };
+	auto indexBuffer = std::shared_ptr<ichi::index_buffer>{ device->create<ichi::index_buffer>(sizeof(indices)) };
+	if (!indexBuffer) {
+		std::cout << "index buff is failed\n";
+		return 0;
+	}
+	indexBuffer->map(indices);
 	
-
-
-	commList->get()->SetPipelineState(pipelineState->get());
 
 	while (ichi::update_window()) {
 
@@ -89,8 +100,14 @@ int main()
 		commList->get()->RSSetViewports(1, &viewport);
 		commList->get()->RSSetScissorRects(1, &scissorrect);
 
+		commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		commList->get()->IASetVertexBuffers(0, 1, &vertexBuffer->get_view());
+		commList->get()->IASetIndexBuffer(&indexBuffer->get_view());
 
+		commList->get()->SetPipelineState(pipelineState->get());
+		commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
 
+		commList->get()->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
 		doubleBuffer->end_drawing_to_backbuffer(commList.get());
 		commList->get()->Close();

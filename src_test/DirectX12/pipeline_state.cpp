@@ -166,4 +166,8 @@ namespace ichi
 	{
 		return m_pipeline_state;
 	}
+	ID3D12RootSignature* pipeline_state::get_root_signature()
+	{
+		return m_root_signature;
+	}
 }
