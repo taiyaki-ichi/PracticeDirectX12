@@ -7,6 +7,7 @@
 #include"DirectX12/vertex_buffer.hpp"
 #include"DirectX12/index_buffer.hpp"
 #include"DirectX12/constant_buffer_resource.hpp"
+#include"DirectX12/descriptor_heap.hpp"
 #include<DirectXMath.h>
 #include<memory>
 
@@ -91,13 +92,30 @@ int main()
 	}
 	indexBuffer->map(indices);
 
-	//定数
-	auto pos = DirectX::XMMatrixIdentity();
+	//定数バッファ
+	DirectX::XMFLOAT3 eye{ 0,0,5 };
+	DirectX::XMFLOAT3 target{ 0,0,0 };
+	DirectX::XMFLOAT3 up{ 0,1,0 };
+	auto pos = DirectX::XMMatrixLookAtLH(
+		DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
+	pos *= DirectX::XMMatrixPerspectiveFovLH(
+		DirectX::XM_PIDIV2,
+		static_cast<float>(window_width) / static_cast<float>(window_height),
+		1.f,
+		10.f
+		);
 	auto constantBuffer = std::shared_ptr<ichi::constant_buffer_resource>{
 		device->create<ichi::constant_buffer_resource>(sizeof(decltype(pos)))
 	};
+
 	constantBuffer->map(pos);
 	
+	//定数バッファ用のディスクリプタヒープ
+	auto constantBufferDescriptorHeap = std::shared_ptr<ichi::descriptor_heap<ichi::constant_buffer_resource>>{
+		device->create<ichi::descriptor_heap<ichi::constant_buffer_resource>>(ichi::DESCRIPTOR_HEAP_SIZE)
+	};
+
+	constantBufferDescriptorHeap->create_view(device.get(), constantBuffer.get());
 
 	while (ichi::update_window()) {
 
@@ -113,6 +131,9 @@ int main()
 
 		commList->get()->SetPipelineState(pipelineState->get());
 		commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
+
+		commList->get()->SetDescriptorHeaps(1, &constantBufferDescriptorHeap->get());
+		commList->get()->SetGraphicsRootDescriptorTable(0, constantBufferDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
 
 		commList->get()->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
