@@ -14,8 +14,8 @@
 
 int main()
 {
-	constexpr float window_width = 400.f;
-	constexpr float window_height = 400.f;
+	constexpr unsigned int window_width = 800;
+	constexpr unsigned int window_height = 600;
 	auto hwnd = ichi::create_window(L"aaaaa", window_width, window_height);
 
 	//解放めんどいのでとりあえずスマートポインタ使っておく
@@ -74,7 +74,6 @@ int main()
 		{{1.f,-1.f,0.0f} ,{1.0f,1.0f}},//右下
 		{{1.f,1.f,0.0f} ,{1.0f,0.0f}},//右上
 	};
-
 	auto vertexBuffer = std::shared_ptr<ichi::vertex_buffer>{ device->create<ichi::vertex_buffer>(sizeof(vertices), sizeof(vertices[0])) };
 	if (!vertexBuffer) {
 		std::cout << "vert buffer is failed\n";

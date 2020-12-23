@@ -17,7 +17,7 @@ namespace ichi
 	}
 
 	//ウィンドウの作製
-	HWND create_window(const wchar_t* window_name, float width, float height)
+	HWND create_window(const wchar_t* window_name, unsigned int width, unsigned int height)
 	{
 		HINSTANCE hInstance = GetModuleHandle(nullptr);
 
@@ -32,8 +32,9 @@ namespace ichi
 		RegisterClassEx(&wcex);
 
 		//ウィンドウサイズの設定
-		RECT rect{ 0,0,static_cast<LONG>(width),static_cast<LONG>(height) };
-		AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
+		RECT rect{ 0,0,width,height };
+
+		//AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 
 		HWND hwnd = CreateWindow(
 			wcex.lpszClassName,			//クラス名
