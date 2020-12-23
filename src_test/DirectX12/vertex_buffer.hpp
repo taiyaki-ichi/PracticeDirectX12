@@ -27,7 +27,7 @@ namespace ichi
 			return ichi::map(m_resource, std::forward<T>(t));
 		}
 
-		const D3D12_VERTEX_BUFFER_VIEW& get_view();
+		const D3D12_VERTEX_BUFFER_VIEW& get_view() const noexcept;
 	};
 
 

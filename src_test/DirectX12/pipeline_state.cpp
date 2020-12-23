@@ -162,11 +162,11 @@ namespace ichi
 
 		return true;
 	}
-	ID3D12PipelineState* pipeline_state::get()
+	ID3D12PipelineState* pipeline_state::get() const noexcept
 	{
 		return m_pipeline_state;
 	}
-	ID3D12RootSignature* pipeline_state::get_root_signature()
+	ID3D12RootSignature* pipeline_state::get_root_signature() const noexcept
 	{
 		return m_root_signature;
 	}

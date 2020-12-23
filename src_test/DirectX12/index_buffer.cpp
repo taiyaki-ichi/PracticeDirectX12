@@ -48,7 +48,7 @@ namespace ichi
 
 		return true;
 	}
-	const D3D12_INDEX_BUFFER_VIEW& index_buffer::get_view() 
+	const D3D12_INDEX_BUFFER_VIEW& index_buffer::get_view() const noexcept
 	{
 		return m_buffer_view;
 	}

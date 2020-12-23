@@ -12,19 +12,19 @@ namespace ichi
 	//テクスチャのリソース
 	//テクスチャ専用のでスクリプタヒープにViewを作る
 	//ただ、どうやってコピーして作成しようかな。。。
-	class texture2D_resource
+	class texture_shader_resource
 	{
 		ID3D12Resource* m_resource = nullptr;
 
 	public:
-		texture2D_resource() = default;
-		~texture2D_resource();
+		texture_shader_resource() = default;
+		~texture_shader_resource();
 
 		//device内で呼ばれる
 		//テクスチャのコピーもここでやってしまおうか。。。
 		bool initialize(device*,char* fileName);
 
 		//ディスクリプタヒープに関連付けるときに使用
-		ID3D12Resource* get();
+		ID3D12Resource* get() const noexcept;
 	};
 }

@@ -12,8 +12,8 @@ namespace ichi
 	class command_list;
 	class vertex_buffer;
 	class index_buffer;
-	class constant_resource;
-	class texture2D_resource;
+	class constant_buffer_resource;
+	class texture_shader_resource;
 	class double_buffer;
 	class pipeline_state;
 
@@ -54,7 +54,7 @@ namespace ichi
 		
 		}
 		
-		ID3D12Device* get();
+		ID3D12Device* get() const noexcept;
 
 	};
 }

@@ -81,7 +81,7 @@ namespace ichi
 		return false;
 	}
 
-	ID3D12Device* device::get()
+	ID3D12Device* device::get() const noexcept
 	{
 		return m_device;
 	}

@@ -11,13 +11,13 @@ namespace ichi
 
 	//定数バッファ
 	//専用のディスクリプタヒープにViewを作る
-	class constant_resource
+	class constant_buffer_resource
 	{
 		ID3D12Resource* m_resource = nullptr;
 
 	public:
-		constant_resource() = default;
-		~constant_resource();
+		constant_buffer_resource() = default;
+		~constant_buffer_resource();
 
 		//device内で使用
 		//sizeはアライメントされた値
