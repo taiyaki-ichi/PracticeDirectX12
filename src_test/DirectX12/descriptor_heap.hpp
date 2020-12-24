@@ -91,7 +91,7 @@ namespace ichi
 
 			return true;
 		}
-		else if constexpr (std::is_same_v<Value, texture_shader_resource>) {
+		else if constexpr (std::is_same_v<Value, texture_shader_resource_base>) {
 			//テクスチャ
 			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 			srvDesc.Format = resourcePtr->get()->GetDesc().Format;//RGBA(0.0f～1.0fに正規化)

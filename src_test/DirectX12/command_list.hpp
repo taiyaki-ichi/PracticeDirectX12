@@ -8,6 +8,7 @@
 namespace ichi
 {
 	class device;
+	class pipeline_state;
 
 	class command_list
 	{
@@ -31,7 +32,15 @@ namespace ichi
 		ID3D12CommandQueue* get_queue();
 		ID3D12CommandAllocator* get_allocator();
 
+		//コマンドの実行
 		void execute();
+		
+		//コマンドのクリア
+		//引数は初期設定したいパイプラインステート
+		//nullptrでもよい
+		void clear(pipeline_state* pipelineState = nullptr);
+
+
 
 		//
 		//その他のメンバ関数は適宜追加していく

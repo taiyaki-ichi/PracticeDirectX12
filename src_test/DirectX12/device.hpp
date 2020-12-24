@@ -13,7 +13,8 @@ namespace ichi
 	class vertex_buffer;
 	class index_buffer;
 	class constant_buffer_resource;
-	class texture_shader_resource;
+	template<bool>
+	class texture_shader_resource_base;
 	class double_buffer;
 	class pipeline_state;
 

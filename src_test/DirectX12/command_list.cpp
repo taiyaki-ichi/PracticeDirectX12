@@ -1,5 +1,6 @@
 #include"command_list.hpp"
 #include"device.hpp"
+#include"pipeline_state.hpp"
 
 #include<iostream>
 
@@ -79,6 +80,12 @@ namespace ichi
 			// ƒCƒxƒ“ƒg‚ª”­‰Î‚·‚é‚Ü‚Å‘Ò‚Â
 			WaitForSingleObject(m_fence_event, INFINITE);
 		}
+	}
+
+	void command_list::clear(pipeline_state* pipelineState)
+	{
+		m_allocator->Reset();
+		m_list->Reset(m_allocator, pipelineState->get());
 	}
 
 

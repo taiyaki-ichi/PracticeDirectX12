@@ -8,6 +8,7 @@
 #include"DirectX12/index_buffer.hpp"
 #include"DirectX12/constant_buffer_resource.hpp"
 #include"DirectX12/descriptor_heap.hpp"
+#include"DirectX12/texture_shader_resource.hpp"
 #include<DirectXMath.h>
 #include<memory>
 
@@ -117,6 +118,22 @@ int main()
 
 	constantBufferDescriptorHeap->create_view(device.get(), constantBuffer.get());
 
+	auto imageResult = ichi::get_texture(L"../texture/icon.png");
+	if (!imageResult) {
+		std::cout << "image si failed\n";
+		return 0;
+	}
+	auto& [metaData, scratchImage] = imageResult.value();
+
+	auto textureBuffer = std::shared_ptr<ichi::texture_shader_resource>{
+		device->create<ichi::texture_shader_resource>(&metaData,&scratchImage)
+	};
+	auto uploadTextureBuffer = std::shared_ptr<ichi::upload_texture_shader_resource>{
+		device->create<ichi::upload_texture_shader_resource>(&metaData,&scratchImage)
+	};
+
+
+
 	while (ichi::update_window()) {
 
 		doubleBuffer->begin_drawing_to_backbuffer(commList.get());
@@ -142,8 +159,7 @@ int main()
 
 		commList->execute();
 
-		commList->get_allocator()->Reset();
-		commList->get()->Reset(commList->get_allocator(), pipelineState->get());
+		commList->clear(pipelineState.get());
 		
 		doubleBuffer->flip();
 		
