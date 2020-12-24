@@ -9,6 +9,8 @@ namespace ichi
 {
 	class device;
 	class pipeline_state;
+	template<bool>
+	class texture_shader_resource_base;
 
 	class command_list
 	{
@@ -40,7 +42,10 @@ namespace ichi
 		//nullptrでもよい
 		void clear(pipeline_state* pipelineState = nullptr);
 
-
+		//テクスチャをsrcからdstにコピー
+		//executeはしない
+		//clearも
+		void copy_texture(texture_shader_resource_base<true>* src, texture_shader_resource_base<false>* dst);
 
 		//
 		//その他のメンバ関数は適宜追加していく

@@ -1,6 +1,7 @@
 #include"command_list.hpp"
 #include"device.hpp"
 #include"pipeline_state.hpp"
+#include"texture_shader_resource.hpp"
 
 #include<iostream>
 
@@ -85,7 +86,19 @@ namespace ichi
 	void command_list::clear(pipeline_state* pipelineState)
 	{
 		m_allocator->Reset();
-		m_list->Reset(m_allocator, pipelineState->get());
+		ID3D12PipelineState* pipelineStatePtr = (pipelineState) ? pipelineState->get() : nullptr;
+		m_list->Reset(m_allocator, pipelineStatePtr);
+	}
+
+	void command_list::copy_texture(texture_shader_resource_base<true>* src, texture_shader_resource_base<false>* dst)
+	{
+
+		dst->resource_barrier(this, D3D12_RESOURCE_STATE_COPY_DEST);
+
+		m_list->CopyTextureRegion(&dst->get_copy_location(), 0, 0, 0, &src->get_copy_location(), nullptr);
+
+		dst->resource_barrier(this, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
 	}
 
 

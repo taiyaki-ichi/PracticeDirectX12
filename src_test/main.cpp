@@ -11,6 +11,7 @@
 #include"DirectX12/texture_shader_resource.hpp"
 #include<DirectXMath.h>
 #include<memory>
+#include<array>
 
 
 #include<iostream>
@@ -132,8 +133,14 @@ int main()
 		device->create<ichi::upload_texture_shader_resource>(&metaData,&scratchImage)
 	};
 
+	uploadTextureBuffer->map(*scratchImage.GetImage(0, 0, 0));
 
+	commList->copy_texture(uploadTextureBuffer.get(), textureBuffer.get());
+	commList->get()->Close();
+	commList->execute();
+	commList->clear();
 
+	
 	while (ichi::update_window()) {
 
 		doubleBuffer->begin_drawing_to_backbuffer(commList.get());
@@ -164,6 +171,7 @@ int main()
 		doubleBuffer->flip();
 		
 	}
+	
 
 	vertShaderBlob->Release();
 	pixcShaderBlob->Release();
