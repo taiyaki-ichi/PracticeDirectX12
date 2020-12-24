@@ -112,12 +112,12 @@ int main()
 
 	constantBuffer->map(pos);
 	
-	//定数バッファ用のディスクリプタヒープ
-	auto constantBufferDescriptorHeap = std::shared_ptr<ichi::descriptor_heap<ichi::constant_buffer_resource>>{
-		device->create<ichi::descriptor_heap<ichi::constant_buffer_resource>>(ichi::DESCRIPTOR_HEAP_SIZE)
+	//定数バッファとシェーダリソース用のディスクリプタヒープ
+	auto bufferDescriptorHeap = std::shared_ptr<ichi::descriptor_heap>{
+		device->create<ichi::descriptor_heap>(ichi::DESCRIPTOR_HEAP_SIZE)
 	};
 
-	constantBufferDescriptorHeap->create_view(device.get(), constantBuffer.get());
+	bufferDescriptorHeap->create_view(device.get(), constantBuffer.get());
 
 	auto imageResult = ichi::get_texture(L"../texture/icon.png");
 	if (!imageResult) {
@@ -140,7 +140,8 @@ int main()
 	commList->execute();
 	commList->clear();
 
-	
+	bufferDescriptorHeap->create_view(device.get(), textureBuffer.get());
+
 	while (ichi::update_window()) {
 
 		doubleBuffer->begin_drawing_to_backbuffer(commList.get());
@@ -156,8 +157,10 @@ int main()
 		commList->get()->SetPipelineState(pipelineState->get());
 		commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
 
-		commList->get()->SetDescriptorHeaps(1, &constantBufferDescriptorHeap->get());
-		commList->get()->SetGraphicsRootDescriptorTable(0, constantBufferDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
+		commList->get()->SetDescriptorHeaps(1, &bufferDescriptorHeap->get());
+		//commList->get()->SetDescriptorHeaps(2, descriptorHeaps);
+		commList->get()->SetGraphicsRootDescriptorTable(0, bufferDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
+		//commList->get()->SetGraphicsRootDescriptorTable(0, descriptorHeaps[1]->GetGPUDescriptorHandleForHeapStart());
 
 		commList->get()->DrawIndexedInstanced(6, 1, 0, 0, 0);
 

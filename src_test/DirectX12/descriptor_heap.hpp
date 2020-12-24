@@ -1,5 +1,6 @@
 #pragma once
 #include"device.hpp"
+#include"texture_shader_resource.hpp"
 #include<type_traits>
 #include<d3d12.h>
 #include<dxgi1_6.h>
@@ -16,7 +17,6 @@ namespace ichi
 
 	//ConstantBuffer用とShaderResouce用の2つ作る
 	//sapmerはstaticにRootSignatureで設定
-	template<typename Value>
 	class descriptor_heap
 	{
 		ID3D12DescriptorHeap* m_descriptor_heap = nullptr;
@@ -34,6 +34,7 @@ namespace ichi
 		//描写毎に呼び出してビューを作製
 		//テクスチャか定数バッファかで処理が変わる
 		//一つずつ受け入れるようにするか
+		template<typename Value>
 		bool create_view(device* device, Value* resourcePtr);
 
 		//offsetを0にする
@@ -44,14 +45,12 @@ namespace ichi
 
 
 
-	template<typename Value>
-	inline descriptor_heap<Value>::~descriptor_heap(){
+	inline descriptor_heap::~descriptor_heap(){
 		if (m_descriptor_heap)
 			m_descriptor_heap->Release();
 	}
 
-	template<typename Value>
-	inline bool descriptor_heap<Value>::initialize(device* device, unsigned int size)
+	inline bool descriptor_heap::initialize(device* device, unsigned int size)
 	{
 
 		D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc{};
@@ -72,7 +71,7 @@ namespace ichi
 	}
 
 	template<typename Value>
-	inline bool descriptor_heap<Value>::create_view(device* device, Value* resourcePtr)
+	inline bool descriptor_heap::create_view(device* device, Value* resourcePtr)
 	{
 
 		auto heapHandle = m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
@@ -91,7 +90,7 @@ namespace ichi
 
 			return true;
 		}
-		else if constexpr (std::is_same_v<Value, texture_shader_resource_base>) {
+		else if constexpr (std::is_same_v<Value, texture_shader_resource>) {
 			//テクスチャ
 			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 			srvDesc.Format = resourcePtr->get()->GetDesc().Format;//RGBA(0.0f～1.0fに正規化)
@@ -99,7 +98,7 @@ namespace ichi
 			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;//2Dテクスチャ
 			srvDesc.Texture2D.MipLevels = 1;//ミップマップは使用しないので1
 
-			device->get()->CreateShaderResourceView(resourcePtr, //ビューと関連付けるバッファ
+			device->get()->CreateShaderResourceView(resourcePtr->get(), //ビューと関連付けるバッファ
 				&srvDesc, //先ほど設定したテクスチャ設定情報
 				heapHandle//ヒープのどこに割り当てるか
 			);
@@ -112,14 +111,12 @@ namespace ichi
 		return false;
 	}
 
-	template<typename Value>
-	inline void descriptor_heap<Value>::reset() noexcept
+	inline void descriptor_heap::reset() noexcept
 	{
 		m_offset = 0;
 	}
 
-	template<typename Value>
-	inline ID3D12DescriptorHeap*& descriptor_heap<Value>::get() noexcept
+	inline ID3D12DescriptorHeap*& descriptor_heap::get() noexcept
 	{
 		return m_descriptor_heap;
 	}

@@ -19,7 +19,7 @@ namespace ichi
 		D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 		rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
-		//テクスチャと1つの定数
+		//定数とテクスチャ
 		D3D12_DESCRIPTOR_RANGE range[2]{ {},{} };
 		//Constant
 		range[0].NumDescriptors = 1;
