@@ -15,7 +15,7 @@ namespace ichi
 	//仮
 	constexpr unsigned int DESCRIPTOR_HEAP_SIZE = 128;
 
-	//ConstantBuffer用とShaderResouce用の2つ作る
+	//ConstantBuffer用とShaderResouce用
 	//sapmerはstaticにRootSignatureで設定
 	class descriptor_heap
 	{
@@ -34,6 +34,7 @@ namespace ichi
 		//描写毎に呼び出してビューを作製
 		//テクスチャか定数バッファかで処理が変わる
 		//一つずつ受け入れるようにするか
+		//deviceを引数に取るのいやだな
 		template<typename Value>
 		bool create_view(device* device, Value* resourcePtr);
 
@@ -44,31 +45,6 @@ namespace ichi
 	};
 
 
-
-	inline descriptor_heap::~descriptor_heap(){
-		if (m_descriptor_heap)
-			m_descriptor_heap->Release();
-	}
-
-	inline bool descriptor_heap::initialize(device* device, unsigned int size)
-	{
-
-		D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc{};
-		descHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;//シェーダから見えるように
-		descHeapDesc.NodeMask = 0;//マスクは0
-		descHeapDesc.NumDescriptors = size;
-		descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;//シェーダリソースビュー(および定数、UAVも)
-
-		if (FAILED(device->get()->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(&m_descriptor_heap)))) {
-			std::cout << __func__ << " is falied\n";
-			return false;
-		}
-
-		m_size = size;
-		m_increment_size = device->get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-		return true;
-	}
 
 	template<typename Value>
 	inline bool descriptor_heap::create_view(device* device, Value* resourcePtr)
@@ -110,17 +86,6 @@ namespace ichi
 
 		return false;
 	}
-
-	inline void descriptor_heap::reset() noexcept
-	{
-		m_offset = 0;
-	}
-
-	inline ID3D12DescriptorHeap*& descriptor_heap::get() noexcept
-	{
-		return m_descriptor_heap;
-	}
-
 
 
 }

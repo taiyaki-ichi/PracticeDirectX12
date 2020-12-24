@@ -158,9 +158,7 @@ int main()
 		commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
 
 		commList->get()->SetDescriptorHeaps(1, &bufferDescriptorHeap->get());
-		//commList->get()->SetDescriptorHeaps(2, descriptorHeaps);
 		commList->get()->SetGraphicsRootDescriptorTable(0, bufferDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
-		//commList->get()->SetGraphicsRootDescriptorTable(0, descriptorHeaps[1]->GetGPUDescriptorHandleForHeapStart());
 
 		commList->get()->DrawIndexedInstanced(6, 1, 0, 0, 0);
 

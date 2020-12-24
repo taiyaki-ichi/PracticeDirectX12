@@ -9,6 +9,7 @@
     <ClCompile Include="DirectX12\vertex_buffer.cpp" />
     <ClCompile Include="DirectX12\index_buffer.cpp" />
     <ClCompile Include="DirectX12\constant_buffer_resource.cpp" />
+    <ClCompile Include="DirectX12\descriptor_heap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="window.hpp" />

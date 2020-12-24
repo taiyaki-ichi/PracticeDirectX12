@@ -26,7 +26,7 @@ namespace ichi
 
 		template<typename T>
 		bool map(T&& t) {
-			return ichi::map_func(m_resource, std::forward<T>(t));
+			return map_func(m_resource, std::forward<T>(t));
 		}
 
 		//ディスクリプタヒープに関連づけるときに使用する
