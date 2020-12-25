@@ -1,86 +1,90 @@
 #pragma once
-#include<Windows.h>
+#include"device.hpp"
+#include"texture_shader_resource.hpp"
+#include<type_traits>
 #include<d3d12.h>
 #include<dxgi1_6.h>
-#include<DirectXMath.h>
-#include<iostream>
 
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
 
-namespace graphics
+namespace ichi
 {
-	//ディスクリプタヒープの生成
-	inline ID3D12DescriptorHeap* create_basic_descriptor_heap(ID3D12Device* device,unsigned int viewNum)
-	{
-		ID3D12DescriptorHeap* descHeap = nullptr;
-		D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc{};
-		descHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;//シェーダから見えるように
-		descHeapDesc.NodeMask = 0;//マスクは0
-		descHeapDesc.NumDescriptors = viewNum;
-		descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;//シェーダリソースビュー(および定数、UAVも)
+	class device;
 
-		if (FAILED(device->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(&descHeap)))) {
-			std::cout << __func__ << " is falied\n";
-			return nullptr;
+	//仮
+	constexpr unsigned int DESCRIPTOR_HEAP_SIZE = 128;
+
+	//ConstantBuffer用とShaderResouce用
+	//sapmerはstaticにRootSignatureで設定
+	class descriptor_heap
+	{
+		ID3D12DescriptorHeap* m_descriptor_heap = nullptr;
+
+		unsigned int m_size = 0;
+		unsigned int m_offset = 0;
+		unsigned int m_increment_size = 0;
+
+	public:
+		descriptor_heap() = default;
+		~descriptor_heap();
+
+		bool initialize(device* d, unsigned int size);
+
+		//描写毎に呼び出してビューを作製
+		//テクスチャか定数バッファかで処理が変わる
+		//一つずつ受け入れるようにするか
+		//deviceを引数に取るのいやだな
+		template<typename Value>
+		bool create_view(device* device, Value* resourcePtr);
+
+		//offsetを0にする
+		void reset() noexcept;
+
+		ID3D12DescriptorHeap*& get() noexcept;
+	};
+
+
+
+	template<typename Value>
+	inline bool descriptor_heap::create_view(device* device, Value* resourcePtr)
+	{
+
+		auto heapHandle = m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
+		heapHandle.ptr += m_increment_size * m_offset;
+
+		if constexpr (std::is_same_v<Value, constant_buffer_resource>) {
+			//定数バッファ
+			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
+			cbvDesc.BufferLocation = resourcePtr->get()->GetGPUVirtualAddress();
+			cbvDesc.SizeInBytes = static_cast<UINT>(resourcePtr->get()->GetDesc().Width);
+
+			//定数バッファビューの作成
+			device->get()->CreateConstantBufferView(&cbvDesc, heapHandle);
+
+			m_offset++;
+
+			return true;
 		}
-		return descHeap;
-	}
+		else if constexpr (std::is_same_v<Value, texture_shader_resource>) {
+			//テクスチャ
+			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+			srvDesc.Format = resourcePtr->get()->GetDesc().Format;//RGBA(0.0f～1.0fに正規化)
+			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;//2Dテクスチャ
+			srvDesc.Texture2D.MipLevels = 1;//ミップマップは使用しないので1
 
-	//テクスチャ１つと定数１つ
-	inline void set_basic_view(ID3D12Device* device, ID3D12DescriptorHeap* dscHeap, ID3D12Resource* textureBuffer, ID3D12Resource* constBuffer)
-	{
-		//デスクリプタの先頭ハンドルを取得しておく
-		auto basicHeapHandle = dscHeap->GetCPUDescriptorHandleForHeapStart();
+			device->get()->CreateShaderResourceView(resourcePtr->get(), //ビューと関連付けるバッファ
+				&srvDesc, //先ほど設定したテクスチャ設定情報
+				heapHandle//ヒープのどこに割り当てるか
+			);
 
-		auto desc = textureBuffer->GetDesc();
+			m_offset++;
 
-		//テクスチャ
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-		srvDesc.Format = desc.Format;//DXGI_FORMAT_R8G8B8A8_UNORM;//RGBA(0.0f～1.0fに正規化)
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;//後述
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;//2Dテクスチャ
-		srvDesc.Texture2D.MipLevels = 1;//ミップマップは使用しないので1
+			return true;
+		}
 
-		device->CreateShaderResourceView(textureBuffer, //ビューと関連付けるバッファ
-			&srvDesc, //先ほど設定したテクスチャ設定情報
-			dscHeap->GetCPUDescriptorHandleForHeapStart()//ヒープのどこに割り当てるか
-		);
-
-		basicHeapHandle.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-		//定数
-		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
-		cbvDesc.BufferLocation = constBuffer->GetGPUVirtualAddress();
-		cbvDesc.SizeInBytes = static_cast<UINT>(constBuffer->GetDesc().Width);
-		//定数バッファビューの作成
-		device->CreateConstantBufferView(&cbvDesc, basicHeapHandle);
-	}
-
-	//テクスチャのでスクリプタレンジ
-	inline D3D12_DESCRIPTOR_RANGE get_texture_descriptor_range(unsigned int slotNum=0)
-	{
-		D3D12_DESCRIPTOR_RANGE desc{};
-		//テクスチャの数
-		desc.NumDescriptors = 1;
-		desc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		//ゼロ番スロットから
-		desc.BaseShaderRegister = slotNum;
-		desc.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-		return desc;
-	}
-
-	//定数バッファのでぇすくりぷたレンジ
-	inline D3D12_DESCRIPTOR_RANGE get_constant_descriptor_range(unsigned int slotNum)
-	{
-		D3D12_DESCRIPTOR_RANGE desc{};
-		desc.NumDescriptors = 1;
-		desc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-		desc.BaseShaderRegister = slotNum;
-		desc.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-		return desc;
+		return false;
 	}
 
 

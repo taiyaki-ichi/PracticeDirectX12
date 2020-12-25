@@ -1,244 +1,181 @@
 #include"window.hpp"
-#include<iostream>
-#include"DirectX12/init.hpp"
-#include"DirectX12/buffer.hpp"
-#include"DirectX12/draw.hpp"
+#include"DirectX12/device.hpp"
+#include"DirectX12/double_buffer.hpp"
+#include"DirectX12/command_list.hpp"
+#include"DirectX12/pipeline_state.hpp"
 #include"DirectX12/shader.hpp"
-#include"DirectX12/texture.hpp"
+#include"DirectX12/vertex_buffer.hpp"
+#include"DirectX12/index_buffer.hpp"
+#include"DirectX12/constant_buffer_resource.hpp"
 #include"DirectX12/descriptor_heap.hpp"
-#include"DirectX12/rect.hpp"
+#include"DirectX12/texture_shader_resource.hpp"
+#include<DirectXMath.h>
+#include<memory>
+#include<array>
+
+
+#include<iostream>
 
 int main()
 {
+	constexpr unsigned int window_width = 800;
+	constexpr unsigned int window_height = 600;
+	auto hwnd = ichi::create_window(L"aaaaa", window_width, window_height);
+
+	//解放めんどいのでとりあえずスマートポインタ使っておく
+	auto device = std::make_shared<ichi::device>();
+	if (!device->initialize()) {
+		std::cout << "device is failed\n";
+		return 0;
+	}
+
+	auto commList = std::shared_ptr<ichi::command_list>(device->create<ichi::command_list>());
+	if (!commList) {
+		std::cout << "comList is failed\n";
+		return 0;
+	}
+
+	auto doubleBuffer = std::shared_ptr<ichi::double_buffer>(device->create<ichi::double_buffer>(hwnd, commList.get()));
+	if (!doubleBuffer) {
+		std::cout << "douebl is failed\n";
+		return 0;
+	}
+
+	//シェーダ
+	auto vertShaderBlob = ichi::create_shader_blob(L"shader/VertexShader1.hlsl", "main", "vs_5_0");
+	auto pixcShaderBlob = ichi::create_shader_blob(L"shader/PixelShader1.hlsl", "main", "ps_5_0");
+
+	auto pipelineState = std::shared_ptr<ichi::pipeline_state>(device->create<ichi::pipeline_state>(vertShaderBlob, pixcShaderBlob));
+	if (!pipelineState) {
+		std::cout << "pipe is failed\n";
+		return 0;
+	}
 	
-	const wchar_t* WINDOW_NAME = L"aaa";
 
-	constexpr unsigned int WINDOW_WIDTH = 800;
-	constexpr unsigned int WINDOW_HEIGHT = 600;
+	D3D12_VIEWPORT viewport{};
+	viewport.Width = static_cast<float>(window_width);//出力先の幅(ピクセル数)
+	viewport.Height = static_cast<float>(window_height);//出力先の高さ(ピクセル数)
+	viewport.TopLeftX = 0;//出力先の左上座標X
+	viewport.TopLeftY = 0;//出力先の左上座標Y
+	viewport.MaxDepth = 1.0f;//深度最大値
+	viewport.MinDepth = 0.0f;//深度最小値
+	
+	D3D12_RECT scissorrect{};
+	scissorrect.top = 0;//切り抜き上座標
+	scissorrect.left = 0;//切り抜き左座標
+	scissorrect.right = scissorrect.left + window_width;//切り抜き右座標
+	scissorrect.bottom = scissorrect.top + window_height;//切り抜き下座標
 
-	auto hwnd = graphics::create_window(WINDOW_NAME,WINDOW_WIDTH, WINDOW_HEIGHT);
-
-	using namespace graphics;
-
-	init_debug();
-	auto factory = create_dxgi_factory();
-	auto adapter = get_adapter(factory);
-	auto device = create_device(adapter);
-	auto commandAllocator = create_command_allocator(device);
-	auto commandList = create_command_list(device, commandAllocator);
-	auto commandQueue = create_command_queue(device, commandList);
-	auto swapChain = create_swap_chain(factory, commandQueue, hwnd);
-	auto descriptorHeap = create_descriptor_heap(device);
-	auto buffers = create_double_buffer(device, swapChain, descriptorHeap);
-	auto [fence, fenceVal] = create_fence(device);
 
 	struct Vertex {
 		DirectX::XMFLOAT3 pos;//XYZ座標
 		DirectX::XMFLOAT2 uv;//UV座標
 	};
-	
+
 	Vertex vertices[] = {
 		{{-1.f,-1.f,0.0f},{0.0f,1.0f} },//左下
 		{{-1.f,1.f,0.0f} ,{0.0f,0.0f}},//左上
 		{{1.f,-1.f,0.0f} ,{1.0f,1.0f}},//右下
 		{{1.f,1.f,0.0f} ,{1.0f,0.0f}},//右上
 	};
+	auto vertexBuffer = std::shared_ptr<ichi::vertex_buffer>{ device->create<ichi::vertex_buffer>(sizeof(vertices), sizeof(vertices[0])) };
+	if (!vertexBuffer) {
+		std::cout << "vert buffer is failed\n";
+		return 0;
+	}
+	vertexBuffer->map(vertices);
 
-		auto vertBuffer = create_buffer(device, sizeof(vertices));
-		map(vertBuffer, vertices);
-		auto vertBufferView = get_vertex_buffer_view(vertBuffer, sizeof(vertices), sizeof(vertices[0]));
-	
 	//インデックス情報
 	unsigned short indices[] = { 0,1,2, 2,1,3 };
-	auto indexBuffer = create_buffer(device, sizeof(indices));
-	map(indexBuffer, indices);
-	auto indexBufferView = get_index_buffer_view(indexBuffer, sizeof(indices));
+	auto indexBuffer = std::shared_ptr<ichi::index_buffer>{ device->create<ichi::index_buffer>(sizeof(indices)) };
+	if (!indexBuffer) {
+		std::cout << "index buff is failed\n";
+		return 0;
+	}
+	indexBuffer->map(indices);
 
-	//シェーダ
-	auto vertShaderBlob = create_shader_blob(L"shader/VertexShader1.hlsl", "main","vs_5_0");
-	auto pixcShaderBlob = create_shader_blob(L"shader/PixelShader1.hlsl", "main","ps_5_0");
+	//定数バッファ
+	DirectX::XMFLOAT3 eye{ 0,0,5 };
+	DirectX::XMFLOAT3 target{ 0,0,0 };
+	DirectX::XMFLOAT3 up{ 0,1,0 };
+	auto pos = DirectX::XMMatrixLookAtLH(
+		DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
+	pos *= DirectX::XMMatrixPerspectiveFovLH(
+		DirectX::XM_PIDIV2,
+		static_cast<float>(window_width) / static_cast<float>(window_height),
+		1.f,
+		10.f
+		);
+	auto constantBuffer = std::shared_ptr<ichi::constant_buffer_resource>{
+		device->create<ichi::constant_buffer_resource>(sizeof(decltype(pos)))
+	};
 
-	//ルートシグネチャ
-	auto rootSignature = create_root_signature(device);
-
-	//グラフィクスパイプライン
-	auto graphicsPipeline = create_graphics_pipline_state(device, vertShaderBlob, pixcShaderBlob, rootSignature);
-
-	//ビューポート
-	auto viewPort = get_viewport(WINDOW_WIDTH, WINDOW_HEIGHT);
-
-	//シザー矩形
-	auto scissorRect = get_scissor_rect(WINDOW_WIDTH, WINDOW_HEIGHT);
-
-	//
-	//テクスチャ
-	//
-
-	//ないと動かなかった
-	auto hoge = CoInitializeEx(0, COINIT_MULTITHREADED);
-
-	DirectX::TexMetadata metaData{};
-	DirectX::ScratchImage scratch{};
-
-	auto result = LoadFromWICFile(L"../texture/icon.png", DirectX::WIC_FLAGS_NONE, &metaData, scratch);
-	auto image = scratch.GetImage(0, 0, 0);
-
-	//リソース確保
-	auto uploadBuffer = create_texture_unload_buffer(device, image);
-	auto textureBuffer = create_texture_buffer(device, metaData);
-
-	//テクスチャをマップ
-	map(uploadBuffer, image);
+	constantBuffer->map(pos);
 	
-	//location取得
-	auto [uploadLocation, textureLocation] = get_texture_copy_location(device, uploadBuffer, textureBuffer, metaData, image);
+	//定数バッファとシェーダリソース用のディスクリプタヒープ
+	auto bufferDescriptorHeap = std::shared_ptr<ichi::descriptor_heap>{
+		device->create<ichi::descriptor_heap>(ichi::DESCRIPTOR_HEAP_SIZE)
+	};
 
-	//コマンド実行
-	copy_texture(commandAllocator, commandList, commandQueue, fence, fenceVal, uploadLocation, textureLocation);
+	bufferDescriptorHeap->create_view(device.get(), constantBuffer.get());
 
+	auto imageResult = ichi::get_texture(L"../texture/icon.png");
+	if (!imageResult) {
+		std::cout << "image si failed\n";
+		return 0;
+	}
+	auto& [metaData, scratchImage] = imageResult.value();
 
-	//
-	//定数
-	//
-	auto pos = DirectX::XMMatrixIdentity();
-	auto constBuffer = create_buffer(device, (sizeof(DirectX::XMMATRIX) + 0xff) & ~0xff);
-	map(constBuffer, pos);
+	auto textureBuffer = std::shared_ptr<ichi::texture_shader_resource>{
+		device->create<ichi::texture_shader_resource>(&metaData,&scratchImage)
+	};
+	auto uploadTextureBuffer = std::shared_ptr<ichi::upload_texture_shader_resource>{
+		device->create<ichi::upload_texture_shader_resource>(&metaData,&scratchImage)
+	};
 
-	//
-	//ディスクリプタヒープの設定
-	//
-	auto basicDescHeap = create_basic_descriptor_heap(device, 2);
-	set_basic_view(device, basicDescHeap, textureBuffer, constBuffer);
+	uploadTextureBuffer->map(*scratchImage.GetImage(0, 0, 0));
 
-	int frameCnt = 0;
+	commList->copy_texture(uploadTextureBuffer.get(), textureBuffer.get());
+	commList->get()->Close();
+	commList->execute();
+	commList->clear();
 
-	//
-	//ステンシル
-	//
+	bufferDescriptorHeap->create_view(device.get(), textureBuffer.get());
 
+	while (ichi::update_window()) {
 
+		doubleBuffer->begin_drawing_to_backbuffer(commList.get());
 
-	//
-	//
-	//
-	rect r1{ device,WINDOW_WIDTH,WINDOW_HEIGHT };
+		//コマンドリストのメンバにまとめてしまうか
+		commList->get()->RSSetViewports(1, &viewport);
+		commList->get()->RSSetScissorRects(1, &scissorrect);
 
+		commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		commList->get()->IASetVertexBuffers(0, 1, &vertexBuffer->get_view());
+		commList->get()->IASetIndexBuffer(&indexBuffer->get_view());
 
-	while (graphics::process_window_message())
-	{
+		commList->get()->SetPipelineState(pipelineState->get());
+		commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
+
+		commList->get()->SetDescriptorHeaps(1, &bufferDescriptorHeap->get());
+		commList->get()->SetGraphicsRootDescriptorTable(0, bufferDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
+
+		commList->get()->DrawIndexedInstanced(6, 1, 0, 0, 0);
+
+		doubleBuffer->end_drawing_to_backbuffer(commList.get());
+		commList->get()->Close();
+
+		commList->execute();
+
+		commList->clear(pipelineState.get());
 		
-
-		auto bbIdx = swapChain->GetCurrentBackBufferIndex();
-
-		D3D12_RESOURCE_BARRIER BarrierDesc = {};
-		BarrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-		BarrierDesc.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		BarrierDesc.Transition.pResource = buffers[bbIdx];
-		BarrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-		BarrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-		BarrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-
-		commandList->ResourceBarrier(1, &BarrierDesc);
-
-		//commandList->SetPipelineState(graphicsPipeline);
-
+		doubleBuffer->flip();
 		
-		//レンダーターゲットを指定
-		auto rtvH = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
-		rtvH.ptr += static_cast<ULONG_PTR>(bbIdx * device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
-		commandList->OMSetRenderTargets(1, &rtvH, false, nullptr);
-		
-		//画面クリア
-		float clearColor[] = { 1.0f,1.0f,0.0f,1.0f };//黄色
-		commandList->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
-		
-
-		//いろいろ
-		commandList->RSSetViewports(1, &viewPort);
-		commandList->RSSetScissorRects(1, &scissorRect);
-
-		/*
-		//Bufferview
-		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		commandList->IASetVertexBuffers(0, 1, &vertBufferView);
-		commandList->IASetIndexBuffer(&indexBufferView);
-
-		commandList->SetGraphicsRootSignature(rootSignature);
-		commandList->SetDescriptorHeaps(1, &basicDescHeap);
-		commandList->SetGraphicsRootDescriptorTable(0, basicDescHeap->GetGPUDescriptorHandleForHeapStart());
-
-		//インデックスで描写
-		commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
-		*/
-		
-
-		r1.draw_command(commandList);
-
-		//BarrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-		//BarrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-		//commandList->ResourceBarrier(1, &BarrierDesc);
-
-		
-
-
-		//命令のクローズ
-		commandList->Close();
-
-
-		//コマンドリストの実行
-		ID3D12CommandList* cmdlists[] = { commandList };
-		commandQueue->ExecuteCommandLists(1, cmdlists);
-		//待ち
-		commandQueue->Signal(fence, ++fenceVal);
-
-		if (fence->GetCompletedValue() != fenceVal) {
-			auto event = CreateEvent(nullptr, false, false, nullptr);
-			fence->SetEventOnCompletion(fenceVal, event);
-			WaitForSingleObject(event, INFINITE);
-			CloseHandle(event);
-		}
-		commandAllocator->Reset();//キューをクリア
-		commandList->Reset(commandAllocator, graphicsPipeline);//再びコマンドリストをためる準備
-
-
-		//フリップ
-		swapChain->Present(1, 0);
 	}
 	
-	
-	UnregisterClass(WINDOW_NAME, GetModuleHandle(nullptr));
-
-	//factory->Release();
-	//adapter->Release();
-
-	device->Release();
-	commandAllocator->Release();
-	commandList->Release();
-	commandQueue->Release();
-	swapChain->Release();
-	descriptorHeap->Release();
-
-	for (auto b : buffers)
-		b->Release();
-	fence->Release();
-
-	vertBuffer->Release();
-	indexBuffer->Release();
 
 	vertShaderBlob->Release();
 	pixcShaderBlob->Release();
 
-	uploadBuffer->Release();
-	textureBuffer->Release();
-	constBuffer->Release();
-
-	basicDescHeap->Release();
-
-	rootSignature->Release();
-
-	graphicsPipeline->Release();
-
-	
-	
 	return 0;
 }

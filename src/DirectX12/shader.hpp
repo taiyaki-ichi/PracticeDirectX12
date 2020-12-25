@@ -10,15 +10,15 @@
 #pragma comment(lib,"dxgi.lib")
 #pragma comment(lib,"d3dcompiler.lib")
 
-namespace graphics
+namespace ichi
 {
 	//ファイルネームとエントリポイントからシェーダをコンパイルしblobを返す
-	ID3DBlob* create_shader_blob(const wchar_t* fileName, const char* funcName,const char* include)
+	ID3DBlob* create_shader_blob(const wchar_t* fileName, const char* funcName, const char* include)
 	{
 		ID3DBlob* blob = nullptr;
 		ID3DBlob* errorBlob = nullptr;
 
-		auto result= D3DCompileFromFile(
+		auto result = D3DCompileFromFile(
 			fileName,
 			nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 			funcName, include,

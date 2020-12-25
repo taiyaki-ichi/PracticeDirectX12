@@ -2,9 +2,8 @@
 #include<Windows.h>
 #include<optional>
 
-namespace graphics
+namespace ichi
 {
-
 	namespace {
 
 		LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -18,7 +17,7 @@ namespace graphics
 	}
 
 	//ウィンドウの作製
-	HWND create_window(const wchar_t* window_name, float width, float height)
+	HWND create_window(const wchar_t* window_name, unsigned int width, unsigned int height)
 	{
 		HINSTANCE hInstance = GetModuleHandle(nullptr);
 
@@ -34,7 +33,8 @@ namespace graphics
 
 		//ウィンドウサイズの設定
 		RECT rect{ 0,0,static_cast<LONG>(width),static_cast<LONG>(height) };
-		AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
+
+		//AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 
 		HWND hwnd = CreateWindow(
 			wcex.lpszClassName,			//クラス名
@@ -57,12 +57,12 @@ namespace graphics
 	}
 
 	//メッセージの処理
-	bool process_window_message()
+	bool update_window()
 	{
 		MSG msg;
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 			DispatchMessage(&msg);
-		
+
 		//終了のメッセージならばfalse
 		if (msg.message == WM_QUIT)
 			return false;
