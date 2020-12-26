@@ -119,13 +119,13 @@ namespace ichi
 	template<typename StringType>
 	struct pmx_material
 	{
-		StringType m_name;
-		StringType m_name_eng;
+		StringType m_name{};
+		StringType m_name_eng{};
 
-		DirectX::XMFLOAT4 m_diffuse;
-		DirectX::XMFLOAT3 m_specular;
+		DirectX::XMFLOAT4 m_diffuse{};
+		DirectX::XMFLOAT3 m_specular{};
 		float m_specularity;
-		DirectX::XMFLOAT3 m_ambient;
+		DirectX::XMFLOAT3 m_ambient{};
 
 		//描画フラグ
 		//左のbitから、両面描画、地面影、セルフシャドウマップへの描画
@@ -133,29 +133,90 @@ namespace ichi
 		unsigned char m_drawing_flag;
 
 		//エッジ色(R,G,B,A)
-		DirectX::XMFLOAT4 m_edge_color;
+		DirectX::XMFLOAT4 m_edge_color{};
 		//エッジサイズ
 		float m_edge_size;
 
 		//通常テクスチャ、テクスチャテーブルの参照Index
-		unsigned int m_texture_index_size_1;
+		int m_texture_index_size_1;
 		//スフィアテクスチャ、テクスチャテーブルの参照Index（テクスチャの拡張子の制限なし）
-		unsigned int m_texture_index_size_2;
+		int m_texture_index_size_2;
 		//スフィアモード
 		//０：無向　１：乗算　２：加算　３：サブテクスチャ
 		unsigned char m_sphere_mode;
 
 		//unsigned intなら個別toon、unsigned charなら共有toon
 		//一応、型で識別できるようにしておく
-		std::variant<unsigned int, unsigned char> m_toon;
+		std::variant<unsigned int, unsigned char> m_toon{};
 		//unsigned int m_toon;
 
 		//メモ、自由欄
-		StringType m_memo;
+		StringType m_memo{};
 
 		//材質に対応する面（頂点）数（必ず3の倍数）
 		int m_vertex_num;
 
+	};
+
+	//ボーン
+	template<typename StringType>
+	struct pmx_born
+	{
+		StringType m_name{};
+		StringType m_name_eng{};
+
+		//位置
+		DirectX::XMFLOAT3 m_position{};
+		//親ボーンのインデックス
+		int m_parent_index;
+		//変形階層
+		int m_transformation_level;
+
+		//ボーンフラグ
+		unsigned short m_flag;
+
+		//座標のおっふせっと、ボーンの位置からの相対分
+		DirectX::XMFLOAT3 m_offset;
+		//接続先ビーンのボーンIndex
+		int m_children_index;
+		//付与親ボーンのボーンIndex
+		int m_impart_parent_index;
+		//付与率
+		float m_impart_rate;
+		//固定軸の方向ベクトル
+		DirectX::XMFLOAT3 m_fixed_axis;
+		//ローカルのX軸の方向ベクトル
+		DirectX::XMFLOAT3 m_local_axis_x;
+		//ローカルのZ軸の方向ベクトル
+		DirectX::XMFLOAT3 m_local_axis_y;
+		//外部親変形
+		int m_external_parent_key;
+
+		//IKターゲットボーンのボーンIndex
+		int m_IK_target_index;
+		//IKループ回数
+		int m_IK_loop_count;
+		//IKるうーぷ計算時の1回当たりの制限角度
+		float m_IK_unit_angle;
+		struct IK_link {
+			int m_index;
+			unsigned char m_exist_angle_limited;
+			DirectX::XMFLOAT3 m_limit_angle_min;
+			DirectX::XMFLOAT3 m_limit_angle_max;
+		};
+		std::vector<IK_link> m_IK_link;
+
+	};
+
+	enum bone_flag_mask
+	{
+		ACCESS_POINT = 0x0001,
+		IK = 0x0020,
+		IMPART_TRANSLATION = 0x0100,
+		IMPART_ROTATION = 0x0200,
+		AXIS_FIXING = 0x0400,
+		LOCAL_AXIS = 0x0800,
+		EXTERNAL_PARENT_TRANS = 0x2000,
 	};
 
 	inline bool load_pmx(const char* fileName) {
@@ -387,6 +448,86 @@ namespace ichi
 		//}
 
 		
+		std::vector<pmx_born<std::wstring>> bone{};
+		{
+			int boneNum;
+			read_binary_from_file(file, &boneNum);
+
+			bone.resize(boneNum);
+
+			int size;
+
+			for (int i = 0; i < boneNum; i++)
+			{
+				//名前
+				read_binary_from_file(file, &size);
+				bone[i].m_name.resize(size);
+				read_binary_from_file(file, &bone[i].m_name[0], size);
+				read_binary_from_file(file, &size);
+				bone[i].m_name_eng.resize(size);
+				read_binary_from_file(file, &bone[i].m_name_eng[0], size);
+
+				read_binary_from_file(file, &bone[i].m_position);
+				read_binary_from_file(file, &bone[i].m_parent_index, header.m_data[pmx_header::data_index::BONE_INDEX_SIZE]);
+				if (boneNum <= bone[i].m_parent_index)
+					bone[i].m_parent_index = -1;
+				read_binary_from_file(file, &bone[i].m_transformation_level);
+				read_binary_from_file(file, &bone[i].m_flag);
+
+				if (bone[i].m_flag & bone_flag_mask::ACCESS_POINT) 
+				{
+					read_binary_from_file(file, &bone[i].m_children_index, header.m_data[pmx_header::data_index::BONE_INDEX_SIZE]);
+				}
+				else 
+				{
+					read_binary_from_file(file, &bone[i].m_offset);
+				}
+				if ((bone[i].m_flag & bone_flag_mask::IMPART_TRANSLATION) ||
+					(bone[i].m_flag & bone_flag_mask::IMPART_ROTATION)) 
+				{
+					read_binary_from_file(file, &bone[i].m_impart_parent_index, header.m_data[pmx_header::data_index::BONE_INDEX_SIZE]);
+					read_binary_from_file(file, &bone[i].m_impart_rate);
+				}
+				if (bone[i].m_flag & bone_flag_mask::AXIS_FIXING)
+				{
+					read_binary_from_file(file, &bone[i].m_fixed_axis);
+				}
+				if (bone[i].m_flag & bone_flag_mask::LOCAL_AXIS)
+				{
+					read_binary_from_file(file, &bone[i].m_local_axis_x);
+					read_binary_from_file(file, &bone[i].m_local_axis_y);
+				}
+				if (bone[i].m_flag & bone_flag_mask::EXTERNAL_PARENT_TRANS)
+				{
+					read_binary_from_file(file, &bone[i].m_external_parent_key);
+				}
+				if (bone[i].m_flag & bone_flag_mask::IK)
+				{
+					read_binary_from_file(file, &bone[i].m_IK_target_index, header.m_data[pmx_header::data_index::BONE_INDEX_SIZE]);
+					read_binary_from_file(file, &bone[i].m_IK_loop_count);
+					read_binary_from_file(file, &bone[i].m_IK_unit_angle);
+					read_binary_from_file(file, &size);
+					
+					bone[i].m_IK_link.resize(size);
+
+					for (int j = 0; j < size; j++)
+					{
+						read_binary_from_file(file, &bone[i].m_IK_link[j].m_index, header.m_data[pmx_header::data_index::BONE_INDEX_SIZE]);
+						read_binary_from_file(file, &bone[i].m_IK_link[j].m_exist_angle_limited);
+						if (bone[i].m_IK_link[j].m_exist_angle_limited == 1)
+						{
+							read_binary_from_file(file, &bone[i].m_IK_link[j].m_limit_angle_min);
+							read_binary_from_file(file, &bone[i].m_IK_link[j].m_limit_angle_max);
+						}
+
+					}
+
+				}
+
+			}
+
+		}
+
 
 		return true;
 	}
