@@ -18,45 +18,11 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="DirectX12\command_list.cpp" />
-    <ClCompile Include="DirectX12\constant_buffer_resource.cpp" />
-    <ClCompile Include="DirectX12\descriptor_heap.cpp" />
-    <ClCompile Include="DirectX12\device.cpp" />
-    <ClCompile Include="DirectX12\double_buffer.cpp" />
-    <ClCompile Include="DirectX12\index_buffer.cpp" />
-    <ClCompile Include="DirectX12\pipeline_state.cpp" />
-    <ClCompile Include="DirectX12\vertex_buffer.cpp" />
-    <ClCompile Include="main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="DirectX12\command_list.hpp" />
-    <ClInclude Include="DirectX12\constant_buffer_resource.hpp" />
-    <ClInclude Include="DirectX12\descriptor_heap.hpp" />
-    <ClInclude Include="DirectX12\device.hpp" />
-    <ClInclude Include="DirectX12\double_buffer.hpp" />
-    <ClInclude Include="DirectX12\index_buffer.hpp" />
-    <ClInclude Include="DirectX12\pipeline_state.hpp" />
-    <ClInclude Include="DirectX12\shader.hpp" />
-    <ClInclude Include="DirectX12\texture_shader_resource.hpp" />
-    <ClInclude Include="DirectX12\utility.hpp" />
-    <ClInclude Include="DirectX12\vertex_buffer.hpp" />
-    <ClInclude Include="window.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="shader\BasicType.hlsli" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="shader\PixelShader1.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="shader\VertexShader1.hlsl" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{f4107366-ae45-4dd5-8947-cbaa7c77c3cf}</ProjectGuid>
-    <RootNamespace>src</RootNamespace>
+    <ProjectGuid>{acb2fe9e-1999-4a4e-beaa-284cbd1a5dda}</ProjectGuid>
+    <RootNamespace>loadmmd</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -106,13 +72,9 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Program Files\DirectXTex;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\DirectXTex\Bin\Desktop_2019_Win10\Win32\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Program Files\DirectXTex;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\DirectXTex\Bin\Desktop_2019_Win10\Win32\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -132,10 +94,6 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <FxCompile>
-      <EntryPointName>main</EntryPointName>
-      <ShaderModel>5.0</ShaderModel>
-    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -145,7 +103,6 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -160,7 +117,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -175,7 +131,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -184,6 +139,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="load_pmx.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
