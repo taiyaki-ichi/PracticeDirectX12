@@ -19,5 +19,7 @@ int main()
 	_pclose(gnu);
 
 	*/
+
+	std::wstring{L""};
 	return 0;
 }

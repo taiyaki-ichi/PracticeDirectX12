@@ -44,7 +44,7 @@ namespace ichi
 	//CharTypeはcharかwchar_tを想定
 	//pmd_header.m_byte[0]が0なら文字コードはUTF16なのでwchar_t
 	//1ならUTF8なのでchar
-	template<typename CharType>
+	template<typename StringType>
 	struct pmx_model_info
 	{
 		//それぞれ最大値はとりあえず
@@ -57,7 +57,7 @@ namespace ichi
 			COMMENT_ENG
 		};
 
-		CharType m_data[4];
+		StringType m_data[4];
 	};
 
 
@@ -113,6 +113,49 @@ namespace ichi
 	//面！
 	struct pmx_surface {
 		int m_vertex_index;
+	};
+
+	//マテリアル
+	template<typename StringType>
+	struct pmx_material
+	{
+		StringType m_name;
+		StringType m_name_eng;
+
+		DirectX::XMFLOAT4 m_diffuse;
+		DirectX::XMFLOAT3 m_specular;
+		float m_specularity;
+		DirectX::XMFLOAT3 m_ambient;
+
+		//描画フラグ
+		//左のbitから、両面描画、地面影、セルフシャドウマップへの描画
+		//セルフシャドウの描画、エッジ描画、の順
+		unsigned char m_drawing_flag;
+
+		//エッジ色(R,G,B,A)
+		DirectX::XMFLOAT4 m_edge_color;
+		//エッジサイズ
+		float m_edge_size;
+
+		//通常テクスチャ、テクスチャテーブルの参照Index
+		unsigned int m_texture_index_size_1;
+		//スフィアテクスチャ、テクスチャテーブルの参照Index（テクスチャの拡張子の制限なし）
+		unsigned int m_texture_index_size_2;
+		//スフィアモード
+		//０：無向　１：乗算　２：加算　３：サブテクスチャ
+		unsigned char m_sphere_mode;
+
+		//unsigned intなら個別toon、unsigned charなら共有toon
+		//一応、型で識別できるようにしておく
+		std::variant<unsigned int, unsigned char> m_toon;
+		//unsigned int m_toon;
+
+		//メモ、自由欄
+		StringType m_memo;
+
+		//材質に対応する面（頂点）数（必ず3の倍数）
+		int m_vertex_num;
+
 	};
 
 	inline bool load_pmx(const char* fileName) {
@@ -277,7 +320,71 @@ namespace ichi
 			}
 		}
 		
+		
 
+		//マテリアル
+		std::vector<pmx_material<std::wstring>> material{};
+		{	
+			int materialNum;
+			read_binary_from_file(file, &materialNum);
+
+			material.resize(materialNum);
+
+			for (int i = 0; i < materialNum; i++) {
+
+				int size;
+
+				//名前
+				read_binary_from_file(file, &size);
+				material[i].m_name.resize(size);
+				read_binary_from_file(file, &material[i].m_name[0], size);
+				read_binary_from_file(file, &size);
+				material[i].m_name_eng.resize(size);
+				read_binary_from_file(file, &material[i].m_name_eng[0], size);
+
+				//それぞれ
+				read_binary_from_file(file, &material[i].m_diffuse);
+				read_binary_from_file(file, &material[i].m_specular);
+				read_binary_from_file(file, &material[i].m_specularity);
+				read_binary_from_file(file, &material[i].m_ambient);
+
+				//描画フラグ
+				read_binary_from_file(file, &material[i].m_drawing_flag);
+
+				//エッジ
+				read_binary_from_file(file, &material[i].m_edge_color);
+				read_binary_from_file(file, &material[i].m_edge_size);
+
+				read_binary_from_file(file, &material[i].m_texture_index_size_1, 
+					header.m_data[pmx_header::data_index::TEXTURE_INDEX_SIZE]);
+				read_binary_from_file(file, &material[i].m_texture_index_size_2,
+					header.m_data[pmx_header::data_index::TEXTURE_INDEX_SIZE]);
+				read_binary_from_file(file, &material[i].m_sphere_mode);
+
+				unsigned char toonFlag;
+				read_binary_from_file(file, &toonFlag);
+				if (!toonFlag) {
+					unsigned int foo;
+					read_binary_from_file(file, &foo, header.m_data[pmx_header::data_index::TEXTURE_INDEX_SIZE]);
+					material[i].m_toon = foo;
+				}
+				else {
+					unsigned char foo;
+					read_binary_from_file(file, &foo);
+					material[i].m_toon = foo;
+				}
+
+				read_binary_from_file(file, &size);
+				material[i].m_memo.resize(size);
+				read_binary_from_file(file, &material[i].m_memo[0], size);
+
+				read_binary_from_file(file, &material[i].m_vertex_num);
+			}
+		}
+
+		//for (int i = 0; i < 5; i++) {
+			//std::wcout << material[i].m_name << "\n";
+		//}
 
 		
 
