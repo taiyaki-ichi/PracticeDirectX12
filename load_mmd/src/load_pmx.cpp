@@ -41,13 +41,13 @@ namespace MMDL
 
 			return pmx_model<std::wstring>{
 				std::move(header),
-				std::move(modelInfo),
-				std::move(vertex),
-				std::move(surface),
-				std::move(texturePath),
-				std::move(material),
-				std::move(born)
-				};
+					std::move(modelInfo),
+					std::move(vertex),
+					std::move(surface),
+					std::move(texturePath),
+					std::move(material),
+					std::move(born)
+			};
 		}
 		//UTF8
 		else if (header.m_data[pmx_header::data_index::ENCODING_FORMAT] == 0)
@@ -68,7 +68,7 @@ namespace MMDL
 		}
 
 		return std::nullopt;
-	
+
 	}
 
 }

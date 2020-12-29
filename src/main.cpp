@@ -9,9 +9,12 @@
 #include"DirectX12/constant_buffer_resource.hpp"
 #include"DirectX12/descriptor_heap.hpp"
 #include"DirectX12/texture_shader_resource.hpp"
+#include"include/load_pmx.hpp"
+#include"my_vertex.hpp"
 #include<DirectXMath.h>
 #include<memory>
 #include<array>
+
 
 
 #include<iostream>
@@ -119,6 +122,8 @@ int main()
 
 	bufferDescriptorHeap->create_view(device.get(), constantBuffer.get());
 
+
+	/*
 	auto imageResult = ichi::get_texture(L"../texture/icon.png");
 	if (!imageResult) {
 		std::cout << "image si failed\n";
@@ -141,6 +146,20 @@ int main()
 	commList->clear();
 
 	bufferDescriptorHeap->create_view(device.get(), textureBuffer.get());
+
+	*/
+
+	
+	auto modelIf = MMDL::load_pmx("../../mmd/Paimon/”h–Ö.pmx");
+	if (modelIf)
+	{
+		auto&& model = modelIf.value();
+	}
+	else {
+		std::cout << "model loaf failed\n";
+	}
+	
+
 
 	while (ichi::update_window()) {
 

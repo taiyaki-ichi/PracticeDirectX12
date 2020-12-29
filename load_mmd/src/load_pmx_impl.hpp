@@ -34,8 +34,8 @@ namespace MMDL
 		using ResultType = std::tuple<
 			pmx_info<StringType>,
 			std::vector<pmx_vertex>,
-			std::vector<pmx_surface>, 
-			std::vector<StringType>, 
+			std::vector<pmx_surface>,
+			std::vector<StringType>,
 			std::vector<pmx_material<StringType>>,
 			std::vector<pmx_born<StringType>>
 		>;
@@ -45,7 +45,7 @@ namespace MMDL
 	//ト、思ったけどインターフェース側の戻り値どうするかな
 	//文字列の型が違うだけだからvariant使うかな
 	template<typename StringType>
-	inline ResultType<StringType> load_pmx_impl(std::ifstream& file,const pmx_header& header,const char* fileName)
+	inline ResultType<StringType> load_pmx_impl(std::ifstream& file, const pmx_header& header, const char* fileName)
 	{
 		//
 		//モデルの情報

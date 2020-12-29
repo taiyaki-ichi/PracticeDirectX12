@@ -19,6 +19,6 @@ namespace MMDL
 	//wstring‚©‚çstring‚Ö
 	std::string to_string(const std::wstring& str);
 
-	
+
 
 }

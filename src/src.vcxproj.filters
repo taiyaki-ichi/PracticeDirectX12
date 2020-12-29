@@ -24,6 +24,7 @@
     <ClInclude Include="DirectX12\utility.hpp" />
     <ClInclude Include="DirectX12\vertex_buffer.hpp" />
     <ClInclude Include="window.hpp" />
+    <ClInclude Include="my_vertex.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\BasicType.hlsli" />
