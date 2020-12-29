@@ -22,7 +22,7 @@ namespace ichi
 	//my_vertex‚Ì¶¬
 	inline std::vector<my_vertex> generate_my_vertex(const std::vector<MMDL::pmx_vertex>& vertex)
 	{
-		std::vector<my_vertex> result(vertex.size());
+		std::vector<my_vertex> result;
 
 		auto func = [](const MMDL::pmx_vertex& v) -> my_vertex {
 			return { v.m_position,v.m_normal,v.m_uv };
@@ -32,6 +32,10 @@ namespace ichi
 
 		return result;
 	}
+
+	struct my_surface {
+		unsigned short m_vertex_index;
+	};
 
 
 }

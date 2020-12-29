@@ -53,7 +53,7 @@ int main()
 		std::cout << "pipe is failed\n";
 		return 0;
 	}
-	
+
 
 	D3D12_VIEWPORT viewport{};
 	viewport.Width = static_cast<float>(window_width);//出力先の幅(ピクセル数)
@@ -62,13 +62,14 @@ int main()
 	viewport.TopLeftY = 0;//出力先の左上座標Y
 	viewport.MaxDepth = 1.0f;//深度最大値
 	viewport.MinDepth = 0.0f;//深度最小値
-	
+
 	D3D12_RECT scissorrect{};
 	scissorrect.top = 0;//切り抜き上座標
 	scissorrect.left = 0;//切り抜き左座標
 	scissorrect.right = scissorrect.left + window_width;//切り抜き右座標
 	scissorrect.bottom = scissorrect.top + window_height;//切り抜き下座標
 
+	/*
 
 	struct Vertex {
 		DirectX::XMFLOAT3 pos;//XYZ座標
@@ -87,6 +88,9 @@ int main()
 		return 0;
 	}
 	vertexBuffer->map(vertices);
+	*/
+
+	/*
 
 	//インデックス情報
 	unsigned short indices[] = { 0,1,2, 2,1,3 };
@@ -96,10 +100,11 @@ int main()
 		return 0;
 	}
 	indexBuffer->map(indices);
+	*/
 
 	//定数バッファ
-	DirectX::XMFLOAT3 eye{ 0,0,5 };
-	DirectX::XMFLOAT3 target{ 0,0,0 };
+	DirectX::XMFLOAT3 eye{ 0,5,-5 };
+	DirectX::XMFLOAT3 target{ 0,5,0 };
 	DirectX::XMFLOAT3 up{ 0,1,0 };
 	auto pos = DirectX::XMMatrixLookAtLH(
 		DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
@@ -107,14 +112,14 @@ int main()
 		DirectX::XM_PIDIV2,
 		static_cast<float>(window_width) / static_cast<float>(window_height),
 		1.f,
-		10.f
-		);
+		100.f
+	);
 	auto constantBuffer = std::shared_ptr<ichi::constant_buffer_resource>{
 		device->create<ichi::constant_buffer_resource>(sizeof(decltype(pos)))
 	};
 
 	constantBuffer->map(pos);
-	
+
 	//定数バッファとシェーダリソース用のディスクリプタヒープ
 	auto bufferDescriptorHeap = std::shared_ptr<ichi::descriptor_heap>{
 		device->create<ichi::descriptor_heap>(ichi::DESCRIPTOR_HEAP_SIZE)
@@ -149,17 +154,53 @@ int main()
 
 	*/
 
-	
+	//
+	//mmdモデルの頂点情報
+	//頂点レイアウトとシェーダを変更するので注意
+	//
+	//モデルの読み込み
+	//
+	std::vector<ichi::my_vertex> mmdVertex{};
+	std::vector<ichi::my_surface> mmdSurface{};
 	auto modelIf = MMDL::load_pmx("../../mmd/Paimon/派蒙.pmx");
 	if (modelIf)
 	{
 		auto&& model = modelIf.value();
+
+		std::visit([&mmdVertex](auto& m) {
+			mmdVertex = ichi::generate_my_vertex(m.m_vertex);
+			}, model);
+
+		std::visit([&mmdSurface](auto& m) {
+			for (auto& tmp : m.m_surface)
+				mmdSurface.emplace_back(ichi::my_surface{ static_cast<unsigned short>(tmp.m_vertex_index) });
+			}, model);
 	}
 	else {
 		std::cout << "model loaf failed\n";
+		return 0;
 	}
-	
 
+	//
+	//頂点
+	//
+	//要素数×要素当たりのサイズ、じゃあないと動かなかった
+	auto mmdVertexBuffer = std::shared_ptr<ichi::vertex_buffer>{ device->create<ichi::vertex_buffer>(mmdVertex.size() * sizeof(mmdVertex[0]), sizeof(mmdVertex[0])) };
+	if (!mmdVertexBuffer) {
+		std::cout << "vert buffer is failed\n";
+		return 0;
+	}
+	mmdVertexBuffer->map(mmdVertex);
+
+	//
+	//インデックス
+	//
+	auto mmdIndexBuffer = std::shared_ptr<ichi::index_buffer>{ device->create<ichi::index_buffer>(mmdSurface.size() * sizeof(mmdSurface[0])) };
+	if (!mmdIndexBuffer) {
+		std::cout << "index buffer is failed\n";
+		return 0;
+	}
+	mmdIndexBuffer->map(mmdSurface);
 
 	while (ichi::update_window()) {
 
@@ -170,8 +211,11 @@ int main()
 		commList->get()->RSSetScissorRects(1, &scissorrect);
 
 		commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		commList->get()->IASetVertexBuffers(0, 1, &vertexBuffer->get_view());
-		commList->get()->IASetIndexBuffer(&indexBuffer->get_view());
+		//commList->get()->IASetVertexBuffers(0, 1, &vertexBuffer->get_view());
+		//commList->get()->IASetIndexBuffer(&indexBuffer->get_view());
+
+		commList->get()->IASetVertexBuffers(0, 1, &mmdVertexBuffer->get_view());
+		commList->get()->IASetIndexBuffer(&mmdIndexBuffer->get_view());
 
 		commList->get()->SetPipelineState(pipelineState->get());
 		commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
@@ -179,7 +223,9 @@ int main()
 		commList->get()->SetDescriptorHeaps(1, &bufferDescriptorHeap->get());
 		commList->get()->SetGraphicsRootDescriptorTable(0, bufferDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
 
-		commList->get()->DrawIndexedInstanced(6, 1, 0, 0, 0);
+		//commList->get()->DrawIndexedInstanced(6, 1, 0, 0, 0);
+		//commList->get()->DrawInstanced(mmdVertex.size(), 1, 0, 0);
+		commList->get()->DrawIndexedInstanced(mmdSurface.size(), 1, 0, 0, 0);
 
 		doubleBuffer->end_drawing_to_backbuffer(commList.get());
 		commList->get()->Close();
@@ -187,11 +233,11 @@ int main()
 		commList->execute();
 
 		commList->clear(pipelineState.get());
-		
+
 		doubleBuffer->flip();
-		
+
 	}
-	
+
 
 	vertShaderBlob->Release();
 	pixcShaderBlob->Release();

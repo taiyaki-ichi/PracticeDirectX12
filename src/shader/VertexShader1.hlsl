@@ -6,7 +6,7 @@ cbuffer cbuff0 : register(b0) {
 };
 
 //頂点シェーダ
-BasicType main(float4 pos : POSITION, float2 uv : TEXCOORD) {
+BasicType main(float4 pos : POSITION, float4 normal : NORMAL, float2 uv : TEXCOORD) {
 	BasicType output;//ピクセルシェーダへ渡す値
 	output.svpos = mul(mat, pos);
 	//output.svpos = pos;

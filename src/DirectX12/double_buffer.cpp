@@ -109,7 +109,7 @@ namespace ichi
 
 		//バックバッファのクリア
 		//とりあえず黄色で
-		float clearColor[] = { 1.0f,1.0f,0.0f,1.0f };//黄色
+		float clearColor[] = { 1.0f,1.0f,1.0f,1.0f };//黄色
 		cl->get()->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
 
 
