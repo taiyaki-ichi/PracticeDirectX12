@@ -2,7 +2,7 @@
 #include<fstream>
 #include<string>
 
-namespace ichi
+namespace MMDL
 {
 	//ファイルからバイナリを読み込む
 	template<typename T>

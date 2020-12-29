@@ -3,7 +3,7 @@
 #include<vector>
 #include<variant>
 
-namespace ichi
+namespace MMDL
 {
 
 	struct pmx_header

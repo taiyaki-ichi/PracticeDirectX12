@@ -5,7 +5,7 @@
 #include"load_pmx_impl.hpp"
 
 
-namespace ichi
+namespace MMDL
 {
 
 

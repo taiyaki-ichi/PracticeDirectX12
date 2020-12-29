@@ -2,7 +2,7 @@
 
 int main()
 {
-	auto modelIf = ichi::load_pmx("../../mmd/Paimon/”h–Ö.pmx");
+	auto modelIf = MMDL::load_pmx("../../mmd/Paimon/”h–Ö.pmx");
 
 	auto&& model = modelIf.value();
 	

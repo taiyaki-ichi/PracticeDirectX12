@@ -4,7 +4,7 @@
 #include<string>
 #include<optional>
 
-namespace ichi
+namespace MMDL
 {
 	std::optional<std::variant<pmx_model<std::wstring>, pmx_model<std::string>>>
 		load_pmx(const char* fileName);

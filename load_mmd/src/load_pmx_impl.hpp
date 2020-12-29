@@ -4,7 +4,7 @@
 #include<tuple>
 #include<fstream>
 
-namespace ichi
+namespace MMDL
 {
 
 	//“Ç‚İ‚Ş‚Æ‚«‚Ég—p

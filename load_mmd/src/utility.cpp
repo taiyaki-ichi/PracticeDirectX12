@@ -1,7 +1,7 @@
 #include"utility.hpp"
 #include<Windows.h>
 
-namespace ichi
+namespace MMDL
 {
 
 
