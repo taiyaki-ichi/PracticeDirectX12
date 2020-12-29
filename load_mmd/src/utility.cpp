@@ -5,7 +5,7 @@ namespace ichi
 {
 
 
-
+	//string‚©‚çwstring‚Ö
 	std::wstring to_wstring(const std::string& str)
 	{
 		if (str.empty())
@@ -18,6 +18,7 @@ namespace ichi
 		return result;
 	}
 
+	//wstring‚©‚çstring‚Ö
 	std::string to_string(const std::wstring& str)
 	{
 		if (str.empty())

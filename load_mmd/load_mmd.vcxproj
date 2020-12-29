@@ -140,12 +140,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="load_pmx.hpp" />
-    <ClInclude Include="utility.hpp" />
+    <ClInclude Include="include\load_pmx.hpp" />
+    <ClInclude Include="include\pmx_data_struct.hpp" />
+    <ClInclude Include="src\utility.hpp" />
+    <ClInclude Include="src\load_pmx_impl.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\load_pmx.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="utility.cpp" />
+    <ClCompile Include="src\utility.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

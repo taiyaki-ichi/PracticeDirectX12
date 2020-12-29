@@ -2,10 +2,13 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="utility.cpp" />
+    <ClCompile Include="src\load_pmx.cpp" />
+    <ClCompile Include="src\utility.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="load_pmx.hpp" />
-    <ClInclude Include="utility.hpp" />
+    <ClInclude Include="include\load_pmx.hpp" />
+    <ClInclude Include="include\pmx_data_struct.hpp" />
+    <ClInclude Include="src\load_pmx_impl.hpp" />
+    <ClInclude Include="src\utility.hpp" />
   </ItemGroup>
 </Project>
