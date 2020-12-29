@@ -11,6 +11,7 @@
 #include"DirectX12/texture_shader_resource.hpp"
 #include"include/load_pmx.hpp"
 #include"my_vertex.hpp"
+#include"DirectX12/depth_buffer.hpp"
 #include<DirectXMath.h>
 #include<memory>
 #include<array>
@@ -103,29 +104,45 @@ int main()
 	*/
 
 	//定数バッファ
+	//
+	//viewproj
+	//
 	DirectX::XMFLOAT3 eye{ 0,5,-5 };
 	DirectX::XMFLOAT3 target{ 0,5,0 };
 	DirectX::XMFLOAT3 up{ 0,1,0 };
-	auto pos = DirectX::XMMatrixLookAtLH(
+	auto view = DirectX::XMMatrixLookAtLH(
 		DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
-	pos *= DirectX::XMMatrixPerspectiveFovLH(
+	auto proj = DirectX::XMMatrixPerspectiveFovLH(
 		DirectX::XM_PIDIV2,
 		static_cast<float>(window_width) / static_cast<float>(window_height),
 		1.f,
 		100.f
 	);
-	auto constantBuffer = std::shared_ptr<ichi::constant_buffer_resource>{
-		device->create<ichi::constant_buffer_resource>(sizeof(decltype(pos)))
+	auto viewproj = view * proj;
+	auto viewprojConstantBuffer = std::shared_ptr<ichi::constant_buffer_resource>{
+		device->create<ichi::constant_buffer_resource>(sizeof(DirectX::XMMATRIX))
 	};
+	viewprojConstantBuffer->map(viewproj);
 
-	constantBuffer->map(pos);
+	//
+	//モデル本体を回転させたり移動させたりする行列
+	//
+	DirectX::XMMATRIX worldMat = DirectX::XMMatrixIdentity();
+	auto worldConstantBuffer = std::shared_ptr<ichi::constant_buffer_resource>{
+		device->create<ichi::constant_buffer_resource>(sizeof(DirectX::XMMATRIX))
+	};
+	worldConstantBuffer->map(worldMat);
 
+	//
 	//定数バッファとシェーダリソース用のディスクリプタヒープ
+	//
 	auto bufferDescriptorHeap = std::shared_ptr<ichi::descriptor_heap>{
 		device->create<ichi::descriptor_heap>(ichi::DESCRIPTOR_HEAP_SIZE)
 	};
 
-	bufferDescriptorHeap->create_view(device.get(), constantBuffer.get());
+	//bのレジスタ0にworld行列、1にviewとprojの掛け合わせ
+	bufferDescriptorHeap->create_view(device.get(), worldConstantBuffer.get());
+	bufferDescriptorHeap->create_view(device.get(), viewprojConstantBuffer.get());
 
 
 	/*
@@ -202,9 +219,22 @@ int main()
 	}
 	mmdIndexBuffer->map(mmdSurface);
 
-	while (ichi::update_window()) {
+	//でぃぷす
+	auto depthBuffer = std::shared_ptr<ichi::depth_buffer>{
+		device->create<ichi::depth_buffer>(window_width,window_height)
+	};
 
-		doubleBuffer->begin_drawing_to_backbuffer(commList.get());
+	//回転用
+	float rot = 0.f;
+	constexpr float radius = 6.f;
+
+	while (ichi::update_window()) {
+		
+		//回転の計算
+		worldMat *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
+		worldConstantBuffer->map(worldMat);
+
+		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer.get());
 
 		//コマンドリストのメンバにまとめてしまうか
 		commList->get()->RSSetViewports(1, &viewport);

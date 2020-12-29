@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="DirectX12\command_list.cpp" />
     <ClCompile Include="DirectX12\constant_buffer_resource.cpp" />
+    <ClCompile Include="DirectX12\depth_buffer.cpp" />
     <ClCompile Include="DirectX12\descriptor_heap.cpp" />
     <ClCompile Include="DirectX12\device.cpp" />
     <ClCompile Include="DirectX12\double_buffer.cpp" />
@@ -32,6 +33,7 @@
   <ItemGroup>
     <ClInclude Include="DirectX12\command_list.hpp" />
     <ClInclude Include="DirectX12\constant_buffer_resource.hpp" />
+    <ClInclude Include="DirectX12\depth_buffer.hpp" />
     <ClInclude Include="DirectX12\descriptor_heap.hpp" />
     <ClInclude Include="DirectX12\device.hpp" />
     <ClInclude Include="DirectX12\double_buffer.hpp" />
@@ -50,8 +52,12 @@
   <ItemGroup>
     <FxCompile Include="shader\PixelShader1.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="shader\VertexShader1.hlsl" />
+    <FxCompile Include="shader\VertexShader1.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+    </FxCompile>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

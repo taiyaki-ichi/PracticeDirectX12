@@ -10,6 +10,7 @@ namespace ichi
 {
 	class device;
 	class command_list;
+	class depth_buffer;
 
 	//ダブルバッファ用
 	//リソースバリアとかしたり
@@ -37,7 +38,7 @@ namespace ichi
 		//バックバッファへの描写を開始する
 		//バックバッファをリソースバリアし、レンダーターゲットに指定
 		//あと、バッファのクリア
-		void begin_drawing_to_backbuffer(command_list*);
+		void begin_drawing_to_backbuffer(command_list*,depth_buffer*);
 		//バックバッファへの描写を終了する
 		//描写が完了するまでバリアする
 		void end_drawing_to_backbuffer(command_list*);

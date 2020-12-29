@@ -22,7 +22,9 @@ namespace ichi
 		//定数とテクスチャ
 		D3D12_DESCRIPTOR_RANGE range[2]{ {},{} };
 		//Constant
-		range[0].NumDescriptors = 1;
+		//現在は2つ
+		//NumDescriptorsは余裕がある分にはエラーが出ない
+		range[0].NumDescriptors = 2;
 		range[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 		range[0].BaseShaderRegister = 0;
 		range[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -89,8 +91,6 @@ namespace ichi
 
 		graphicsPipelineDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;//中身は0xffffffff
 
-		//
-		//
 		graphicsPipelineDesc.BlendState.AlphaToCoverageEnable = false;
 		graphicsPipelineDesc.BlendState.IndependentBlendEnable = false;
 
@@ -130,7 +130,10 @@ namespace ichi
 		graphicsPipelineDesc.RasterizerState.AntialiasedLineEnable = false;
 		graphicsPipelineDesc.RasterizerState.ForcedSampleCount = 0;
 		graphicsPipelineDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
-		graphicsPipelineDesc.DepthStencilState.DepthEnable = false;
+		graphicsPipelineDesc.DepthStencilState.DepthEnable = true;
+		graphicsPipelineDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+		graphicsPipelineDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+		graphicsPipelineDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 		graphicsPipelineDesc.DepthStencilState.StencilEnable = false;
 
 		//頂点情報のレイアウト
