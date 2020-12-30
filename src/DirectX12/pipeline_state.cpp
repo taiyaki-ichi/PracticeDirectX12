@@ -25,12 +25,13 @@ namespace ichi
 		//Constant
 		//現在は2つ
 		//NumDescriptorsは余裕がある分にはエラーが出ない
-		range[0].NumDescriptors = DESCRIPTOR_HEAP_SIZE;
+		range[0].NumDescriptors = 3;
 		range[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 		range[0].BaseShaderRegister = 0;
 		range[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-		//shader resource 
-		range[1].NumDescriptors =  DESCRIPTOR_HEAP_SIZE;
+		//shader resource
+		//a
+		range[1].NumDescriptors =  1;
 		range[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		range[1].BaseShaderRegister = 0;
 		range[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;

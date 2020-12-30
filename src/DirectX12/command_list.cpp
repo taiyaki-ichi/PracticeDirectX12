@@ -90,14 +90,19 @@ namespace ichi
 		m_list->Reset(m_allocator, pipelineStatePtr);
 	}
 
-	void command_list::copy_texture(texture_shader_resource_base<true>* src, texture_shader_resource_base<false>* dst)
+	void command_list::excute_copy_texture(texture_shader_resource_base<true>* src, texture_shader_resource_base<false>* dst)
 	{
+		
+		//clear();
 
 		dst->resource_barrier(this, D3D12_RESOURCE_STATE_COPY_DEST);
-
 		m_list->CopyTextureRegion(&dst->get_copy_location(), 0, 0, 0, &src->get_copy_location(), nullptr);
+		dst->resource_barrier(this, D3D12_RESOURCE_STATE_GENERIC_READ);
 
-		dst->resource_barrier(this, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		m_list->Close();
+		execute();
+		clear();
+		
 
 	}
 

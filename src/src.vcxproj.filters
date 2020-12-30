@@ -11,6 +11,7 @@
     <ClCompile Include="DirectX12\vertex_buffer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="DirectX12\depth_buffer.cpp" />
+    <ClCompile Include="mmd.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectX12\command_list.hpp" />
@@ -27,6 +28,7 @@
     <ClInclude Include="window.hpp" />
     <ClInclude Include="my_vertex.hpp" />
     <ClInclude Include="DirectX12\depth_buffer.hpp" />
+    <ClInclude Include="mmd.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\BasicType.hlsli" />

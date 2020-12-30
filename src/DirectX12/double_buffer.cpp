@@ -126,6 +126,7 @@ namespace ichi
 		BarrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 		cl->get()->ResourceBarrier(1, &BarrierDesc);
 
+	
 	}
 
 	void double_buffer::clear_back_buffer(command_list* cl)

@@ -35,7 +35,7 @@ namespace ichi
 
 		//deviceを使って作る系		
 		template<typename T,typename... Args>
-		T* create(Args... args) {
+		T* create(Args&&... args) {
 			//デフォルト構築が可能
 			static_assert(std::is_default_constructible_v<T>);
 			//メンバ関数にinitializeを持っておりその第一引数はdevice

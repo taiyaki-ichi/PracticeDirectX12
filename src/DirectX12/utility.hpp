@@ -7,7 +7,6 @@
 #include<DirectXMath.h>
 #include<DirectXTex.h>
 
-#include"../my_vertex.hpp"
 
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
@@ -35,8 +34,6 @@ namespace ichi
 			return false;
 		}
 
-		//for (int i = 0; i < std::size(t); i++)
-			//target[i] = t[0];
 		std::copy(std::begin(t), std::end(t), target);
 		buffer->Unmap(0, nullptr);
 

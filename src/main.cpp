@@ -12,6 +12,7 @@
 #include"include/load_pmx.hpp"
 #include"my_vertex.hpp"
 #include"DirectX12/depth_buffer.hpp"
+#include"mmd.hpp"
 #include<DirectXMath.h>
 #include<memory>
 #include<array>
@@ -136,13 +137,13 @@ int main()
 	//
 	//定数バッファとシェーダリソース用のディスクリプタヒープ
 	//
-	auto constantBufferDescriptorHeap = std::shared_ptr<ichi::descriptor_heap>{
+	auto bufferDescriptorHeap = std::shared_ptr<ichi::descriptor_heap>{
 		device->create<ichi::descriptor_heap>(ichi::DESCRIPTOR_HEAP_SIZE)
 	};
 
 	//bのレジスタ0にworld行列、1にviewとprojの掛け合わせ
-	constantBufferDescriptorHeap->create_view(device.get(), worldConstantBuffer.get());
-	constantBufferDescriptorHeap->create_view(device.get(), viewprojConstantBuffer.get());
+	bufferDescriptorHeap->create_view(device.get(), worldConstantBuffer.get());
+	bufferDescriptorHeap->create_view(device.get(), viewprojConstantBuffer.get());
 
 
 	/*
@@ -178,8 +179,10 @@ int main()
 	//モデルの読み込み
 	//
 	std::vector<ichi::my_vertex> mmdVertex{};
-	std::vector<ichi::my_surface> mmdSurface{};
+	std::vector<unsigned short> mmdSurface{};
 	std::vector<ichi::my_material> mmdMaterial{};
+	std::vector<ichi::my_material_info> mmdMaterialInfo{};
+	std::vector<std::wstring> mmdFilePath{};
 	auto modelIf = MMDL::load_pmx("../../mmd/Paimon/派蒙.pmx");
 	if (modelIf)
 	{
@@ -191,13 +194,22 @@ int main()
 
 		std::visit([&mmdSurface](auto& m) {
 			for (auto& tmp : m.m_surface)
-				mmdSurface.emplace_back(ichi::my_surface{ static_cast<unsigned short>(tmp.m_vertex_index) });
+				mmdSurface.emplace_back(static_cast<unsigned short>(tmp.m_vertex_index));
 			}, model);
 
 		std::visit([&mmdMaterial](auto& m) {
 			mmdMaterial = ichi::generate_my_material
 				<typename std::remove_reference_t<decltype(m)>::string_type>(m.m_material);
 			}, model);
+
+		std::visit([&mmdMaterialInfo](auto& m) {
+			mmdMaterialInfo = ichi::generate_my_material_info
+				<typename std::remove_reference_t<decltype(m)>::string_type>(m.m_material);
+			}, model);
+
+		//とりあえず
+		auto& hoge = std::get<MMDL::pmx_model<std::wstring>>(model);
+		mmdFilePath = hoge.m_texture_path;
 	}
 	else {
 		std::cout << "model loaf failed\n";
@@ -233,7 +245,12 @@ int main()
 		device->create<ichi::constant_buffer_resource>(mmdMaterial.size() * sizeof(mmdMaterial[0]))
 	};
 	mmdMaterialBuffer->map(mmdMaterial);
-	constantBufferDescriptorHeap->create_view(device.get(), mmdMaterialBuffer.get());
+	bufferDescriptorHeap->create_view(device.get(), mmdMaterialBuffer.get());
+
+
+	auto mmd = std::shared_ptr<ichi::my_mmd>{
+		device->create<ichi::my_mmd>(mmdVertex,mmdSurface,mmdMaterial,mmdMaterialInfo,mmdFilePath,commList.get())
+	};
 
 
 	//
@@ -259,11 +276,45 @@ int main()
 		worldMat *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
 		worldConstantBuffer->map(worldMat);
 
+		mmd->map_world_mat(worldMat);
+		mmd->map_viewproj_mat(viewproj);
+
+		//バッファのクリアもリソースバリアを張る
+		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer.get());
+		doubleBuffer->clear_back_buffer(commList.get());
+		depthBuffer->clear(commList.get());
+		doubleBuffer->end_drawing_to_backbuffer(commList.get());
+		commList->get()->Close();
+		commList->execute();
+		commList->clear(pipelineState.get());
+
+		auto mmdMaterialNum = mmd->get_material_num();
+
+		for (unsigned int i = 0; i < mmdMaterialNum; i++)
+		{
+			doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer.get());
+			commList->get()->RSSetViewports(1, &viewport);
+			commList->get()->RSSetScissorRects(1, &scissorrect);
+			commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+			commList->get()->SetPipelineState(pipelineState->get());
+			commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
+
+			mmd->draw_command(commList.get(), bufferDescriptorHeap.get(), device.get(), i);
+
+			doubleBuffer->end_drawing_to_backbuffer(commList.get());
+			commList->get()->Close();
+			commList->execute();
+			commList->clear(pipelineState.get());
+		}
+		
+		
+		/*
 		//
-		constantBufferDescriptorHeap->reset();
-		constantBufferDescriptorHeap->create_view(device.get(), worldConstantBuffer.get());
-		constantBufferDescriptorHeap->create_view(device.get(), viewprojConstantBuffer.get());
-		constantBufferDescriptorHeap->create_view(device.get(), mmdMaterialBuffer.get());
+		bufferDescriptorHeap->reset();
+		bufferDescriptorHeap->create_view(device.get(), worldConstantBuffer.get());
+		bufferDescriptorHeap->create_view(device.get(), viewprojConstantBuffer.get());
+		bufferDescriptorHeap->create_view(device.get(), mmdMaterialBuffer.get());
 		//
 
 		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer.get());
@@ -284,23 +335,19 @@ int main()
 		commList->get()->SetPipelineState(pipelineState->get());
 		commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
 
-		commList->get()->SetDescriptorHeaps(1, &constantBufferDescriptorHeap->get());
+		commList->get()->SetDescriptorHeaps(1, &bufferDescriptorHeap->get());
 		//
-		commList->get()->SetGraphicsRootDescriptorTable(0, constantBufferDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
+		commList->get()->SetGraphicsRootDescriptorTable(0, bufferDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
 
 		//commList->get()->DrawIndexedInstanced(6, 1, 0, 0, 0);
 		//commList->get()->DrawInstanced(mmdVertex.size(), 1, 0, 0);
 
 		commList->get()->DrawIndexedInstanced(mmdSurface.size(), 1, 0, 0, 0);
 
-
 		doubleBuffer->end_drawing_to_backbuffer(commList.get());
 		commList->get()->Close();
-
 		commList->execute();
-
 		commList->clear(pipelineState.get());
-
 
 
 
@@ -311,20 +358,23 @@ int main()
 		commList->get()->RSSetScissorRects(1, &scissorrect);
 		commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		commList->get()->IASetVertexBuffers(0, 1, &mmdVertexBuffer->get_view());
-		commList->get()->IASetIndexBuffer(&mmdIndexBuffer->get_view());
-
 		commList->get()->SetPipelineState(pipelineState->get());
 		commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
 
-		constantBufferDescriptorHeap->reset();
-		constantBufferDescriptorHeap->create_view(device.get(), hogeConstantBuffer.get());
-		constantBufferDescriptorHeap->create_view(device.get(), viewprojConstantBuffer.get());
-		constantBufferDescriptorHeap->create_view(device.get(), mmdMaterialBuffer.get());
+		//
+		commList->get()->IASetVertexBuffers(0, 1, &mmdVertexBuffer->get_view());
+		commList->get()->IASetIndexBuffer(&mmdIndexBuffer->get_view());
 
-		commList->get()->SetDescriptorHeaps(1, &constantBufferDescriptorHeap->get());
-		commList->get()->SetGraphicsRootDescriptorTable(0, constantBufferDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
+		bufferDescriptorHeap->reset();
+		bufferDescriptorHeap->create_view(device.get(), hogeConstantBuffer.get());
+		bufferDescriptorHeap->create_view(device.get(), viewprojConstantBuffer.get());
+		bufferDescriptorHeap->create_view(device.get(), mmdMaterialBuffer.get());
+
+		commList->get()->SetDescriptorHeaps(1, &bufferDescriptorHeap->get());
+		commList->get()->SetGraphicsRootDescriptorTable(0, bufferDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
+
 		commList->get()->DrawIndexedInstanced(mmdSurface.size(), 1, 0, 0, 0);
+		//
 
 		doubleBuffer->end_drawing_to_backbuffer(commList.get());
 		commList->get()->Close();
@@ -333,8 +383,8 @@ int main()
 		//
 		//
 
-
-
+		
+		*/
 		doubleBuffer->flip();
 
 	}

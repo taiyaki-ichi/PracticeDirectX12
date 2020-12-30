@@ -29,6 +29,11 @@ namespace ichi
 			return map_func(m_resource, std::forward<T>(t));
 		}
 
+		template<typename Func,typename... Ts>
+		bool map(Func&& mapFunc, Ts&&... ts) {
+			return mapFunc(m_resource, std::forward<Ts>(ts)...);
+		}
+
 		//ディスクリプタヒープに関連づけるときに使用する
 		ID3D12Resource* get() const noexcept;
 	};

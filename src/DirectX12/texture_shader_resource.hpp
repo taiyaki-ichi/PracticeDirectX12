@@ -10,6 +10,7 @@
 #pragma comment(lib,"dxgi.lib")
 #pragma comment(lib,"DirectXTex.lib")
 
+
 namespace ichi
 {
 	class device;
@@ -48,12 +49,6 @@ namespace ichi
 		D3D12_RESOURCE_STATES get_state();
 		D3D12_TEXTURE_COPY_LOCATION& get_copy_location();
 	};
-
-
-	//テクスチャ用のインターフェース
-	using texture_shader_resource = texture_shader_resource_base<false>;
-	//アップロードされる中間バッファ用のインターフェース
-	using upload_texture_shader_resource = texture_shader_resource_base<true>;
 
 
 
@@ -98,7 +93,7 @@ namespace ichi
 			resdesc.MipLevels = 1;
 			//連続したデータ
 			resdesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
+			
 			//アップロード用
 			resourceState = D3D12_RESOURCE_STATE_GENERIC_READ;
 
@@ -218,4 +213,13 @@ namespace ichi
 		return m_copy_location;
 	}
 
+
+	//テクスチャ用のインターフェース
+	using texture_shader_resource = texture_shader_resource_base<false>;
+	//アップロードされる中間バッファ用のインターフェース
+	using upload_texture_shader_resource = texture_shader_resource_base<true>;
+
+
 }
+
+

@@ -27,5 +27,7 @@ namespace ichi
 
 		//レンダーターゲットを指定するときに使用
 		D3D12_CPU_DESCRIPTOR_HANDLE get_cpu_descriptor_handle();
+
+		ID3D12Resource* get();
 	};
 }

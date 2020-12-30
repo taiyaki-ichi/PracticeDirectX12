@@ -82,4 +82,8 @@ namespace ichi
 	{
 		return m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
 	}
+	ID3D12Resource* depth_buffer::get()
+	{
+		return m_resource;
+	}
 }

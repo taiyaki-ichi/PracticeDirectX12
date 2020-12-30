@@ -3,21 +3,12 @@
 #include<DirectXMath.h>
 #include<algorithm>
 #include<iterator>
+#include"mmd.hpp"
+#include<vector>
 
 namespace ichi
 {
 
-	//pmx_vertexから必要な情報を抽出
-	//随時、更新していく
-	struct my_vertex
-	{
-		//頂点座標
-		DirectX::XMFLOAT3 m_position{};
-		//法線
-		DirectX::XMFLOAT3 m_normal{};
-		//UV座標
-		DirectX::XMFLOAT2 m_uv{};
-	};
 
 	//my_vertexの生成
 	inline std::vector<my_vertex> generate_my_vertex(const std::vector<MMDL::pmx_vertex>& vertex)
@@ -37,14 +28,7 @@ namespace ichi
 		unsigned short m_vertex_index;
 	};
 
-	struct my_material {
-		//MMDLのmaterialは3じゃあなくて4だった
-		//とりあえずはFLOAT3でやる
-		DirectX::XMFLOAT4 m_diffuse;
-		DirectX::XMFLOAT3 m_specular;
-		float m_specularity;
-		DirectX::XMFLOAT3 m_ambient;
-	};
+
 
 	//my_materialの生成
 	template<typename StringType>
@@ -55,6 +39,22 @@ namespace ichi
 
 		auto func = [](const auto& m) -> my_material {
 			return { m.m_diffuse,m.m_specular,m.m_specularity,m.m_ambient };
+		};
+
+		std::transform(material.begin(), material.end(), std::back_inserter(result), std::move(func));
+
+		return result;
+	}
+
+	//my_material_infoの生成
+	template<typename StringType>
+	inline std::vector<my_material_info> generate_my_material_info(const std::vector<MMDL::pmx_material<StringType>>& material)
+	{
+
+		std::vector<my_material_info> result{};
+
+		auto func = [](const auto& m) -> my_material_info {
+			return { m.m_texture_index_size_1,m.m_texture_index_size_2,m.m_vertex_num };
 		};
 
 		std::transform(material.begin(), material.end(), std::back_inserter(result), std::move(func));
