@@ -110,15 +110,6 @@ namespace ichi
 		rtvH.ptr += static_cast<ULONG_PTR>(bbIdx * m_descriptor_handle_increment_size);
 		cl->get()->OMSetRenderTargets(1, &rtvH, false, &dsvH);
 
-		//バックバッファのクリア
-		float clearColor[] = { 1.0f,1.0f,1.0f,1.0f };
-		cl->get()->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
-
-		//とりあえずデプスバッファのクリアもここでやってしまう
-		//とりあえず
-		cl->get()->ClearDepthStencilView(dsvH,
-			D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-
 	}
 
 	void double_buffer::end_drawing_to_backbuffer(command_list* cl)
@@ -134,6 +125,18 @@ namespace ichi
 		BarrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		BarrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 		cl->get()->ResourceBarrier(1, &BarrierDesc);
+
+	}
+
+	void double_buffer::clear_back_buffer(command_list* cl)
+	{
+		auto bbIdx = m_swap_chain->GetCurrentBackBufferIndex();
+		auto rtvH = m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
+		rtvH.ptr += static_cast<ULONG_PTR>(bbIdx * m_descriptor_handle_increment_size);
+		//バックバッファのクリア
+		float clearColor[] = { 1.0f,1.0f,1.0f,1.0f };
+		cl->get()->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
+		
 	}
 
 	void double_buffer::flip()

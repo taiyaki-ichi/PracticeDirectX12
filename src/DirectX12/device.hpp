@@ -33,9 +33,7 @@ namespace ichi
 
 		bool initialize();
 
-		//constant_resource* create_constant_resource(unsigned int size);
-		//texture2D_resource* create_texture2D_resource(unsigned int size);
-		
+		//deviceを使って作る系		
 		template<typename T,typename... Args>
 		T* create(Args... args) {
 			//デフォルト構築が可能

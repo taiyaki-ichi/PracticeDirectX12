@@ -136,13 +136,13 @@ int main()
 	//
 	//定数バッファとシェーダリソース用のディスクリプタヒープ
 	//
-	auto bufferDescriptorHeap = std::shared_ptr<ichi::descriptor_heap>{
+	auto constantBufferDescriptorHeap = std::shared_ptr<ichi::descriptor_heap>{
 		device->create<ichi::descriptor_heap>(ichi::DESCRIPTOR_HEAP_SIZE)
 	};
 
 	//bのレジスタ0にworld行列、1にviewとprojの掛け合わせ
-	bufferDescriptorHeap->create_view(device.get(), worldConstantBuffer.get());
-	bufferDescriptorHeap->create_view(device.get(), viewprojConstantBuffer.get());
+	constantBufferDescriptorHeap->create_view(device.get(), worldConstantBuffer.get());
+	constantBufferDescriptorHeap->create_view(device.get(), viewprojConstantBuffer.get());
 
 
 	/*
@@ -179,6 +179,7 @@ int main()
 	//
 	std::vector<ichi::my_vertex> mmdVertex{};
 	std::vector<ichi::my_surface> mmdSurface{};
+	std::vector<ichi::my_material> mmdMaterial{};
 	auto modelIf = MMDL::load_pmx("../../mmd/Paimon/派蒙.pmx");
 	if (modelIf)
 	{
@@ -191,6 +192,11 @@ int main()
 		std::visit([&mmdSurface](auto& m) {
 			for (auto& tmp : m.m_surface)
 				mmdSurface.emplace_back(ichi::my_surface{ static_cast<unsigned short>(tmp.m_vertex_index) });
+			}, model);
+
+		std::visit([&mmdMaterial](auto& m) {
+			mmdMaterial = ichi::generate_my_material
+				<typename std::remove_reference_t<decltype(m)>::string_type>(m.m_material);
 			}, model);
 	}
 	else {
@@ -219,7 +225,20 @@ int main()
 	}
 	mmdIndexBuffer->map(mmdSurface);
 
+
+	//
+	//マテリアる
+	//
+	auto mmdMaterialBuffer = std::shared_ptr<ichi::constant_buffer_resource>{
+		device->create<ichi::constant_buffer_resource>(mmdMaterial.size() * sizeof(mmdMaterial[0]))
+	};
+	mmdMaterialBuffer->map(mmdMaterial);
+	constantBufferDescriptorHeap->create_view(device.get(), mmdMaterialBuffer.get());
+
+
+	//
 	//でぃぷす
+	//
 	auto depthBuffer = std::shared_ptr<ichi::depth_buffer>{
 		device->create<ichi::depth_buffer>(window_width,window_height)
 	};
@@ -228,13 +247,28 @@ int main()
 	float rot = 0.f;
 	constexpr float radius = 6.f;
 
+	auto hogeConstantBuffer = std::shared_ptr<ichi::constant_buffer_resource>{
+		device->create<ichi::constant_buffer_resource>(sizeof(DirectX::XMMATRIX))
+	};
+	DirectX::XMMATRIX hogeMat = DirectX::XMMatrixIdentity();
+	hogeConstantBuffer->map(hogeMat);
+
 	while (ichi::update_window()) {
 		
 		//回転の計算
 		worldMat *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
 		worldConstantBuffer->map(worldMat);
 
+		//
+		constantBufferDescriptorHeap->reset();
+		constantBufferDescriptorHeap->create_view(device.get(), worldConstantBuffer.get());
+		constantBufferDescriptorHeap->create_view(device.get(), viewprojConstantBuffer.get());
+		constantBufferDescriptorHeap->create_view(device.get(), mmdMaterialBuffer.get());
+		//
+
 		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer.get());
+		doubleBuffer->clear_back_buffer(commList.get());
+		depthBuffer->clear(commList.get());
 
 		//コマンドリストのメンバにまとめてしまうか
 		commList->get()->RSSetViewports(1, &viewport);
@@ -250,12 +284,15 @@ int main()
 		commList->get()->SetPipelineState(pipelineState->get());
 		commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
 
-		commList->get()->SetDescriptorHeaps(1, &bufferDescriptorHeap->get());
-		commList->get()->SetGraphicsRootDescriptorTable(0, bufferDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
+		commList->get()->SetDescriptorHeaps(1, &constantBufferDescriptorHeap->get());
+		//
+		commList->get()->SetGraphicsRootDescriptorTable(0, constantBufferDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
 
 		//commList->get()->DrawIndexedInstanced(6, 1, 0, 0, 0);
 		//commList->get()->DrawInstanced(mmdVertex.size(), 1, 0, 0);
+
 		commList->get()->DrawIndexedInstanced(mmdSurface.size(), 1, 0, 0, 0);
+
 
 		doubleBuffer->end_drawing_to_backbuffer(commList.get());
 		commList->get()->Close();
@@ -263,6 +300,40 @@ int main()
 		commList->execute();
 
 		commList->clear(pipelineState.get());
+
+
+
+
+		//
+		//
+		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer.get());
+		commList->get()->RSSetViewports(1, &viewport);
+		commList->get()->RSSetScissorRects(1, &scissorrect);
+		commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		commList->get()->IASetVertexBuffers(0, 1, &mmdVertexBuffer->get_view());
+		commList->get()->IASetIndexBuffer(&mmdIndexBuffer->get_view());
+
+		commList->get()->SetPipelineState(pipelineState->get());
+		commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
+
+		constantBufferDescriptorHeap->reset();
+		constantBufferDescriptorHeap->create_view(device.get(), hogeConstantBuffer.get());
+		constantBufferDescriptorHeap->create_view(device.get(), viewprojConstantBuffer.get());
+		constantBufferDescriptorHeap->create_view(device.get(), mmdMaterialBuffer.get());
+
+		commList->get()->SetDescriptorHeaps(1, &constantBufferDescriptorHeap->get());
+		commList->get()->SetGraphicsRootDescriptorTable(0, constantBufferDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
+		commList->get()->DrawIndexedInstanced(mmdSurface.size(), 1, 0, 0, 0);
+
+		doubleBuffer->end_drawing_to_backbuffer(commList.get());
+		commList->get()->Close();
+		commList->execute();
+		commList->clear(pipelineState.get());
+		//
+		//
+
+
 
 		doubleBuffer->flip();
 

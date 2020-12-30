@@ -4,7 +4,7 @@
 cbuffer cbuff0 : register(b0) {
 	matrix world;//•ÏŠ·s—ñ
 };
-cbuffer cbuff0 : register(b1) {
+cbuffer cbuff1 : register(b1) {
 	matrix viewproj;
 };
 

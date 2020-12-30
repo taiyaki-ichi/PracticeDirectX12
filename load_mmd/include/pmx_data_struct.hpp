@@ -100,9 +100,9 @@ namespace MMDL
 		float m_edge_size = 0;
 
 		//通常テクスチャ、テクスチャテーブルの参照Index
-		int m_texture_index_size_1 = -1;
+		unsigned int m_texture_index_size_1 = 0;
 		//スフィアテクスチャ、テクスチャテーブルの参照Index（テクスチャの拡張子の制限なし）
-		int m_texture_index_size_2 = -1;
+		unsigned int m_texture_index_size_2 = 0;
 		//スフィアモード
 		//０：無向　１：乗算　２：加算　３：サブテクスチャ
 		unsigned char m_sphere_mode = 0;;
@@ -174,6 +174,8 @@ namespace MMDL
 	template<typename StringType>
 	struct pmx_model
 	{
+		using string_type = typename StringType;
+
 		pmx_header m_header;
 		pmx_info<StringType> m_info;
 		std::vector<pmx_vertex> m_vertex;

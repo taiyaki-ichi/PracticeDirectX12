@@ -12,3 +12,10 @@ struct BasicType {
 	float4 normal:NORMAL;		//法線ベクトル
 	float2 uv:TEXCOORD;		//uv値
 };
+
+
+cbuffer Material : register(b2) {
+	float4 diffuse;
+	float4 specular;
+	float3 ambient;
+}

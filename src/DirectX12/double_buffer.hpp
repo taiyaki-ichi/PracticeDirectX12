@@ -43,6 +43,9 @@ namespace ichi
 		//描写が完了するまでバリアする
 		void end_drawing_to_backbuffer(command_list*);
 
+		//バックバッファのクリア
+		void clear_back_buffer(command_list*);
+
 		//バッファをフリップ
 		void flip();
 	};

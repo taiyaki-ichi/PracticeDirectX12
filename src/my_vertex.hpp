@@ -22,7 +22,7 @@ namespace ichi
 	//my_vertex‚Ì¶¬
 	inline std::vector<my_vertex> generate_my_vertex(const std::vector<MMDL::pmx_vertex>& vertex)
 	{
-		std::vector<my_vertex> result;
+		std::vector<my_vertex> result{};
 
 		auto func = [](const MMDL::pmx_vertex& v) -> my_vertex {
 			return { v.m_position,v.m_normal,v.m_uv };
@@ -36,6 +36,31 @@ namespace ichi
 	struct my_surface {
 		unsigned short m_vertex_index;
 	};
+
+	struct my_material {
+		//MMDL‚Ìmaterial‚Í3‚¶‚á‚ ‚È‚­‚Ä4‚¾‚Á‚½
+		//‚Æ‚è‚ ‚¦‚¸‚ÍFLOAT3‚Å‚â‚é
+		DirectX::XMFLOAT4 m_diffuse;
+		DirectX::XMFLOAT3 m_specular;
+		float m_specularity;
+		DirectX::XMFLOAT3 m_ambient;
+	};
+
+	//my_material‚Ì¶¬
+	template<typename StringType>
+	inline std::vector<my_material> generate_my_material(const std::vector<MMDL::pmx_material<StringType>>& material)
+	{
+
+		std::vector<my_material> result{};
+
+		auto func = [](const auto& m) -> my_material {
+			return { m.m_diffuse,m.m_specular,m.m_specularity,m.m_ambient };
+		};
+
+		std::transform(material.begin(), material.end(), std::back_inserter(result), std::move(func));
+
+		return result;
+	}
 
 
 }
