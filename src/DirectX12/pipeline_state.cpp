@@ -23,15 +23,16 @@ namespace ichi
 		//定数とテクスチャ
 		D3D12_DESCRIPTOR_RANGE range[2]{ {},{} };
 		//Constant
-		//現在は2つ
-		//NumDescriptorsは余裕がある分にはエラーが出ない
+		//現在は表示させるmmdに合わせてある
+		//pipelinesytatの引数で設定できるようにしたい
+		//後、頂点情報のレイアウトも
 		range[0].NumDescriptors = 3;
 		range[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 		range[0].BaseShaderRegister = 0;
 		range[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 		//shader resource
 		//a
-		range[1].NumDescriptors =  1;
+		range[1].NumDescriptors = 1;
 		range[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		range[1].BaseShaderRegister = 0;
 		range[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -41,6 +42,7 @@ namespace ichi
 		rootparam.DescriptorTable.pDescriptorRanges = &range[0];//デスクリプタレンジのアドレス
 		rootparam.DescriptorTable.NumDescriptorRanges = 2;//デスクリプタレンジ数
 		rootparam.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;//全てのシェーダから見える
+
 
 		rootSignatureDesc.pParameters = &rootparam;//ルートパラメータの先頭アドレス
 		rootSignatureDesc.NumParameters = 1;//ルートパラメータ数

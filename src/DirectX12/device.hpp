@@ -24,7 +24,7 @@ namespace ichi
 
 		//deveiceì‚é‚Ì‚É•K—v
 		//6‚Æ‚©1‚Æ‚©‚Ì”š‚Í‚¢‚Ü‚¢‚¿—‰ğ‚µ‚Ä‚¢‚È‚¢
-		IDXGIFactory6* m_factory = nullptr;
+		IDXGIFactory5* m_factory = nullptr;
 		IDXGIAdapter1* m_adaptor = nullptr;
 
 	public:

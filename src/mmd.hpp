@@ -79,7 +79,7 @@ namespace ichi
 
 		//DoubleBufferのbegin、プリミティブ、シザー矩形、ビューポートを設定した後呼び出す
 		//i番目のマテリアルの描写
-		void draw_command(command_list*, descriptor_heap*, device*, unsigned int i);
+		void draw_command(command_list*, descriptor_heap* constant, device*, unsigned int i);
 
 		//アテリアルの数を返す
 		unsigned int get_material_num();

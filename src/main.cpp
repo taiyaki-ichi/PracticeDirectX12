@@ -71,40 +71,15 @@ int main()
 	scissorrect.right = scissorrect.left + window_width;//切り抜き右座標
 	scissorrect.bottom = scissorrect.top + window_height;//切り抜き下座標
 
-	/*
-
-	struct Vertex {
-		DirectX::XMFLOAT3 pos;//XYZ座標
-		DirectX::XMFLOAT2 uv;//UV座標
+	//
+	//定数バッファとテクスチャ用のディスクリプタヒープ
+	//
+	auto constantBufferDescriptorHeap = std::shared_ptr<ichi::descriptor_heap>{
+		device->create<ichi::descriptor_heap>(ichi::DESCRIPTOR_HEAP_SIZE)
 	};
+	
 
-	Vertex vertices[] = {
-		{{-1.f,-1.f,0.0f},{0.0f,1.0f} },//左下
-		{{-1.f,1.f,0.0f} ,{0.0f,0.0f}},//左上
-		{{1.f,-1.f,0.0f} ,{1.0f,1.0f}},//右下
-		{{1.f,1.f,0.0f} ,{1.0f,0.0f}},//右上
-	};
-	auto vertexBuffer = std::shared_ptr<ichi::vertex_buffer>{ device->create<ichi::vertex_buffer>(sizeof(vertices), sizeof(vertices[0])) };
-	if (!vertexBuffer) {
-		std::cout << "vert buffer is failed\n";
-		return 0;
-	}
-	vertexBuffer->map(vertices);
-	*/
 
-	/*
-
-	//インデックス情報
-	unsigned short indices[] = { 0,1,2, 2,1,3 };
-	auto indexBuffer = std::shared_ptr<ichi::index_buffer>{ device->create<ichi::index_buffer>(sizeof(indices)) };
-	if (!indexBuffer) {
-		std::cout << "index buff is failed\n";
-		return 0;
-	}
-	indexBuffer->map(indices);
-	*/
-
-	//定数バッファ
 	//
 	//viewproj
 	//
@@ -120,57 +95,12 @@ int main()
 		100.f
 	);
 	auto viewproj = view * proj;
-	auto viewprojConstantBuffer = std::shared_ptr<ichi::constant_buffer_resource>{
-		device->create<ichi::constant_buffer_resource>(sizeof(DirectX::XMMATRIX))
-	};
-	viewprojConstantBuffer->map(viewproj);
 
 	//
 	//モデル本体を回転させたり移動させたりする行列
 	//
 	DirectX::XMMATRIX worldMat = DirectX::XMMatrixIdentity();
-	auto worldConstantBuffer = std::shared_ptr<ichi::constant_buffer_resource>{
-		device->create<ichi::constant_buffer_resource>(sizeof(DirectX::XMMATRIX))
-	};
-	worldConstantBuffer->map(worldMat);
-
-	//
-	//定数バッファとシェーダリソース用のディスクリプタヒープ
-	//
-	auto bufferDescriptorHeap = std::shared_ptr<ichi::descriptor_heap>{
-		device->create<ichi::descriptor_heap>(ichi::DESCRIPTOR_HEAP_SIZE)
-	};
-
-	//bのレジスタ0にworld行列、1にviewとprojの掛け合わせ
-	bufferDescriptorHeap->create_view(device.get(), worldConstantBuffer.get());
-	bufferDescriptorHeap->create_view(device.get(), viewprojConstantBuffer.get());
-
-
-	/*
-	auto imageResult = ichi::get_texture(L"../texture/icon.png");
-	if (!imageResult) {
-		std::cout << "image si failed\n";
-		return 0;
-	}
-	auto& [metaData, scratchImage] = imageResult.value();
-
-	auto textureBuffer = std::shared_ptr<ichi::texture_shader_resource>{
-		device->create<ichi::texture_shader_resource>(&metaData,&scratchImage)
-	};
-	auto uploadTextureBuffer = std::shared_ptr<ichi::upload_texture_shader_resource>{
-		device->create<ichi::upload_texture_shader_resource>(&metaData,&scratchImage)
-	};
-
-	uploadTextureBuffer->map(*scratchImage.GetImage(0, 0, 0));
-
-	commList->copy_texture(uploadTextureBuffer.get(), textureBuffer.get());
-	commList->get()->Close();
-	commList->execute();
-	commList->clear();
-
-	bufferDescriptorHeap->create_view(device.get(), textureBuffer.get());
-
-	*/
+	
 
 	//
 	//mmdモデルの頂点情報
@@ -245,7 +175,7 @@ int main()
 		device->create<ichi::constant_buffer_resource>(mmdMaterial.size() * sizeof(mmdMaterial[0]))
 	};
 	mmdMaterialBuffer->map(mmdMaterial);
-	bufferDescriptorHeap->create_view(device.get(), mmdMaterialBuffer.get());
+	constantBufferDescriptorHeap->create_view(device.get(), mmdMaterialBuffer.get());
 
 
 	auto mmd = std::shared_ptr<ichi::my_mmd>{
@@ -260,21 +190,12 @@ int main()
 		device->create<ichi::depth_buffer>(window_width,window_height)
 	};
 
-	//回転用
-	float rot = 0.f;
-	constexpr float radius = 6.f;
-
-	auto hogeConstantBuffer = std::shared_ptr<ichi::constant_buffer_resource>{
-		device->create<ichi::constant_buffer_resource>(sizeof(DirectX::XMMATRIX))
-	};
-	DirectX::XMMATRIX hogeMat = DirectX::XMMatrixIdentity();
-	hogeConstantBuffer->map(hogeMat);
 
 	while (ichi::update_window()) {
 		
 		//回転の計算
 		worldMat *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
-		worldConstantBuffer->map(worldMat);
+
 
 		mmd->map_world_mat(worldMat);
 		mmd->map_viewproj_mat(viewproj);
@@ -300,7 +221,7 @@ int main()
 			commList->get()->SetPipelineState(pipelineState->get());
 			commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
 
-			mmd->draw_command(commList.get(), bufferDescriptorHeap.get(), device.get(), i);
+			mmd->draw_command(commList.get(), constantBufferDescriptorHeap.get(), device.get(), i);
 
 			doubleBuffer->end_drawing_to_backbuffer(commList.get());
 			commList->get()->Close();
@@ -308,83 +229,7 @@ int main()
 			commList->clear(pipelineState.get());
 		}
 		
-		
-		/*
-		//
-		bufferDescriptorHeap->reset();
-		bufferDescriptorHeap->create_view(device.get(), worldConstantBuffer.get());
-		bufferDescriptorHeap->create_view(device.get(), viewprojConstantBuffer.get());
-		bufferDescriptorHeap->create_view(device.get(), mmdMaterialBuffer.get());
-		//
-
-		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer.get());
-		doubleBuffer->clear_back_buffer(commList.get());
-		depthBuffer->clear(commList.get());
-
-		//コマンドリストのメンバにまとめてしまうか
-		commList->get()->RSSetViewports(1, &viewport);
-		commList->get()->RSSetScissorRects(1, &scissorrect);
-
-		commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		//commList->get()->IASetVertexBuffers(0, 1, &vertexBuffer->get_view());
-		//commList->get()->IASetIndexBuffer(&indexBuffer->get_view());
-
-		commList->get()->IASetVertexBuffers(0, 1, &mmdVertexBuffer->get_view());
-		commList->get()->IASetIndexBuffer(&mmdIndexBuffer->get_view());
-
-		commList->get()->SetPipelineState(pipelineState->get());
-		commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
-
-		commList->get()->SetDescriptorHeaps(1, &bufferDescriptorHeap->get());
-		//
-		commList->get()->SetGraphicsRootDescriptorTable(0, bufferDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
-
-		//commList->get()->DrawIndexedInstanced(6, 1, 0, 0, 0);
-		//commList->get()->DrawInstanced(mmdVertex.size(), 1, 0, 0);
-
-		commList->get()->DrawIndexedInstanced(mmdSurface.size(), 1, 0, 0, 0);
-
-		doubleBuffer->end_drawing_to_backbuffer(commList.get());
-		commList->get()->Close();
-		commList->execute();
-		commList->clear(pipelineState.get());
-
-
-
-		//
-		//
-		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer.get());
-		commList->get()->RSSetViewports(1, &viewport);
-		commList->get()->RSSetScissorRects(1, &scissorrect);
-		commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		commList->get()->SetPipelineState(pipelineState->get());
-		commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
-
-		//
-		commList->get()->IASetVertexBuffers(0, 1, &mmdVertexBuffer->get_view());
-		commList->get()->IASetIndexBuffer(&mmdIndexBuffer->get_view());
-
-		bufferDescriptorHeap->reset();
-		bufferDescriptorHeap->create_view(device.get(), hogeConstantBuffer.get());
-		bufferDescriptorHeap->create_view(device.get(), viewprojConstantBuffer.get());
-		bufferDescriptorHeap->create_view(device.get(), mmdMaterialBuffer.get());
-
-		commList->get()->SetDescriptorHeaps(1, &bufferDescriptorHeap->get());
-		commList->get()->SetGraphicsRootDescriptorTable(0, bufferDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
-
-		commList->get()->DrawIndexedInstanced(mmdSurface.size(), 1, 0, 0, 0);
-		//
-
-		doubleBuffer->end_drawing_to_backbuffer(commList.get());
-		commList->get()->Close();
-		commList->execute();
-		commList->clear(pipelineState.get());
-		//
-		//
-
-		
-		*/
+	
 		doubleBuffer->flip();
 
 	}

@@ -92,29 +92,33 @@ namespace ichi
 		return true;
 	}
 
-	void my_mmd::draw_command(command_list* cl, descriptor_heap* dh, device* d,unsigned int i)
+	void my_mmd::draw_command(command_list* cl, descriptor_heap* constant,device* d, unsigned int i)
 	{
-		
+
 		unsigned int indexOffset = 0;
 
 		for (int k = 0; k < i; k++)
 			indexOffset += m_material_info[k].m_vertex_num;
 
-		
+
 		cl->get()->IASetVertexBuffers(0, 1, &m_vertex_buffer->get_view());
 		cl->get()->IASetIndexBuffer(&m_index_buffer->get_view());
 
-		dh->reset();
-		dh->create_view(d, m_world_mat_resource.get());
-		dh->create_view(d, m_viewproj_mat_resource.get());
-		dh->create_view(d, m_material_resource[i].get());
-		dh->create_view(d, m_texture[m_material_info[i].m_texture_index].get());
+		constant->reset();
+		constant->create_view(d, m_world_mat_resource.get());
+		constant->create_view(d, m_viewproj_mat_resource.get());
+		constant->create_view(d, m_material_resource[i].get());
+		constant->create_view(d, m_texture[m_material_info[i].m_texture_index].get());
 
-		cl->get()->SetDescriptorHeaps(1, &dh->get());
-		cl->get()->SetGraphicsRootDescriptorTable(0, dh->get()->GetGPUDescriptorHandleForHeapStart());
+		
+		cl->get()->SetDescriptorHeaps(1, &constant->get());
+		cl->get()->SetGraphicsRootDescriptorTable(0, constant->get()->GetGPUDescriptorHandleForHeapStart());
+
+		
+
 
 		cl->get()->DrawIndexedInstanced(m_material_info[i].m_vertex_num, 1, indexOffset, 0, 0);
-		
+
 
 	}
 

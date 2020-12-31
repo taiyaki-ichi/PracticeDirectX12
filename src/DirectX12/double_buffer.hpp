@@ -16,7 +16,7 @@ namespace ichi
 	//リソースバリアとかしたり
 	class double_buffer
 	{
-		IDXGIFactory6* m_factory = nullptr;
+		IDXGIFactory5* m_factory = nullptr;
 		IDXGISwapChain4* m_swap_chain = nullptr;
 		ID3D12DescriptorHeap* m_descriptor_heap = nullptr;
 
