@@ -104,7 +104,7 @@ namespace MMDL
 		//スフィアテクスチャ、テクスチャテーブルの参照Index（テクスチャの拡張子の制限なし）
 		unsigned int m_texture_index_size_2 = 0;
 		//スフィアモード
-		//０：無向　１：乗算　２：加算　３：サブテクスチャ
+		//０：無効　１：乗算　２：加算　３：サブテクスチャ
 		unsigned char m_sphere_mode = 0;;
 
 		//unsigned intなら個別toon、unsigned charなら共有toon
