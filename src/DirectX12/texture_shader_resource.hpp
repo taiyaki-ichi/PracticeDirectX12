@@ -2,6 +2,7 @@
 #include"device.hpp"
 #include"utility.hpp"
 #include"command_list.hpp"
+#include"resource_type_tag.hpp"
 #include<d3d12.h>
 #include<dxgi1_6.h>
 #include<DirectXTex.h>
@@ -31,6 +32,8 @@ namespace ichi
 		D3D12_TEXTURE_COPY_LOCATION m_copy_location{};
 
 	public:
+		using resource_type = shader_resource_tag;
+
 		texture_shader_resource_base() = default;
 		~texture_shader_resource_base();
 

@@ -1,4 +1,5 @@
 #pragma once
+#include"resource_type_tag.hpp"
 #include<d3d12.h>
 #include<dxgi1_6.h>
 
@@ -11,4 +12,38 @@ namespace ichi
 
 	ID3D12Resource* create_white_texture(device*);
 	ID3D12Resource* create_black_texture(device*);
+
+	//4Å~4ÇÃîí
+	class white_texture_resource
+	{
+		ID3D12Resource* m_resource = nullptr;
+
+	public:
+		using resource_type = shader_resource_tag;
+
+		white_texture_resource() = default;
+		~white_texture_resource();
+
+		bool initialize(device*);
+
+		ID3D12Resource* get();
+	};
+
+	class black_texture_resource
+	{
+		ID3D12Resource* m_resource = nullptr;
+
+	public:
+		using resource_type = shader_resource_tag;
+
+		black_texture_resource() = default;
+		~black_texture_resource();
+
+		bool initialize(device*);
+
+		ID3D12Resource* get();
+	};
+
+
+
 }

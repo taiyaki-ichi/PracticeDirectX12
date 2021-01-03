@@ -5,6 +5,7 @@
 #include"DirectX12/constant_buffer_resource.hpp"
 #include"DirectX12/texture_shader_resource.hpp"
 #include"DirectX12/descriptor_heap.hpp"
+#include"DirectX12/color_texture.hpp"
 #include<algorithm>
 #include<iterator>
 #include<utility>
@@ -180,16 +181,46 @@ namespace ichi
 			device->create<descriptor_heap>(2 + m_material_info.size() * 2)
 		};
 		if (!m_descriptor_heap) {
-			std::cout << "desc heap 2 is failed\n";
+			std::cout << "mmd desc heap is failed\n";
+			return false;
 		}
 
 		m_descriptor_heap->create_view(device, m_world_mat_resource.get());
 		m_descriptor_heap->create_view(device, m_viewproj_mat_resource.get());
 		for (int i = 0; i < m_material_info.size(); i++)
 		{
+			//先頭のハンドルはメモしておく
 			auto handle = m_descriptor_heap->create_view(device, m_material_resource[i].get());
-			m_matarial_root_gpu_handle.emplace_back(handle);
-			m_descriptor_heap->create_view(device, m_texture[m_material_info[i].m_texture_index].get());
+			if (handle)
+				m_matarial_root_gpu_handle.emplace_back(handle.value());
+			else {
+				std::cout << "mmd desc heap create view is failed\n";
+				return false;
+			}
+
+			//有効なテクスチャがある場合
+			if (0 <= m_material_info[i].m_texture_index && m_material_info[i].m_texture_index < m_texture.size())
+				m_descriptor_heap->create_view(device, m_texture[m_material_info[i].m_texture_index].get());
+			//ない場合は白テクスチャ
+			else
+				m_descriptor_heap->create_view(device, m_white_texture_resource.get());
+		}
+
+
+		m_white_texture_resource = std::unique_ptr<white_texture_resource>{
+			device->create<white_texture_resource>()
+		};
+		if (!m_white_texture_resource) {
+			std::cout << "mmd whire tex is falied\n";
+			return false;
+		}
+
+		m_black_texture_resource = std::unique_ptr<black_texture_resource>{
+			device->create<black_texture_resource>()
+		};
+		if (!m_black_texture_resource) {
+			std::cout << "mmd black tex is failed\n";
+			return false;
 		}
 
 		return true;

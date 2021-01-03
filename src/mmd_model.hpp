@@ -1,6 +1,7 @@
 #pragma once
 #include"include/pmx_data_struct.hpp"
 #include"DirectX12/texture_shader_resource.hpp"
+#include"DirectX12/color_texture.hpp"
 #include<memory>
 #include<vector>
 #include<string>
@@ -13,6 +14,8 @@ namespace ichi
 	class constant_buffer_resource;
 	class command_list;
 	class descriptor_heap;
+	class white_texture_resource;
+	class black_texture_resource;
 
 
 	class mmd_model
@@ -53,6 +56,10 @@ namespace ichi
 
 		//マテリアルごとのgpuハンドルの先頭
 		std::vector<D3D12_GPU_DESCRIPTOR_HANDLE> m_matarial_root_gpu_handle{};
+
+		//とりあえず白と黒のテクスチャもメンバとして持たせる
+		std::unique_ptr<white_texture_resource> m_white_texture_resource{};
+		std::unique_ptr<black_texture_resource> m_black_texture_resource{};
 
 	public:
 		mmd_model() = default;

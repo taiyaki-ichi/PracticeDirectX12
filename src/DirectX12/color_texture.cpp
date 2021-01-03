@@ -107,4 +107,46 @@ namespace ichi
 		}
 	}
 
+
+	white_texture_resource::~white_texture_resource()
+	{
+		if (m_resource)
+			m_resource->Release();
+	}
+
+	bool white_texture_resource::initialize(device* device)
+	{
+		m_resource = create_white_texture(device);
+		if (m_resource)
+			return true;
+		else
+			return false;
+
+	}
+
+	ID3D12Resource* white_texture_resource::get()
+	{
+		return m_resource;
+	}
+
+	black_texture_resource::~black_texture_resource()
+	{
+		if (m_resource)
+			m_resource->Release();
+	}
+
+	bool black_texture_resource::initialize(device* device)
+	{
+		m_resource = create_black_texture(device);
+		if (m_resource)
+			return true;
+		else
+			return false;
+	}
+
+	ID3D12Resource* black_texture_resource::get()
+	{
+		return m_resource;
+	}
+
 }
