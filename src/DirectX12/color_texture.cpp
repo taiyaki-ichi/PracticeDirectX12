@@ -87,7 +87,7 @@ namespace ichi
 
 		std::vector<unsigned char> data(4 * 4 * 4);
 		std::fill(data.begin(), data.end(), 0x00);
-		for (int i = 0; i < 4 * 4; i++)
+		for (size_t i = 0; i < 4 * 4; i++)
 			data[i * 4] = 0xff;
 
 		if (SUCCEEDED(result->WriteToSubresource(

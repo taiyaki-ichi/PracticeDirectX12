@@ -4,9 +4,11 @@
 cbuffer cbuff0 : register(b0) {
 	matrix world;//変換行列
 };
+
 cbuffer cbuff1 : register(b1) {
 	matrix viewproj;
 };
+
 
 //頂点シェーダ
 BasicType main(float4 pos : POSITION, float4 normal : NORMAL, float2 uv : TEXCOORD){

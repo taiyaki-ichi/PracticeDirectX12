@@ -21,31 +21,46 @@ namespace ichi
 		rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
 		//定数とテクスチャ
-		D3D12_DESCRIPTOR_RANGE range[2]{ {},{} };
+		D3D12_DESCRIPTOR_RANGE range[]{ {},{} ,{} };
 		//Constant
 		//現在は表示させるmmdに合わせてある
 		//pipelinesytatの引数で設定できるようにしたい
 		//後、頂点情報のレイアウトも
-		range[0].NumDescriptors = 3;
+		range[0].NumDescriptors = 2;
 		range[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 		range[0].BaseShaderRegister = 0;
 		range[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
 		//shader resource
 		//a
 		range[1].NumDescriptors = 1;
-		range[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		range[1].BaseShaderRegister = 0;
+		range[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+		range[1].BaseShaderRegister = 2;
 		range[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+		
+		range[2].NumDescriptors = 1;
+		range[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+		range[2].BaseShaderRegister = 0;
+		range[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+		
 
-		D3D12_ROOT_PARAMETER rootparam{};
-		rootparam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		rootparam.DescriptorTable.pDescriptorRanges = &range[0];//デスクリプタレンジのアドレス
-		rootparam.DescriptorTable.NumDescriptorRanges = 2;//デスクリプタレンジ数
-		rootparam.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;//全てのシェーダから見える
+		D3D12_ROOT_PARAMETER rootparam[]{ {},{} };
+		rootparam[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		rootparam[0].DescriptorTable.pDescriptorRanges = &range[0];//デスクリプタレンジのアドレス
+		rootparam[0].DescriptorTable.NumDescriptorRanges = 1;//デスクリプタレンジ数
+		rootparam[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;//全てのシェーダから見える
+
+		rootparam[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		rootparam[1].DescriptorTable.pDescriptorRanges = &range[1];//デスクリプタレンジのアドレス
+		rootparam[1].DescriptorTable.NumDescriptorRanges = 2;//デスクリプタレンジ数
+		rootparam[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;//全てのシェーダから見える
 
 
-		rootSignatureDesc.pParameters = &rootparam;//ルートパラメータの先頭アドレス
-		rootSignatureDesc.NumParameters = 1;//ルートパラメータ数
+		rootSignatureDesc.pParameters = rootparam;//ルートパラメータの先頭アドレス
+		rootSignatureDesc.NumParameters = 2;//ルートパラメータ数
+
+
+
 
 		D3D12_STATIC_SAMPLER_DESC samplerDesc{};
 		samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;//横繰り返し

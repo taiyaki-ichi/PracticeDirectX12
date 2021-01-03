@@ -94,18 +94,19 @@ namespace MMDL
 					break;
 
 				case pmx_vertex_weight_type::BDEF2:
-					read_binary_from_file(file, &vertex[i].m_born, header.m_data[pmx_header::BONE_INDEX_SIZE] * 2);
-					read_binary_from_file(file, &vertex[i].m_weight, sizeof(&vertex[i].m_weight[0]));
+					read_binary_from_file(file, &vertex[i].m_born, static_cast<size_t>(header.m_data[pmx_header::BONE_INDEX_SIZE]) * 2);
+					//x64‚¾‚Æsizeof‚Å‚¸‚ê‚é
+					read_binary_from_file(file, &vertex[i].m_weight,/* sizeof(&vertex[i].m_weight[0])*/ 4);
 					break;
 
 				case pmx_vertex_weight_type::BDEF4:
-					read_binary_from_file(file, &vertex[i].m_born, header.m_data[pmx_header::BONE_INDEX_SIZE] * 4);
-					read_binary_from_file(file, &vertex[i].m_weight, sizeof(&vertex[i].m_weight[0]) * 4);
+					read_binary_from_file(file, &vertex[i].m_born, static_cast<size_t>(header.m_data[pmx_header::BONE_INDEX_SIZE]) * 4);
+					read_binary_from_file(file, &vertex[i].m_weight, /*sizeof(&vertex[i].m_weight[0])*/4 * 4);
 					break;
 
 				case pmx_vertex_weight_type::SDEF:
-					read_binary_from_file(file, &vertex[i].m_born, header.m_data[pmx_header::BONE_INDEX_SIZE] * 2);
-					read_binary_from_file(file, &vertex[i].m_weight, sizeof(vertex[i].m_weight[0]));
+					read_binary_from_file(file, &vertex[i].m_born, static_cast<size_t>(header.m_data[pmx_header::BONE_INDEX_SIZE]) * 2);
+					read_binary_from_file(file, &vertex[i].m_weight, /*sizeof(vertex[i].m_weight[0])*/4);
 					read_binary_from_file(file, &vertex[i].m_SDEF_vector, sizeof(vertex[i].m_SDEF_vector[0]) * 3);
 					break;
 				}

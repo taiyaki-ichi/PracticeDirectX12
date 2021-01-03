@@ -10,13 +10,12 @@
 #include"DirectX12/descriptor_heap.hpp"
 #include"DirectX12/texture_shader_resource.hpp"
 #include"include/load_pmx.hpp"
-#include"my_vertex.hpp"
 #include"DirectX12/depth_buffer.hpp"
-#include"mmd.hpp"
 #include<DirectXMath.h>
 #include<memory>
 #include<array>
 
+#include"mmd_model.hpp"
 
 
 #include<iostream>
@@ -72,15 +71,6 @@ int main()
 	scissorrect.bottom = scissorrect.top + window_height;//切り抜き下座標
 
 	//
-	//定数バッファとテクスチャ用のディスクリプタヒープ
-	//
-	auto constantBufferDescriptorHeap = std::shared_ptr<ichi::descriptor_heap>{
-		device->create<ichi::descriptor_heap>(ichi::DESCRIPTOR_HEAP_SIZE)
-	};
-	
-
-
-	//
 	//viewproj
 	//
 	DirectX::XMFLOAT3 eye{ 0,5,-5 };
@@ -108,79 +98,23 @@ int main()
 	//
 	//モデルの読み込み
 	//
-	std::vector<ichi::my_vertex> mmdVertex{};
-	std::vector<unsigned short> mmdSurface{};
-	std::vector<ichi::my_material> mmdMaterial{};
-	std::vector<ichi::my_material_info> mmdMaterialInfo{};
-	std::vector<std::wstring> mmdFilePath{};
+	auto mmdModel = std::shared_ptr<ichi::mmd_model>{};
+
 	auto modelIf = MMDL::load_pmx("../../mmd/Paimon/派蒙.pmx");
 	if (modelIf)
 	{
-		auto&& model = modelIf.value();
-
-		std::visit([&mmdVertex](auto& m) {
-			mmdVertex = ichi::generate_my_vertex(m.m_vertex);
-			}, model);
-
-		std::visit([&mmdSurface](auto& m) {
-			for (auto& tmp : m.m_surface)
-				mmdSurface.emplace_back(static_cast<unsigned short>(tmp.m_vertex_index));
-			}, model);
-
-		std::visit([&mmdMaterial](auto& m) {
-			mmdMaterial = ichi::generate_my_material
-				<typename std::remove_reference_t<decltype(m)>::string_type>(m.m_material);
-			}, model);
-
-		std::visit([&mmdMaterialInfo](auto& m) {
-			mmdMaterialInfo = ichi::generate_my_material_info
-				<typename std::remove_reference_t<decltype(m)>::string_type>(m.m_material);
-			}, model);
-
 		//とりあえず
-		auto& hoge = std::get<MMDL::pmx_model<std::wstring>>(model);
-		mmdFilePath = hoge.m_texture_path;
+		auto&& model = std::get<MMDL::pmx_model<std::wstring>>(modelIf.value());
+
+		mmdModel = std::shared_ptr<ichi::mmd_model>{
+			device->create<ichi::mmd_model>(model,commList.get())
+		};
+
 	}
 	else {
 		std::cout << "model loaf failed\n";
 		return 0;
 	}
-
-	//
-	//頂点
-	//
-	//要素数×要素当たりのサイズ、じゃあないと動かなかった
-	auto mmdVertexBuffer = std::shared_ptr<ichi::vertex_buffer>{ device->create<ichi::vertex_buffer>(mmdVertex.size() * sizeof(mmdVertex[0]), sizeof(mmdVertex[0])) };
-	if (!mmdVertexBuffer) {
-		std::cout << "vert buffer is failed\n";
-		return 0;
-	}
-	mmdVertexBuffer->map(mmdVertex);
-
-	//
-	//インデックス
-	//
-	auto mmdIndexBuffer = std::shared_ptr<ichi::index_buffer>{ device->create<ichi::index_buffer>(mmdSurface.size() * sizeof(mmdSurface[0])) };
-	if (!mmdIndexBuffer) {
-		std::cout << "index buffer is failed\n";
-		return 0;
-	}
-	mmdIndexBuffer->map(mmdSurface);
-
-
-	//
-	//マテリアる
-	//
-	auto mmdMaterialBuffer = std::shared_ptr<ichi::constant_buffer_resource>{
-		device->create<ichi::constant_buffer_resource>(mmdMaterial.size() * sizeof(mmdMaterial[0]))
-	};
-	mmdMaterialBuffer->map(mmdMaterial);
-	constantBufferDescriptorHeap->create_view(device.get(), mmdMaterialBuffer.get());
-
-
-	auto mmd = std::shared_ptr<ichi::my_mmd>{
-		device->create<ichi::my_mmd>(mmdVertex,mmdSurface,mmdMaterial,mmdMaterialInfo,mmdFilePath,commList.get())
-	};
 
 
 	//
@@ -191,45 +125,36 @@ int main()
 	};
 
 
+	
 	while (ichi::update_window()) {
 		
 		//回転の計算
 		worldMat *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
 
+		mmdModel->map_world_mat(worldMat);
+		mmdModel->map_viewproj_mat(viewproj);
 
-		mmd->map_world_mat(worldMat);
-		mmd->map_viewproj_mat(viewproj);
-
-		//バッファのクリアもリソースバリアを張る
 		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer.get());
+
 		doubleBuffer->clear_back_buffer(commList.get());
 		depthBuffer->clear(commList.get());
+
+		commList->get()->RSSetViewports(1, &viewport);
+		commList->get()->RSSetScissorRects(1, &scissorrect);
+		commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		commList->get()->SetPipelineState(pipelineState->get());
+		commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
+		
+		mmdModel->draw(commList.get());
+
 		doubleBuffer->end_drawing_to_backbuffer(commList.get());
+
 		commList->get()->Close();
 		commList->execute();
 		commList->clear(pipelineState.get());
-
-		auto mmdMaterialNum = mmd->get_material_num();
-
-		for (unsigned int i = 0; i < mmdMaterialNum; i++)
-		{
-			doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer.get());
-			commList->get()->RSSetViewports(1, &viewport);
-			commList->get()->RSSetScissorRects(1, &scissorrect);
-			commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-			commList->get()->SetPipelineState(pipelineState->get());
-			commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
-
-			mmd->draw_command(commList.get(), constantBufferDescriptorHeap.get(), device.get(), i);
-
-			doubleBuffer->end_drawing_to_backbuffer(commList.get());
-			commList->get()->Close();
-			commList->execute();
-			commList->clear(pipelineState.get());
-		}
 		
-	
+
 		doubleBuffer->flip();
 
 	}

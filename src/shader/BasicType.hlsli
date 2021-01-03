@@ -13,9 +13,3 @@ struct BasicType {
 	float2 uv:TEXCOORD;		//uv’l
 };
 
-
-cbuffer Material : register(b2) {
-	float4 diffuse;
-	float4 specular;
-	float3 ambient;
-}

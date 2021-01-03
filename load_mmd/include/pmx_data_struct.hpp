@@ -64,7 +64,7 @@ namespace MMDL
 		//ボーンウェイトとか
 		//とりあえず配列で実装、不便だったらカエル
 		//初期値はpmxEditor見て決めた、不適切ならカエル
-		int m_born[4]{ -1,-1,-1,-1 };
+		unsigned short m_born[4]{ 0,0,0,0 };
 		float m_weight[4]{ 0.f,0.f,0.f,0.f };
 		DirectX::XMFLOAT3 m_SDEF_vector[3]{ {0.f,0.f,0.f},{0.f,0.f,0.f},{0.f,0.f,0.f} };
 
