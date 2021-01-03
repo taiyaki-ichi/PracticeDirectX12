@@ -85,7 +85,6 @@ int main()
 		1.f,
 		100.f
 	);
-	//auto viewproj = view * proj;
 
 	//
 	//ƒ‚ƒfƒ‹–{‘Ì‚ð‰ñ“]‚³‚¹‚½‚èˆÚ“®‚³‚¹‚½‚è‚·‚és—ñ
@@ -131,9 +130,6 @@ int main()
 		
 		//‰ñ“]‚ÌŒvŽZ
 		worldMat *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
-
-		//mmdModel->map_world_mat(worldMat);
-		//mmdModel->map_viewproj_mat(viewproj);
 
 		mmdModel->map_scene_data({ worldMat,view,proj,eye });
 
