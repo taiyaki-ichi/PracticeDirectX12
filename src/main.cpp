@@ -16,6 +16,7 @@
 #include<array>
 
 #include"mmd_model.hpp"
+#include"scene_data.hpp"
 
 
 #include<iostream>
@@ -46,8 +47,8 @@ int main()
 	}
 
 	//シェーダ
-	auto vertShaderBlob = ichi::create_shader_blob(L"shader/VertexShader1.hlsl", "main", "vs_5_0");
-	auto pixcShaderBlob = ichi::create_shader_blob(L"shader/PixelShader1.hlsl", "main", "ps_5_0");
+	auto vertShaderBlob = ichi::create_shader_blob(L"shader/VertexShader.hlsl", "main", "vs_5_0");
+	auto pixcShaderBlob = ichi::create_shader_blob(L"shader/PixelShader.hlsl", "main", "ps_5_0");
 
 	auto pipelineState = std::shared_ptr<ichi::pipeline_state>(device->create<ichi::pipeline_state>(vertShaderBlob, pixcShaderBlob));
 	if (!pipelineState) {
@@ -84,13 +85,13 @@ int main()
 		1.f,
 		100.f
 	);
-	auto viewproj = view * proj;
+	//auto viewproj = view * proj;
 
 	//
 	//モデル本体を回転させたり移動させたりする行列
 	//
 	DirectX::XMMATRIX worldMat = DirectX::XMMatrixIdentity();
-	
+
 
 	//
 	//mmdモデルの頂点情報
@@ -131,8 +132,10 @@ int main()
 		//回転の計算
 		worldMat *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
 
-		mmdModel->map_world_mat(worldMat);
-		mmdModel->map_viewproj_mat(viewproj);
+		//mmdModel->map_world_mat(worldMat);
+		//mmdModel->map_viewproj_mat(viewproj);
+
+		mmdModel->map_scene_data({ worldMat,view,proj,eye });
 
 		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer.get());
 

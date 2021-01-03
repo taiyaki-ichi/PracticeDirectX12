@@ -157,36 +157,52 @@ namespace ichi
 			m_texture.emplace_back(std::unique_ptr<texture_shader_resource>{textureBuffer});
 		}
 
-		//ワールド行列
-		m_world_mat_resource = std::unique_ptr<ichi::constant_buffer_resource>{
-			device->create<constant_buffer_resource>(sizeof(DirectX::XMMATRIX))
+		//シーンデータ
+		m_scene_data_resource = std::unique_ptr<ichi::constant_buffer_resource>{
+			device->create<constant_buffer_resource>(sizeof(scene_data))
 		};
-		if (!m_world_mat_resource) {
-			std::cout << "mmd w mat is failed\n";
+		if (!m_scene_data_resource) {
+			std::cout << "mmd scene data is failed\n";
 			return false;
 		}
 
-		//ビューぷろｊ行列
-		m_viewproj_mat_resource = std::unique_ptr<ichi::constant_buffer_resource>{
-			device->create<constant_buffer_resource>(sizeof(DirectX::XMMATRIX))
+		m_white_texture_resource = std::unique_ptr<white_texture_resource>{
+			device->create<white_texture_resource>()
 		};
-		if (!m_viewproj_mat_resource) {
-			std::cout << "mmd vp mat is failed\n";
+		if (!m_white_texture_resource) {
+			std::cout << "mmd whire tex is falied\n";
+			return false;
+		}
+
+		m_black_texture_resource = std::unique_ptr<black_texture_resource>{
+			device->create<black_texture_resource>()
+		};
+		if (!m_black_texture_resource) {
+			std::cout << "mmd black tex is failed\n";
+			return false;
+		}
+
+		m_gray_gradation_texture_resource = std::unique_ptr<gray_gradation_texture_resource>{
+			device->create<gray_gradation_texture_resource>()
+		};
+		if (!m_gray_gradation_texture_resource) {
+			std::cout << "mmd gray grade is failed\n";
 			return false;
 		}
 
 	
-		//今のところ個数は行列2つとマテリアル分×２
+		//今のところ個数は行列1つとマテリアル分
 		m_descriptor_heap = std::unique_ptr<descriptor_heap>{
-			device->create<descriptor_heap>(2 + m_material_info.size() * 2)
+			device->create<descriptor_heap>(1 + m_material_info.size() * 5)
 		};
 		if (!m_descriptor_heap) {
 			std::cout << "mmd desc heap is failed\n";
 			return false;
 		}
 
-		m_descriptor_heap->create_view(device, m_world_mat_resource.get());
-		m_descriptor_heap->create_view(device, m_viewproj_mat_resource.get());
+
+		m_descriptor_heap->create_view(device, m_scene_data_resource.get());
+
 		for (int i = 0; i < m_material_info.size(); i++)
 		{
 			//先頭のハンドルはメモしておく
@@ -204,24 +220,30 @@ namespace ichi
 			//ない場合は白テクスチャ
 			else
 				m_descriptor_heap->create_view(device, m_white_texture_resource.get());
+
+
+			//加算スフィア
+			if (pmxModel.m_material[i].m_sphere_mode == 2)
+				m_descriptor_heap->create_view(device, m_texture[m_material_info[i].m_toon_index].get());
+			else
+				m_descriptor_heap->create_view(device, m_black_texture_resource.get());
+
+			//乗算スフィア
+			if (pmxModel.m_material[i].m_sphere_mode == 1)
+				m_descriptor_heap->create_view(device, m_texture[m_material_info[i].m_toon_index].get());
+			else
+				m_descriptor_heap->create_view(device, m_white_texture_resource.get());
+
+			//toon
+			//個別toonなら対応
+			const unsigned int* ptr = std::get_if<0>(&pmxModel.m_material[i].m_toon);
+			if (ptr && *ptr < m_texture.size())
+				m_descriptor_heap->create_view(device, m_texture[*ptr].get());
+			else 
+				m_descriptor_heap->create_view(device, m_gray_gradation_texture_resource.get());
 		}
 
 
-		m_white_texture_resource = std::unique_ptr<white_texture_resource>{
-			device->create<white_texture_resource>()
-		};
-		if (!m_white_texture_resource) {
-			std::cout << "mmd whire tex is falied\n";
-			return false;
-		}
-
-		m_black_texture_resource = std::unique_ptr<black_texture_resource>{
-			device->create<black_texture_resource>()
-		};
-		if (!m_black_texture_resource) {
-			std::cout << "mmd black tex is failed\n";
-			return false;
-		}
 
 		return true;
 	}
@@ -250,14 +272,14 @@ namespace ichi
 	
 	}
 
-	void mmd_model::map_world_mat(DirectX::XMMATRIX& mat)
+	void mmd_model::map_scene_data(const scene_data& sd)
 	{
-		map_func(m_world_mat_resource.get()->get(), mat);
-	}
+		scene_data* ptr = nullptr;
+		m_scene_data_resource->get()->Map(0, nullptr, (void**)&ptr);
 
-	void mmd_model::map_viewproj_mat(DirectX::XMMATRIX& mat)
-	{
-		map_func(m_viewproj_mat_resource.get()->get(), mat);
+		*ptr = sd;
+
+		m_scene_data_resource->get()->Unmap(0, nullptr);
 	}
 
 }

@@ -2,6 +2,7 @@
 #include"include/pmx_data_struct.hpp"
 #include"DirectX12/texture_shader_resource.hpp"
 #include"DirectX12/color_texture.hpp"
+#include"scene_data.hpp"
 #include<memory>
 #include<vector>
 #include<string>
@@ -30,10 +31,7 @@ namespace ichi
 		std::vector<std::unique_ptr<texture_shader_resource>> m_texture{};
 
 		//シェーダに送る用
-		//とりあえず、メンバとして保持しておく
-		//使いまわれるようなら描写時の引数で十分
-		std::unique_ptr<constant_buffer_resource> m_world_mat_resource{};
-		std::unique_ptr<constant_buffer_resource> m_viewproj_mat_resource{};
+		std::unique_ptr<constant_buffer_resource> m_scene_data_resource{};
 
 		//今のところfloat4,float3,float,float3のmaterial
 		//マテリアルの描写毎に定数バッファをリセットしビューを作製
@@ -42,6 +40,7 @@ namespace ichi
 		//マテリアルの情報保持用
 		struct material_info {
 			//m_textureのサイズより多いな値は無効
+			//この2つはいらないかも
 			unsigned int m_texture_index = 0;
 			unsigned int m_toon_index = 0;
 			//頂点を指すインデックスの数
@@ -60,6 +59,8 @@ namespace ichi
 		//とりあえず白と黒のテクスチャもメンバとして持たせる
 		std::unique_ptr<white_texture_resource> m_white_texture_resource{};
 		std::unique_ptr<black_texture_resource> m_black_texture_resource{};
+		//グラデーションも
+		std::unique_ptr<gray_gradation_texture_resource> m_gray_gradation_texture_resource{};
 
 	public:
 		mmd_model() = default;
@@ -75,10 +76,7 @@ namespace ichi
 		//
 		void draw(command_list* cl);
 
-
-		void map_world_mat(DirectX::XMMATRIX&);
-		void map_viewproj_mat(DirectX::XMMATRIX&);
-
+		void map_scene_data(const scene_data&);
 
 	};
 

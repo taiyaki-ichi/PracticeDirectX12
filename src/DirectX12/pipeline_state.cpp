@@ -26,7 +26,7 @@ namespace ichi
 		//現在は表示させるmmdに合わせてある
 		//pipelinesytatの引数で設定できるようにしたい
 		//後、頂点情報のレイアウトも
-		range[0].NumDescriptors = 2;
+		range[0].NumDescriptors = 1;
 		range[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 		range[0].BaseShaderRegister = 0;
 		range[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -35,10 +35,10 @@ namespace ichi
 		//a
 		range[1].NumDescriptors = 1;
 		range[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-		range[1].BaseShaderRegister = 2;
+		range[1].BaseShaderRegister = 1;
 		range[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 		
-		range[2].NumDescriptors = 1;
+		range[2].NumDescriptors = 4;
 		range[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		range[2].BaseShaderRegister = 0;
 		range[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -62,19 +62,25 @@ namespace ichi
 
 
 
-		D3D12_STATIC_SAMPLER_DESC samplerDesc{};
-		samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;//横繰り返し
-		samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;//縦繰り返し
-		samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;//奥行繰り返し
-		samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;//ボーダーの時は黒
-		samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;//補間しない(ニアレストネイバー)
-		samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;//ミップマップ最大値
-		samplerDesc.MinLOD = 0.0f;//ミップマップ最小値
-		samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;//オーバーサンプリングの際リサンプリングしない？
-		samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;//ピクセルシェーダからのみ可視
+		D3D12_STATIC_SAMPLER_DESC samplerDesc[]{ {},{} };
+		samplerDesc[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;//横繰り返し
+		samplerDesc[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;//縦繰り返し
+		samplerDesc[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;//奥行繰り返し
+		samplerDesc[0].BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;//ボーダーの時は黒
+		samplerDesc[0].Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;//補間しない(ニアレストネイバー)
+		samplerDesc[0].MaxLOD = D3D12_FLOAT32_MAX;//ミップマップ最大値
+		samplerDesc[0].MinLOD = 0.0f;//ミップマップ最小値
+		samplerDesc[0].ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;//オーバーサンプリングの際リサンプリングしない？
+		samplerDesc[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;//ピクセルシェーダからのみ可視
 
-		rootSignatureDesc.pStaticSamplers = &samplerDesc;
-		rootSignatureDesc.NumStaticSamplers = 1;
+		samplerDesc[1] = samplerDesc[0];//変更点以外をコピー
+		samplerDesc[1].AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;//
+		samplerDesc[1].AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+		samplerDesc[1].AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+		samplerDesc[1].ShaderRegister = 1;
+
+		rootSignatureDesc.pStaticSamplers = samplerDesc;
+		rootSignatureDesc.NumStaticSamplers = 2;
 
 		ID3DBlob* rootSigBlob = nullptr;
 		ID3DBlob* errorBlob = nullptr;
@@ -156,10 +162,6 @@ namespace ichi
 		graphicsPipelineDesc.DepthStencilState.StencilEnable = false;
 
 		//頂点情報のレイアウト
-		//D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
-			//{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
-			//{ "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
-		//};
 		D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
 			{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
 			{"NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0},

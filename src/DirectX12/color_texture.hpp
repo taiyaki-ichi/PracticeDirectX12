@@ -12,6 +12,7 @@ namespace ichi
 
 	ID3D12Resource* create_white_texture(device*);
 	ID3D12Resource* create_black_texture(device*);
+	ID3D12Resource* create_gray_gradation_texture(device*);
 
 	//4Å~4ÇÃîí
 	class white_texture_resource
@@ -44,6 +45,19 @@ namespace ichi
 		ID3D12Resource* get();
 	};
 
+	class gray_gradation_texture_resource
+	{
+		ID3D12Resource* m_resource = nullptr;
 
+	public:
+		using resource_type = shader_resource_tag;
+
+		gray_gradation_texture_resource() = default;
+		~gray_gradation_texture_resource();
+
+		bool initialize(device*);
+
+		ID3D12Resource* get();
+	};
 
 }
