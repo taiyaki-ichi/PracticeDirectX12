@@ -21,6 +21,14 @@
 
 #include<iostream>
 
+
+//糖衣用
+template<typename T,typename... Args>
+std::shared_ptr<T> create_shared_ptr(ichi::device* device,Args&&... args) {
+	return std::shared_ptr<T>{ device->create<T>(std::forward<Args>(args)...)};
+}
+
+
 int main()
 {
 	constexpr unsigned int window_width = 800;
@@ -34,13 +42,13 @@ int main()
 		return 0;
 	}
 
-	auto commList = std::shared_ptr<ichi::command_list>(device->create<ichi::command_list>());
+	auto commList = create_shared_ptr<ichi::command_list>(device.get());
 	if (!commList) {
 		std::cout << "comList is failed\n";
 		return 0;
 	}
 
-	auto doubleBuffer = std::shared_ptr<ichi::double_buffer>(device->create<ichi::double_buffer>(hwnd, commList.get()));
+	auto doubleBuffer = create_shared_ptr<ichi::double_buffer>(device.get(), hwnd, commList.get());
 	if (!doubleBuffer) {
 		std::cout << "douebl is failed\n";
 		return 0;
@@ -50,7 +58,7 @@ int main()
 	auto vertShaderBlob = ichi::create_shader_blob(L"shader/VertexShader.hlsl", "main", "vs_5_0");
 	auto pixcShaderBlob = ichi::create_shader_blob(L"shader/PixelShader.hlsl", "main", "ps_5_0");
 
-	auto pipelineState = std::shared_ptr<ichi::pipeline_state>(device->create<ichi::pipeline_state>(vertShaderBlob, pixcShaderBlob));
+	auto pipelineState = create_shared_ptr<ichi::pipeline_state>(device.get(), vertShaderBlob, pixcShaderBlob);
 	if (!pipelineState) {
 		std::cout << "pipe is failed\n";
 		return 0;
@@ -104,28 +112,20 @@ int main()
 	if (modelIf)
 	{
 		//とりあえず
-		auto&& model = std::get<MMDL::pmx_model<std::wstring>>(modelIf.value());
+		auto& model = std::get<MMDL::pmx_model<std::wstring>>(modelIf.value());
 
-		mmdModel = std::shared_ptr<ichi::mmd_model>{
-			device->create<ichi::mmd_model>(model,commList.get())
-		};
-
+		mmdModel = create_shared_ptr<ichi::mmd_model>(device.get(), model, commList.get());
 	}
 	else {
 		std::cout << "model loaf failed\n";
 		return 0;
 	}
 
-
 	//
-	//でぃぷす
+	//ディプス
 	//
-	auto depthBuffer = std::shared_ptr<ichi::depth_buffer>{
-		device->create<ichi::depth_buffer>(window_width,window_height)
-	};
+	auto depthBuffer = create_shared_ptr<ichi::depth_buffer>(device.get(), window_width, window_height);
 
-
-	
 	while (ichi::update_window()) {
 		
 		//回転の計算
