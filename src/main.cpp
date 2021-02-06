@@ -18,6 +18,9 @@
 #include"mmd_model.hpp"
 #include"scene_data.hpp"
 
+#include"perapolygon_pipline_state.hpp"
+#include"perapolygon_renderer.hpp"
+
 
 #include<iostream>
 
@@ -31,6 +34,7 @@ std::shared_ptr<T> create_shared_ptr(ichi::device* device,Args&&... args) {
 
 int main()
 {
+	
 	constexpr unsigned int window_width = 800;
 	constexpr unsigned int window_height = 600;
 	auto hwnd = ichi::create_window(L"aaaaa", window_width, window_height);
@@ -126,6 +130,64 @@ int main()
 	//
 	auto depthBuffer = create_shared_ptr<ichi::depth_buffer>(device.get(), window_width, window_height);
 
+	
+	//
+	//
+	//
+	//ぺらポリごん用のシェーダ
+	auto peraVertShaderBlob = ichi::create_shader_blob(L"shader/peraVertexShader.hlsl", "main", "vs_5_0");
+	auto peraPixcShaderBlob = ichi::create_shader_blob(L"shader/peraPixelShader.hlsl", "main", "ps_5_0");
+
+	//ぺら用パイプライン
+	auto peraPipelineState = std::make_shared<ichi::perapolygon_pipline_state>();
+	if (!peraPipelineState->initialize(device.get(),peraVertShaderBlob,peraPixcShaderBlob)) {
+		return 0;
+	}
+
+	//
+	auto peraRenderer = std::make_shared<ichi::perapolygon_renderer>();
+	if (!peraRenderer->initialize(device.get())) {
+		return 0;
+	}
+
+	//ぺら用頂点バッファ
+	auto peraVertexBuff = std::make_shared<ichi::vertex_buffer>();
+	{
+		struct PeraVert{
+			DirectX::XMFLOAT3 pos;
+			DirectX::XMFLOAT2 uv;
+		};
+		PeraVert pv[4] = {
+			{{-1.f,-1.f,0.1f},{0,1.f}},
+			{{-1.f,1.f,0.1f},{0,0}},
+			{{1.f,-1.f,0.1f},{1.f,1.f}},
+			{{1.f,1.f,0.1f},{1.f,0}},
+		};
+
+		if (!peraVertexBuff->initialize(device.get(), sizeof(pv), sizeof(pv[0]))) {
+			return 0;
+		}
+		peraVertexBuff->map(pv);
+	}
+
+	//ぺら用ディスクリプタヒープ
+	//ぺらポリゴンを描写するときに使う
+	auto peraDescriptorHeap = std::make_shared<ichi::descriptor_heap>();
+	//とりあえず大きさは1
+	if (!peraDescriptorHeap->initialize(device.get(), 1)) {
+		return 0;
+	}
+	auto peraDescriptorHeapHandle = peraDescriptorHeap->create_view(device.get(), peraRenderer.get());
+	if (!peraDescriptorHeapHandle) {
+		std::cout << "pera handle is failed\n";
+		return 0;
+	}
+	
+	//
+	//
+	//
+
+
 	while (ichi::update_window()) {
 		
 		//回転の計算
@@ -133,19 +195,46 @@ int main()
 
 		mmdModel->map_scene_data({ worldMat,view,proj,eye });
 
-		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer.get());
-
-		doubleBuffer->clear_back_buffer(commList.get());
-		depthBuffer->clear(commList.get());
-
 		commList->get()->RSSetViewports(1, &viewport);
 		commList->get()->RSSetScissorRects(1, &scissorrect);
-		commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+
+		//
+		//mmdをぺらポリゴンへ描写
+		//
+		peraRenderer->begin_drawing(commList.get(), depthBuffer.get());
+
+		depthBuffer->clear(commList.get());
+		peraRenderer->clear(commList.get());
 
 		commList->get()->SetPipelineState(pipelineState->get());
 		commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
-		
+
+		commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 		mmdModel->draw(commList.get());
+
+		peraRenderer->end_drawing(commList.get());
+
+		//
+		//
+		//
+
+		//ぺらポリゴンをバックバッファに描写
+		
+		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer.get());
+		doubleBuffer->clear_back_buffer(commList.get());
+
+		depthBuffer->clear(commList.get());
+
+		commList->get()->SetPipelineState(peraPipelineState->get());
+		commList->get()->SetGraphicsRootSignature(peraPipelineState->get_root_signature());
+
+		commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		commList->get()->IASetVertexBuffers(0, 1, &peraVertexBuff->get_view());
+		commList->get()->SetDescriptorHeaps(1, &peraDescriptorHeap->get_ptr());
+		commList->get()->SetGraphicsRootDescriptorTable(0, peraDescriptorHeap->get_ptr()->GetGPUDescriptorHandleForHeapStart());
+		commList->get()->DrawInstanced(4, 1, 0, 0);
 
 		doubleBuffer->end_drawing_to_backbuffer(commList.get());
 
@@ -161,6 +250,6 @@ int main()
 
 	vertShaderBlob->Release();
 	pixcShaderBlob->Release();
-
+	
 	return 0;
 }

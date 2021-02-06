@@ -13,6 +13,8 @@
     <ClCompile Include="DirectX12\depth_buffer.cpp" />
     <ClCompile Include="DirectX12\color_texture.cpp" />
     <ClCompile Include="mmd_model.cpp" />
+    <ClCompile Include="perapolygon_pipline_state.cpp" />
+    <ClCompile Include="perapolygon_renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectX12\command_list.hpp" />
@@ -32,12 +34,17 @@
     <ClInclude Include="mmd_model.hpp" />
     <ClInclude Include="DirectX12\resource_type_tag.hpp" />
     <ClInclude Include="scene_data.hpp" />
+    <ClInclude Include="perapolygon_pipline_state.hpp" />
+    <ClInclude Include="perapolygon_renderer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\BasicType.hlsli" />
+    <None Include="shader\peraHeader.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader\VertexShader.hlsl" />
     <FxCompile Include="shader\PixelShader.hlsl" />
+    <FxCompile Include="shader\peraVertexShader.hlsl" />
+    <FxCompile Include="shader\peraPixelShader.hlsl" />
   </ItemGroup>
 </Project>

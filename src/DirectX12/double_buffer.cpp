@@ -83,6 +83,8 @@ namespace ichi
 			handle.ptr += device->get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);	
 		}
 
+		auto hoge = m_buffer[0]->GetDesc();
+
 		//インクリメント用のサイズのメモ
 		m_descriptor_handle_increment_size = device->get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
@@ -107,7 +109,7 @@ namespace ichi
 
 		//レンダーターゲットの作製
 		auto rtvH = m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
-		rtvH.ptr += static_cast<ULONG_PTR>(bbIdx * m_descriptor_handle_increment_size);
+		rtvH.ptr += static_cast<ULONG_PTR>(bbIdx) * m_descriptor_handle_increment_size;
 		cl->get()->OMSetRenderTargets(1, &rtvH, false, &dsvH);
 
 	}
@@ -133,7 +135,7 @@ namespace ichi
 	{
 		auto bbIdx = m_swap_chain->GetCurrentBackBufferIndex();
 		auto rtvH = m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
-		rtvH.ptr += static_cast<ULONG_PTR>(bbIdx * m_descriptor_handle_increment_size);
+		rtvH.ptr += static_cast<ULONG_PTR>(bbIdx) * m_descriptor_handle_increment_size;
 		//バックバッファのクリア
 		float clearColor[] = { 1.0f,1.0f,1.0f,1.0f };
 		cl->get()->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
