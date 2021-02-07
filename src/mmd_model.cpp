@@ -6,6 +6,8 @@
 #include"DirectX12/texture_shader_resource.hpp"
 #include"DirectX12/descriptor_heap.hpp"
 #include"DirectX12/color_texture.hpp"
+#include"DirectX12/pipeline_state.hpp"
+#include"DirectX12/shader.hpp"
 #include<algorithm>
 #include<iterator>
 #include<utility>
@@ -89,6 +91,21 @@ namespace ichi
 
 	bool mmd_model::initialize(device* device,const MMDL::pmx_model<std::wstring>& pmxModel,command_list* cl)
 	{
+		auto vertShaderBlob = create_shader_blob(L"shader/VertexShader.hlsl", "main", "vs_5_0");
+		auto pixcShaderBlob = create_shader_blob(L"shader/PixelShader.hlsl", "main", "ps_5_0");
+
+		m_pipline_state = std::unique_ptr<pipeline_state>{
+			device->create<pipeline_state>(vertShaderBlob,pixcShaderBlob)
+		};
+		if (!m_pipline_state) {
+			std::cout << "mmd m pipe is failed\n";
+			return 0;
+		}
+
+		vertShaderBlob->Release();
+		pixcShaderBlob->Release();
+
+
 		//’¸“_
 		auto vertex = generate_map_vertex(pmxModel.m_vertex);
 		m_vertex_buffer = std::unique_ptr<vertex_buffer>{
@@ -252,6 +269,11 @@ namespace ichi
 	{
 		unsigned int indexOffset = 0;
 	
+		cl->get()->SetPipelineState(m_pipline_state->get());
+		cl->get()->SetGraphicsRootSignature(m_pipline_state->get_root_signature());
+
+		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 		cl->get()->IASetVertexBuffers(0, 1, &m_vertex_buffer->get_view());
 		cl->get()->IASetIndexBuffer(&m_index_buffer->get_view());
 
@@ -281,6 +303,11 @@ namespace ichi
 		*ptr = sd;
 
 		m_scene_data_resource->get()->Unmap(0, nullptr);
+	}
+
+	void mmd_model::clear_pipeline_state(command_list* cl)
+	{
+		cl->clear(m_pipline_state.get());
 	}
 
 }

@@ -17,10 +17,14 @@ namespace ichi
 	class descriptor_heap;
 	class white_texture_resource;
 	class black_texture_resource;
+	class pipeline_state;
 
 
 	class mmd_model
 	{
+		//通常のパイプラインステート
+		std::unique_ptr<pipeline_state> m_pipline_state;
+
 		//頂点
 		std::unique_ptr<vertex_buffer> m_vertex_buffer{};
 		//インデックス
@@ -77,6 +81,10 @@ namespace ichi
 		void draw(command_list* cl);
 
 		void map_scene_data(const scene_data&);
+
+		//仮
+		//とりあえずパイプラインのクリアを行えるように
+		void clear_pipeline_state(command_list* cl);
 
 	};
 

@@ -58,16 +58,6 @@ int main()
 		return 0;
 	}
 
-	//シェーダ
-	auto vertShaderBlob = ichi::create_shader_blob(L"shader/VertexShader.hlsl", "main", "vs_5_0");
-	auto pixcShaderBlob = ichi::create_shader_blob(L"shader/PixelShader.hlsl", "main", "ps_5_0");
-
-	auto pipelineState = create_shared_ptr<ichi::pipeline_state>(device.get(), vertShaderBlob, pixcShaderBlob);
-	if (!pipelineState) {
-		std::cout << "pipe is failed\n";
-		return 0;
-	}
-
 
 	D3D12_VIEWPORT viewport{};
 	viewport.Width = static_cast<float>(window_width);//出力先の幅(ピクセル数)
@@ -86,7 +76,7 @@ int main()
 	//
 	//viewproj
 	//
-	DirectX::XMFLOAT3 eye{ 0,10,-10 };
+	DirectX::XMFLOAT3 eye{ 0,7,-7 };
 	DirectX::XMFLOAT3 target{ 0,5,0 };
 	DirectX::XMFLOAT3 up{ 0,1,0 };
 	auto view = DirectX::XMMatrixLookAtLH(
@@ -220,11 +210,6 @@ int main()
 		depthBuffer->clear(commList.get());
 		peraRenderer->clear(commList.get());
 
-		commList->get()->SetPipelineState(pipelineState->get());
-		commList->get()->SetGraphicsRootSignature(pipelineState->get_root_signature());
-
-		commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 		mmdModel->draw(commList.get());
 
 		peraRenderer->end_drawing(commList.get());
@@ -253,16 +238,12 @@ int main()
 
 		commList->get()->Close();
 		commList->execute();
-		commList->clear(pipelineState.get());
-		
+
+		mmdModel->clear_pipeline_state(commList.get());
 
 		doubleBuffer->flip();
 
 	}
-
-
-	vertShaderBlob->Release();
-	pixcShaderBlob->Release();
 	
 	return 0;
 }

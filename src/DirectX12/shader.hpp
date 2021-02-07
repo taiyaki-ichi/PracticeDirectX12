@@ -13,7 +13,7 @@
 namespace ichi
 {
 	//ファイルネームとエントリポイントからシェーダをコンパイルしblobを返す
-	ID3DBlob* create_shader_blob(const wchar_t* fileName, const char* funcName, const char* include)
+	inline ID3DBlob* create_shader_blob(const wchar_t* fileName, const char* funcName, const char* include)
 	{
 		ID3DBlob* blob = nullptr;
 		ID3DBlob* errorBlob = nullptr;
