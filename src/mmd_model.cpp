@@ -92,6 +92,8 @@ namespace ichi
 
 	mmd_model::~mmd_model()
 	{
+		if (m_light_depth_descriptor_heap)
+			m_light_depth_descriptor_heap->Release();
 		if (m_light_depth_resource)
 			m_light_depth_resource->Release();
 		if (m_pipeline_state)
@@ -100,6 +102,7 @@ namespace ichi
 			m_shadow_pipeline_state->Release();
 		if (m_root_signature)
 			m_root_signature->Release();
+
 	}
 
 	bool mmd_model::initialize(device* device,const MMDL::pmx_model<std::wstring>& pmxModel,command_list* cl)
@@ -142,6 +145,7 @@ namespace ichi
 
 
 		//インデックス
+		m_all_index_num = pmxModel.m_surface.size();
 		auto index = generate_map_index(pmxModel.m_surface);
 		m_index_buffer = std::unique_ptr<index_buffer>{
 			device->create<index_buffer>(index.size() * sizeof(index[0]))
@@ -249,7 +253,7 @@ namespace ichi
 			//先頭のハンドルはメモしておく
 			auto handle = m_descriptor_heap->create_view(device, m_material_resource[i].get());
 			if (handle)
-				m_matarial_root_gpu_handle.emplace_back(handle.value());
+				m_matarial_root_gpu_handle.emplace_back(handle.value().first);
 			else {
 				std::cout << "mmd desc heap create view is failed\n";
 				return false;
@@ -284,6 +288,82 @@ namespace ichi
 				m_descriptor_heap->create_view(device, m_gray_gradation_texture_resource.get());
 		}
 
+		{
+			
+			//とりあえずDepthの設定の個ぴへ
+
+			//深度バッファの仕様
+			D3D12_RESOURCE_DESC depthResDesc{};
+			depthResDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;//2次元のテクスチャデータとして
+			depthResDesc.Width = shadow_difinition;//幅と高さはレンダーターゲットと同じ
+			depthResDesc.Height = shadow_difinition;//上に同じ
+			depthResDesc.DepthOrArraySize = 1;//テクスチャ配列でもないし3Dテクスチャでもない
+			depthResDesc.Format = DXGI_FORMAT_R32_TYPELESS;//深度値書き込み用フォーマット
+			depthResDesc.SampleDesc.Count = 1;//サンプルは1ピクセル当たり1つ
+			depthResDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;//このバッファは深度ステンシルとして使用します
+			depthResDesc.MipLevels = 1;
+			depthResDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+			depthResDesc.Alignment = 0;
+
+			//デプス用ヒーププロパティ
+			D3D12_HEAP_PROPERTIES depthHeapProp{};
+			depthHeapProp.Type = D3D12_HEAP_TYPE_DEFAULT;//DEFAULTだから後はUNKNOWNでよし
+			depthHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+			depthHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+			//このクリアバリューが重要な意味を持つ
+			D3D12_CLEAR_VALUE depthClearValue{};
+			depthClearValue.DepthStencil.Depth = 1.0f;//深さ１(最大値)でクリア
+			depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;//32bit深度値としてクリア
+
+	
+			if (FAILED(device->get()->CreateCommittedResource(
+				&depthHeapProp,
+				D3D12_HEAP_FLAG_NONE,
+				&depthResDesc,
+				D3D12_RESOURCE_STATE_DEPTH_WRITE, //デプス書き込みに使用
+				&depthClearValue,
+				IID_PPV_ARGS(&m_light_depth_resource)
+			))) {
+				std::cout << "mmd light depth initialize is failed\n";
+				return false;
+			}
+			
+			//lightdesccriptorの生成
+			D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc{};
+			dsvHeapDesc.NumDescriptors = 1;//1つのみ
+			dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;//デプスステンシルビューとして使う
+			if (FAILED(device->get()->CreateDescriptorHeap(
+				&dsvHeapDesc, IID_PPV_ARGS(&m_light_depth_descriptor_heap)))) {
+				std::cout << "mmd light depth descriptor is failed\n";
+				return false;
+			}
+
+
+			//viewの生成
+			auto heapHandle = m_light_depth_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
+			
+			//深度ビュー作成
+			D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
+			dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;//デプス値に32bit使用
+			dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;//2Dテクスチャ
+			dsvDesc.Flags = D3D12_DSV_FLAG_NONE;//フラグは特になし
+
+			device->get()->CreateDepthStencilView(m_light_depth_resource, //ビューと関連付けるバッファ
+				&dsvDesc, //先ほど設定したテクスチャ設定情報
+				heapHandle//ヒープのどこに割り当てるか
+			);
+
+			
+		
+			auto result = m_descriptor_heap->create_view<depth_buffer_tag>(device, m_light_depth_resource);
+			if (result)
+				m_light_depth_gpu_handle = result.value().first;
+			else {
+				std::cout << "mmd init descriptor light shader failed\n";
+				return false;
+			}
+		}
 
 
 		return true;
@@ -291,10 +371,9 @@ namespace ichi
 
 	void mmd_model::draw(command_list* cl)
 	{
+		
 		unsigned int indexOffset = 0;
 	
-		//cl->get()->SetPipelineState(m_pipline_state->get());
-		//cl->get()->SetGraphicsRootSignature(m_pipline_state->get_root_signature());
 		cl->get()->SetPipelineState(m_pipeline_state);
 		cl->get()->SetGraphicsRootSignature(m_root_signature);
 
@@ -304,8 +383,13 @@ namespace ichi
 		cl->get()->IASetIndexBuffer(&m_index_buffer->get_view());
 
 		cl->get()->SetDescriptorHeaps(1, &m_descriptor_heap->get_ptr());
+
 		cl->get()->SetGraphicsRootDescriptorTable(0, m_descriptor_heap->get_gpu_handle());
 
+		
+		cl->get()->SetGraphicsRootDescriptorTable(2, m_light_depth_gpu_handle);
+
+	
 		for (int i = 0; i < m_material_info.size(); i++)
 		{
 
@@ -317,8 +401,7 @@ namespace ichi
 			indexOffset += m_material_info[i].m_vertex_num;
 		
 		}
-
-	
+		
 	}
 
 	void mmd_model::map_scene_data(const scene_data& sd)
@@ -329,6 +412,46 @@ namespace ichi
 		*ptr = sd;
 
 		m_scene_data_resource->get()->Unmap(0, nullptr);
+	}
+
+	void mmd_model::draw_light_depth(command_list* cl)
+	{
+		cl->get()->ClearDepthStencilView(m_light_depth_descriptor_heap->GetCPUDescriptorHandleForHeapStart(),
+			D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
+		D3D12_VIEWPORT viewport{};
+		viewport.Width = static_cast<float>(shadow_difinition);//出力先の幅(ピクセル数)
+		viewport.Height = static_cast<float>(shadow_difinition);//出力先の高さ(ピクセル数)
+		viewport.TopLeftX = 0;//出力先の左上座標X
+		viewport.TopLeftY = 0;//出力先の左上座標Y
+		viewport.MaxDepth = 1.0f;//深度最大値
+		viewport.MinDepth = 0.0f;//深度最小値
+		cl->get()->RSSetViewports(1, &viewport);
+
+		D3D12_RECT scissorrect{};
+		scissorrect.top = 0;//切り抜き上座標
+		scissorrect.left = 0;//切り抜き左座標
+		scissorrect.right = scissorrect.left + shadow_difinition;//切り抜き右座標
+		scissorrect.bottom = scissorrect.top + shadow_difinition;//切り抜き下座標
+		cl->get()->RSSetScissorRects(1, &scissorrect);
+
+
+		cl->get()->SetPipelineState(m_shadow_pipeline_state);
+		cl->get()->SetGraphicsRootSignature(m_root_signature);
+
+		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		cl->get()->IASetVertexBuffers(0, 1, &m_vertex_buffer->get_view());
+		cl->get()->IASetIndexBuffer(&m_index_buffer->get_view());
+
+		cl->get()->SetDescriptorHeaps(1, &m_descriptor_heap->get_ptr());
+		cl->get()->SetGraphicsRootDescriptorTable(0, m_descriptor_heap->get_gpu_handle());
+		cl->get()->SetGraphicsRootDescriptorTable(2, m_light_depth_gpu_handle);
+
+		auto handle = m_light_depth_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
+		cl->get()->OMSetRenderTargets(0, nullptr, false, &handle);
+
+		cl->get()->DrawIndexedInstanced(m_all_index_num, 1, 0, 0, 0);
 	}
 
 }

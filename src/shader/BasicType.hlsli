@@ -8,6 +8,7 @@ struct BasicType {
 	float2 uv:TEXCOORD;//UV値
 	float3 ray:VECTOR;//ベクトル
 	uint instNo:SV_instanceID;//インスタンスの番号
+	float4 tpos:TPOS;
 };
 
 cbuffer SceneData : register(b0) {

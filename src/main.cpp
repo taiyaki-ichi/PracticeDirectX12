@@ -76,7 +76,7 @@ int main()
 	//
 	//viewproj
 	//
-	DirectX::XMFLOAT3 eye{ 0,7,-7 };
+	DirectX::XMFLOAT3 eye{ 0,6,-6 };
 	DirectX::XMFLOAT3 target{ 0,5,0 };
 	DirectX::XMFLOAT3 up{ 0,1,0 };
 	auto view = DirectX::XMMatrixLookAtLH(
@@ -113,7 +113,7 @@ int main()
 	auto lightPos = XMLoadFloat3(&target) + XMVector3Normalize(XMLoadFloat3(&parallelLightVec))
 		* XMVector3Length(XMVectorSubtract(XMLoadFloat3(&target), XMLoadFloat3(&eye))).m128_f32[0];
 
-	auto lightCamera = XMMatrixLookAtLH(lightPos, XMLoadFloat3(&target), XMLoadFloat3(&up)) * XMMatrixOrthographicLH(40, 40, 1.f, 100.f);
+	auto lightCamera = XMMatrixLookAtLH(lightPos, XMLoadFloat3(&target), XMLoadFloat3(&up))* XMMatrixOrthographicLH(50, 50, 1.f, 100.f);
 
 
 	//
@@ -199,21 +199,26 @@ int main()
 	//
 	//
 
-
 	while (ichi::update_window()) {
 		
 		//‰ñ“]‚ÌŒvŽZ
 		worldMat *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
+	
 
 		mmdModel->map_scene_data({ worldMat,view,proj,lightCamera, shadow, eye });
 
-		commList->get()->RSSetViewports(1, &viewport);
-		commList->get()->RSSetScissorRects(1, &scissorrect);
+	
 
+
+		mmdModel->draw_light_depth(commList.get());
 
 		//
 		//mmd‚ð‚Ø‚çƒ|ƒŠƒSƒ“‚Ö•`ŽÊ
 		//
+		
+		commList->get()->RSSetViewports(1, &viewport);
+		commList->get()->RSSetScissorRects(1, &scissorrect);
+
 		peraRenderer->begin_drawing(commList.get(), depthBuffer.get());
 
 		depthBuffer->clear(commList.get());

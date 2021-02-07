@@ -12,4 +12,6 @@ namespace ichi
 	//定数バッファ用
 	struct constant_buffer_tag {};
 
+	//深度バッファをテクスチャとして扱うために
+	struct depth_buffer_tag {};
 }

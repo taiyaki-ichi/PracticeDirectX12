@@ -51,14 +51,14 @@ namespace ichi
 		rootparam[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;//全てのシェーダから見える
 
 		rootparam[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		rootparam[2].DescriptorTable.pDescriptorRanges = &range[2];//デスクリプタレンジのアドレス
+		rootparam[2].DescriptorTable.pDescriptorRanges = &range[3];//デスクリプタレンジのアドレス
 		rootparam[2].DescriptorTable.NumDescriptorRanges = 1;//デスクリプタレンジ数
 		rootparam[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;//全てのシェーダから見える
 
 		//まとめる
 		rootSignatureDesc.pParameters = rootparam;//ルートパラメータの先頭アドレス
 		//
-		rootSignatureDesc.NumParameters = 2;//ルートパラメータ数
+		rootSignatureDesc.NumParameters = 3;//ルートパラメータ数
 		//
 
 		//通常のと、トゥーン用
@@ -227,6 +227,7 @@ namespace ichi
 		graphicsPipelineDesc.PS.BytecodeLength = 0;
 
 		//レンダーターゲット必要なし
+		graphicsPipelineDesc.NumRenderTargets = 0;
 		graphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_UNKNOWN;
 
 		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&shadowPipelineState))))

@@ -57,6 +57,9 @@ namespace ichi
 		//マテリアルの情報の保持
 		std::vector<material_info> m_material_info{};
 
+		//mmdのすべてのインデックスの数
+		size_t m_all_index_num{};
+
 		//ディスクリプタヒープ
 		//SetDescriptorHeapsを複数回呼び出すとうまくいかなかったのであきらめて1つにまとめた
 		std::unique_ptr<descriptor_heap> m_descriptor_heap{};
@@ -73,7 +76,12 @@ namespace ichi
 		//シャドウマップ用の深度バッファ
 		//とりあえず、生ぽ
 		ID3D12Resource* m_light_depth_resource = nullptr;
-		D3D12_GPU_DESCRIPTOR_HANDLE m_light_depth_resource_gpu_handle{};
+		//深度バッファのディスクリプタヒープと一緒にしたい
+		//
+		ID3D12DescriptorHeap* m_light_depth_descriptor_heap = nullptr;
+		//描写用のGPUハンドル
+		D3D12_GPU_DESCRIPTOR_HANDLE m_light_depth_gpu_handle{};
+	
 
 
 	public:
@@ -91,6 +99,9 @@ namespace ichi
 		void draw(command_list* cl);
 
 		void map_scene_data(const scene_data&);
+
+		//ライト深度バッファへの描写
+		void draw_light_depth(command_list* cl);
 
 	};
 

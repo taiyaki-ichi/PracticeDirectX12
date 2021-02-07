@@ -34,12 +34,14 @@ namespace ichi
 		bool initialize(device* d, unsigned int size);
 
 		//ビューの作製
+		template<typename ResourceType>
+		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> create_view(device* device, ID3D12Resource* resourcePtr);
 		//ディスクリプタヒープをセットするようにgpu_handleを取得できるようにしておく
 		//リソースタイプを持っている場合に呼ばれる関数
 		template<typename T,typename = typename T::resource_type>
-		std::optional<D3D12_GPU_DESCRIPTOR_HANDLE> create_view(device* device, T* resourcePtr);
+		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> create_view(device* device, T* resourcePtr);
 		//持っていない場合
-		std::optional<D3D12_GPU_DESCRIPTOR_HANDLE> create_view(...);
+		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> create_view(...);
 
 		//offsetを0にする
 		void reset() noexcept;
@@ -52,13 +54,14 @@ namespace ichi
 	};
 
 
-
-
-
-	template<typename T,typename ResourceType>
-	inline std::optional<D3D12_GPU_DESCRIPTOR_HANDLE> descriptor_heap::create_view(device* device, T* resourcePtr)
+	template<typename ResourceType>
+	inline std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> descriptor_heap::create_view(device* device, ID3D12Resource* resourcePtr)
 	{
-		//std::cout << typeid(ResourceType).name() << "\n";
+		if (!resourcePtr)
+			return std::nullopt;
+
+		if (m_size <= m_offset)
+			return std::nullopt;
 
 		//定数バッファの場合
 		if constexpr (std::is_same_v<ResourceType, constant_buffer_tag>)
@@ -68,8 +71,8 @@ namespace ichi
 
 			//定数バッファ
 			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
-			cbvDesc.BufferLocation = resourcePtr->get()->GetGPUVirtualAddress();
-			cbvDesc.SizeInBytes = static_cast<UINT>(resourcePtr->get()->GetDesc().Width);
+			cbvDesc.BufferLocation = resourcePtr->GetGPUVirtualAddress();
+			cbvDesc.SizeInBytes = static_cast<UINT>(resourcePtr->GetDesc().Width);
 
 			//定数バッファビューの作成
 			device->get()->CreateConstantBufferView(&cbvDesc, heapHandle);
@@ -81,7 +84,7 @@ namespace ichi
 			//更新
 			m_offset++;
 
-			return h;
+			return std::make_pair(h, heapHandle);
 		}
 		else if constexpr (std::is_same_v<ResourceType, shader_resource_tag>)
 		{
@@ -90,12 +93,12 @@ namespace ichi
 
 			//テクスチャ
 			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-			srvDesc.Format = resourcePtr->get()->GetDesc().Format;//RGBA(0.0f～1.0fに正規化)
+			srvDesc.Format = resourcePtr->GetDesc().Format;//RGBA(0.0f～1.0fに正規化)
 			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;//2Dテクスチャ
 			srvDesc.Texture2D.MipLevels = 1;//ミップマップは使用しないので1
 
-			device->get()->CreateShaderResourceView(resourcePtr->get(), //ビューと関連付けるバッファ
+			device->get()->CreateShaderResourceView(resourcePtr, //ビューと関連付けるバッファ
 				&srvDesc, //先ほど設定したテクスチャ設定情報
 				heapHandle//ヒープのどこに割り当てるか
 			);
@@ -107,12 +110,48 @@ namespace ichi
 			//更新
 			m_offset++;
 
-			return h;
+			return std::make_pair(h, heapHandle);
+		}
+		else if constexpr (std::is_same_v<ResourceType, depth_buffer_tag>)
+		{
+	
+			auto heapHandle = m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
+			heapHandle.ptr += static_cast<size_t>(m_increment_size) * static_cast<size_t>(m_offset);
+
+			//テクスチャ
+			D3D12_SHADER_RESOURCE_VIEW_DESC resDesc{};
+			resDesc.Format = DXGI_FORMAT_R32_FLOAT;
+			resDesc.Texture2D.MipLevels = 1;
+			resDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			resDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+
+			device->get()->CreateShaderResourceView(resourcePtr, //ビューと関連付けるバッファ
+				&resDesc, //先ほど設定したテクスチャ設定情報
+				heapHandle//ヒープのどこに割り当てるか
+			);
+
+			//戻り値用
+			auto h = m_descriptor_heap->GetGPUDescriptorHandleForHeapStart();
+			h.ptr += static_cast<UINT64>(m_increment_size) * static_cast<UINT64>(m_offset);
+
+			//更新
+			m_offset++;
+
+			return std::make_pair(h, heapHandle);
 		}
 
 		std::cout << "create view is failed\n";
 
 		return std::nullopt;
+	}
+
+
+	template<typename T,typename ResourceType>
+	inline std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> descriptor_heap::create_view(device* device, T* resourcePtr)
+	{
+		//std::cout << typeid(ResourceType).name() << "\n";
+		return create_view<ResourceType>(device, resourcePtr->get());
+
 	}
 
 }

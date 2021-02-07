@@ -32,7 +32,7 @@ namespace ichi
 	}
 	
 	
-	std::optional<D3D12_GPU_DESCRIPTOR_HANDLE> descriptor_heap::create_view(...)
+	std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> descriptor_heap::create_view(...)
 	{
 		std::cout << "create view is failed : resource type is not defined\n";
 
