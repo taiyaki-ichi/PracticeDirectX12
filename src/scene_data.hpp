@@ -10,6 +10,8 @@ namespace ichi
 		DirectX::XMMATRIX m_view{};
 		DirectX::XMMATRIX m_proj{};
 
+		//ƒ‰ƒCƒg’Ç‰Á
+		DirectX::XMMATRIX m_light_camera{};
 		//‰e’Ç‰Á
 		DirectX::XMMATRIX m_shadow{};
 

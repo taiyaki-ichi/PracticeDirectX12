@@ -31,6 +31,7 @@
     <ClCompile Include="DirectX12\vertex_buffer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mmd_model.cpp" />
+    <ClCompile Include="mmd_pipline_state.cpp" />
     <ClCompile Include="perapolygon_pipline_state.cpp" />
     <ClCompile Include="perapolygon_renderer.cpp" />
   </ItemGroup>
@@ -50,6 +51,7 @@
     <ClInclude Include="DirectX12\utility.hpp" />
     <ClInclude Include="DirectX12\vertex_buffer.hpp" />
     <ClInclude Include="mmd_model.hpp" />
+    <ClInclude Include="mmd_pipline_state.hpp" />
     <ClInclude Include="perapolygon_pipline_state.hpp" />
     <ClInclude Include="perapolygon_renderer.hpp" />
     <ClInclude Include="scene_data.hpp" />

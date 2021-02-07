@@ -40,6 +40,7 @@ namespace ichi
 		//コマンドのクリア
 		//引数は初期設定したいパイプラインステート
 		//nullptrでもよい
+		//pipelinestateクラスをなくす鴨
 		void clear(pipeline_state* pipelineState = nullptr);
 
 		//テクスチャをsrcからdstにコピー

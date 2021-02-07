@@ -23,7 +23,11 @@ namespace ichi
 	class mmd_model
 	{
 		//通常のパイプラインステート
-		std::unique_ptr<pipeline_state> m_pipline_state;
+		ID3D12PipelineState* m_pipeline_state = nullptr;
+		//シャドウ用のパイプラインステート
+		ID3D12PipelineState* m_shadow_pipeline_state = nullptr;
+		//ルートシグネチャ
+		ID3D12RootSignature* m_root_signature = nullptr;
 
 		//頂点
 		std::unique_ptr<vertex_buffer> m_vertex_buffer{};
@@ -66,9 +70,15 @@ namespace ichi
 		//グラデーションも
 		std::unique_ptr<gray_gradation_texture_resource> m_gray_gradation_texture_resource{};
 
+		//シャドウマップ用の深度バッファ
+		//とりあえず、生ぽ
+		ID3D12Resource* m_light_depth_resource = nullptr;
+		D3D12_GPU_DESCRIPTOR_HANDLE m_light_depth_resource_gpu_handle{};
+
+
 	public:
 		mmd_model() = default;
-		~mmd_model() = default;
+		~mmd_model();
 
 		//コマンドリストはテクスチャのコピー用
 		bool initialize(device*,const MMDL::pmx_model<std::wstring>&,command_list*);
@@ -81,10 +91,6 @@ namespace ichi
 		void draw(command_list* cl);
 
 		void map_scene_data(const scene_data&);
-
-		//仮
-		//とりあえずパイプラインのクリアを行えるように
-		void clear_pipeline_state(command_list* cl);
 
 	};
 

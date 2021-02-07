@@ -1,43 +1,31 @@
-#include"pipeline_state.hpp"
-#include"device.hpp"
-#include"descriptor_heap.hpp"
-
-#include<iostream>
+#include"mmd_pipline_state.hpp"
+#include"DirectX12/device.hpp"
+#include"DirectX12/shader.hpp"
 
 namespace ichi
 {
-	pipeline_state::~pipeline_state()
-	{
-		if (m_pipeline_state)
-			m_pipeline_state->Release();
-		if (m_root_signature)
-			m_root_signature->Release();
-	}
 
-	bool pipeline_state::initialize(device* device, ID3DBlob* vertexShader, ID3DBlob* pixelShader)
+	std::optional<ID3D12RootSignature*> create_mmd_rootsignature(device* device)
 	{
+		ID3D12RootSignature* rootSignature = nullptr;
 
 		D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 		rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
-		//定数とテクスチャ
 		D3D12_DESCRIPTOR_RANGE range[]{ {},{} ,{},{} };
-		//Constant
-		//現在は表示させるmmdに合わせてある
-		//pipelinesytatの引数で設定できるようにしたい
-		//後、頂点情報のレイアウトも
-		//range[0]は頂点情報
+		//頂点情報
 		range[0].NumDescriptors = 1;
 		range[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 		range[0].BaseShaderRegister = 0;
 		range[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-		//マテリアるデータ1つとトゥーンなどが連続している
+		//マテリアるの基本データ
 		range[1].NumDescriptors = 1;
 		range[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 		range[1].BaseShaderRegister = 1;
 		range[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-		
+
+		//マテリアルのスフィアとかトゥーン
 		range[2].NumDescriptors = 4;
 		range[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		range[2].BaseShaderRegister = 0;
@@ -48,7 +36,7 @@ namespace ichi
 		range[3].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		range[3].BaseShaderRegister = 4;
 		range[3].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-		
+
 
 		D3D12_ROOT_PARAMETER rootparam[]{ {},{},{} };
 		rootparam[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
@@ -56,6 +44,7 @@ namespace ichi
 		rootparam[0].DescriptorTable.NumDescriptorRanges = 1;//デスクリプタレンジ数
 		rootparam[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;//全てのシェーダから見える
 
+		//マテリアルごとにGPUハンドルを一緒にずらすためまとめる
 		rootparam[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		rootparam[1].DescriptorTable.pDescriptorRanges = &range[1];//デスクリプタレンジのアドレス
 		rootparam[1].DescriptorTable.NumDescriptorRanges = 2;//デスクリプタレンジ数
@@ -66,13 +55,13 @@ namespace ichi
 		rootparam[2].DescriptorTable.NumDescriptorRanges = 1;//デスクリプタレンジ数
 		rootparam[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;//全てのシェーダから見える
 
-
+		//まとめる
 		rootSignatureDesc.pParameters = rootparam;//ルートパラメータの先頭アドレス
+		//
 		rootSignatureDesc.NumParameters = 2;//ルートパラメータ数
+		//
 
-
-
-
+		//通常のと、トゥーン用
 		D3D12_STATIC_SAMPLER_DESC samplerDesc[]{ {},{} };
 		samplerDesc[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;//横繰り返し
 		samplerDesc[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;//縦繰り返し
@@ -90,15 +79,17 @@ namespace ichi
 		samplerDesc[1].AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 		samplerDesc[1].ShaderRegister = 1;
 
+		//まとめる
 		rootSignatureDesc.pStaticSamplers = samplerDesc;
 		rootSignatureDesc.NumStaticSamplers = 2;
+
 
 		ID3DBlob* rootSigBlob = nullptr;
 		ID3DBlob* errorBlob = nullptr;
 
 		auto result = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &rootSigBlob, &errorBlob);
 		if (FAILED(result)) {
-			std::cout << "D3D12SerializeRootSignature is failed : D3D12SerializeRootSignature ";
+			std::cout << "mmd D3D12SerializeRootSignature is failed ";
 
 			//エラー内容
 			std::string errstr;
@@ -106,24 +97,48 @@ namespace ichi
 			std::copy_n((char*)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize(), errstr.begin());
 			std::cout << " : " << errstr << "\n";
 
-			return false;
+			return std::nullopt;
 		}
 
-		result = device->get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&m_root_signature));
+		result = device->get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
 		if (FAILED(result)) {
 			std::cout << "CreateRootSignature is falied : CreateRootSignature\n";
-			return false;
+			return std::nullopt;
 		}
 
 		rootSigBlob->Release();
 
+		return rootSignature;
+	}
+
+	std::optional<std::pair<ID3D12PipelineState*, ID3D12PipelineState*>> create_mmd_pipline_state(device* device, ID3D12RootSignature* rootSignature)
+	{
+		if (!rootSignature)
+			return std::nullopt;
+
+
+		auto vertShaderBlob = create_shader_blob(L"shader/VertexShader.hlsl", "main", "vs_5_0");
+		auto pixcShaderBlob = create_shader_blob(L"shader/PixelShader.hlsl", "main", "ps_5_0");
+		auto shadowVertShaderBolb = create_shader_blob(L"shader/VertexShader.hlsl", "shadowVS", "vs_5_0");
 		
+		auto releaseShaders = [&vertShaderBlob, &pixcShaderBlob, &shadowVertShaderBolb]() {
+			if (vertShaderBlob)
+				vertShaderBlob->Release();
+			if (pixcShaderBlob)
+				pixcShaderBlob->Release();
+			if (shadowVertShaderBolb)
+				shadowVertShaderBolb->Release();
+		};
+
+		//まずは普通のを作る
+		ID3D12PipelineState* pipelineState = nullptr;
+
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineDesc{};
 
-		graphicsPipelineDesc.VS.pShaderBytecode = vertexShader->GetBufferPointer();
-		graphicsPipelineDesc.VS.BytecodeLength = vertexShader->GetBufferSize();
-		graphicsPipelineDesc.PS.pShaderBytecode = pixelShader->GetBufferPointer();
-		graphicsPipelineDesc.PS.BytecodeLength = pixelShader->GetBufferSize();
+		graphicsPipelineDesc.VS.pShaderBytecode = vertShaderBlob->GetBufferPointer();
+		graphicsPipelineDesc.VS.BytecodeLength = vertShaderBlob->GetBufferSize();
+		graphicsPipelineDesc.PS.pShaderBytecode = pixcShaderBlob->GetBufferPointer();
+		graphicsPipelineDesc.PS.BytecodeLength = pixcShaderBlob->GetBufferSize();
 
 		graphicsPipelineDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;//中身は0xffffffff
 
@@ -193,22 +208,38 @@ namespace ichi
 		graphicsPipelineDesc.SampleDesc.Quality = 0;//クオリティは最低
 
 		//ルートシグネチャ
-		graphicsPipelineDesc.pRootSignature = m_root_signature;
+		graphicsPipelineDesc.pRootSignature = rootSignature;
 
-		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&m_pipeline_state))))
+		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&pipelineState))))
 		{
-			std::cout << "CreateGraphicsPipelineState is failed\n";
-			return false;
+			std::cout << "mmd CreateGraphicsPipelineState is failed\n";
+			releaseShaders();
+			return std::nullopt;
 		}
 
-		return true;
+		
+		//ライト深度用のパイプラインステート
+		ID3D12PipelineState* shadowPipelineState = nullptr;
+
+		graphicsPipelineDesc.VS.pShaderBytecode = shadowVertShaderBolb->GetBufferPointer();
+		graphicsPipelineDesc.VS.BytecodeLength = shadowVertShaderBolb->GetBufferSize();
+		graphicsPipelineDesc.PS.pShaderBytecode = nullptr;
+		graphicsPipelineDesc.PS.BytecodeLength = 0;
+
+		//レンダーターゲット必要なし
+		graphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_UNKNOWN;
+
+		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&shadowPipelineState))))
+		{
+			std::cout << "mmd shadow CreateGraphicsPipelineState is failed\n";
+			releaseShaders();
+			if (pipelineState)
+				pipelineState->Release();
+			return std::nullopt;
+		}
+
+		releaseShaders();
+		return std::make_pair(pipelineState, shadowPipelineState);
 	}
-	ID3D12PipelineState* pipeline_state::get() const noexcept
-	{
-		return m_pipeline_state;
-	}
-	ID3D12RootSignature* pipeline_state::get_root_signature() const noexcept
-	{
-		return m_root_signature;
-	}
+
 }

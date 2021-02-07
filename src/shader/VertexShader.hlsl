@@ -27,3 +27,9 @@ BasicType main(float4 pos : POSITION, float4 normal : NORMAL, float2 uv : TEXCOO
 
 	return output;
 }
+
+
+float4 shadowVS(float4 pos : POSITION, float4 normal : NORMAL, float2 uv : TEXCOORD) : SV_POSITION
+{
+	return mul(lightCamera,pos);
+}

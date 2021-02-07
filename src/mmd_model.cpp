@@ -8,6 +8,7 @@
 #include"DirectX12/color_texture.hpp"
 #include"DirectX12/pipeline_state.hpp"
 #include"DirectX12/shader.hpp"
+#include"mmd_pipline_state.hpp"
 #include<algorithm>
 #include<iterator>
 #include<utility>
@@ -17,6 +18,10 @@ namespace ichi
 {
 	namespace
 	{
+		//シャドウマップ用の深度バッファ生成時に使用
+		constexpr uint32_t shadow_difinition = 1024;
+
+
 		//頂点のmap用の構造体
 		struct map_vertex
 		{
@@ -81,29 +86,47 @@ namespace ichi
 			return result;
 		}
 
-
-
-
-
 	}
 
 
 
+	mmd_model::~mmd_model()
+	{
+		if (m_light_depth_resource)
+			m_light_depth_resource->Release();
+		if (m_pipeline_state)
+			m_pipeline_state->Release();
+		if (m_shadow_pipeline_state)
+			m_shadow_pipeline_state->Release();
+		if (m_root_signature)
+			m_root_signature->Release();
+	}
+
 	bool mmd_model::initialize(device* device,const MMDL::pmx_model<std::wstring>& pmxModel,command_list* cl)
 	{
-		auto vertShaderBlob = create_shader_blob(L"shader/VertexShader.hlsl", "main", "vs_5_0");
-		auto pixcShaderBlob = create_shader_blob(L"shader/PixelShader.hlsl", "main", "ps_5_0");
 
-		m_pipline_state = std::unique_ptr<pipeline_state>{
-			device->create<pipeline_state>(vertShaderBlob,pixcShaderBlob)
-		};
-		if (!m_pipline_state) {
-			std::cout << "mmd m pipe is failed\n";
-			return 0;
+
+		{
+			auto result = create_mmd_rootsignature(device);
+			if (result)
+				m_root_signature = result.value();
+			else {
+				std::cout << "mmd init root sig is failed\n";
+				return false;
+			}
 		}
 
-		vertShaderBlob->Release();
-		pixcShaderBlob->Release();
+		{
+			auto result = create_mmd_pipline_state(device, m_root_signature);
+			if (result) {
+				m_pipeline_state = result.value().first;
+				m_shadow_pipeline_state = result.value().second;
+			}
+			else {
+				std::cout << "mmd init pipe is failed \n";
+				return false;
+			}
+		}
 
 
 		//頂点
@@ -209,8 +232,9 @@ namespace ichi
 
 	
 		//今のところ個数は行列1つとマテリアル分
+		//ライト深度ようにもう1つ
 		m_descriptor_heap = std::unique_ptr<descriptor_heap>{
-			device->create<descriptor_heap>(1 + m_material_info.size() * 5)
+			device->create<descriptor_heap>(1 + m_material_info.size() * 5 + 1)
 		};
 		if (!m_descriptor_heap) {
 			std::cout << "mmd desc heap is failed\n";
@@ -269,8 +293,10 @@ namespace ichi
 	{
 		unsigned int indexOffset = 0;
 	
-		cl->get()->SetPipelineState(m_pipline_state->get());
-		cl->get()->SetGraphicsRootSignature(m_pipline_state->get_root_signature());
+		//cl->get()->SetPipelineState(m_pipline_state->get());
+		//cl->get()->SetGraphicsRootSignature(m_pipline_state->get_root_signature());
+		cl->get()->SetPipelineState(m_pipeline_state);
+		cl->get()->SetGraphicsRootSignature(m_root_signature);
 
 		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -303,11 +329,6 @@ namespace ichi
 		*ptr = sd;
 
 		m_scene_data_resource->get()->Unmap(0, nullptr);
-	}
-
-	void mmd_model::clear_pipeline_state(command_list* cl)
-	{
-		cl->clear(m_pipline_state.get());
 	}
 
 }

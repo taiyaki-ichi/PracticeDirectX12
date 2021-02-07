@@ -15,6 +15,7 @@
     <ClCompile Include="mmd_model.cpp" />
     <ClCompile Include="perapolygon_pipline_state.cpp" />
     <ClCompile Include="perapolygon_renderer.cpp" />
+    <ClCompile Include="mmd_pipline_state.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectX12\command_list.hpp" />
@@ -36,6 +37,7 @@
     <ClInclude Include="scene_data.hpp" />
     <ClInclude Include="perapolygon_pipline_state.hpp" />
     <ClInclude Include="perapolygon_renderer.hpp" />
+    <ClInclude Include="mmd_pipline_state.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\BasicType.hlsli" />

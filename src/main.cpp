@@ -107,6 +107,15 @@ int main()
 	DirectX::XMMATRIX shadow = DirectX::XMMatrixShadow(
 		DirectX::XMLoadFloat4(&planeVec), DirectX::XMLoadFloat3(&parallelLightVec));
 
+	//ライトのポジション
+	//usingしないと演算子が使えない
+	using namespace DirectX;
+	auto lightPos = XMLoadFloat3(&target) + XMVector3Normalize(XMLoadFloat3(&parallelLightVec))
+		* XMVector3Length(XMVectorSubtract(XMLoadFloat3(&target), XMLoadFloat3(&eye))).m128_f32[0];
+
+	auto lightCamera = XMMatrixLookAtLH(lightPos, XMLoadFloat3(&target), XMLoadFloat3(&up)) * XMMatrixOrthographicLH(40, 40, 1.f, 100.f);
+
+
 	//
 	//mmdモデルの頂点情報
 	//頂点レイアウトとシェーダを変更するので注意
@@ -196,7 +205,7 @@ int main()
 		//回転の計算
 		worldMat *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
 
-		mmdModel->map_scene_data({ worldMat,view,proj,shadow, eye });
+		mmdModel->map_scene_data({ worldMat,view,proj,lightCamera, shadow, eye });
 
 		commList->get()->RSSetViewports(1, &viewport);
 		commList->get()->RSSetScissorRects(1, &scissorrect);
@@ -239,7 +248,7 @@ int main()
 		commList->get()->Close();
 		commList->execute();
 
-		mmdModel->clear_pipeline_state(commList.get());
+		commList->clear();
 
 		doubleBuffer->flip();
 

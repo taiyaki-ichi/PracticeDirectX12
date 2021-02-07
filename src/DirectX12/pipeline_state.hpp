@@ -10,6 +10,7 @@ namespace ichi
 {
 	class device;
 
+	//‚à‚µ‚©‚µ‚½‚ç‚È‚­‚·Š›
 	class pipeline_state
 	{
 		ID3D12PipelineState* m_pipeline_state = nullptr;
