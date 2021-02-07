@@ -86,7 +86,7 @@ int main()
 	//
 	//viewproj
 	//
-	DirectX::XMFLOAT3 eye{ 0,5,-5 };
+	DirectX::XMFLOAT3 eye{ 0,10,-10 };
 	DirectX::XMFLOAT3 target{ 0,5,0 };
 	DirectX::XMFLOAT3 up{ 0,1,0 };
 	auto view = DirectX::XMMatrixLookAtLH(
@@ -103,6 +103,19 @@ int main()
 	//
 	DirectX::XMMATRIX worldMat = DirectX::XMMatrixIdentity();
 
+
+	//平行ライトの向き
+	//右下奥向き
+	DirectX::XMFLOAT3 parallelLightVec{ 1.f,-1.f,1.f };
+	//一括の方法が分からぬ
+	parallelLightVec.x *= -1.f;
+	parallelLightVec.y *= -1.f;
+	parallelLightVec.z *= -1.f;
+	//影がおちる平面の方程式のデータ
+	DirectX::XMFLOAT4 planeVec{ 0.f,1.f,0.f,0.f };
+	//実際の影行列
+	DirectX::XMMATRIX shadow = DirectX::XMMatrixShadow(
+		DirectX::XMLoadFloat4(&planeVec), DirectX::XMLoadFloat3(&parallelLightVec));
 
 	//
 	//mmdモデルの頂点情報
@@ -193,7 +206,7 @@ int main()
 		//回転の計算
 		worldMat *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
 
-		mmdModel->map_scene_data({ worldMat,view,proj,eye });
+		mmdModel->map_scene_data({ worldMat,view,proj,shadow, eye });
 
 		commList->get()->RSSetViewports(1, &viewport);
 		commList->get()->RSSetScissorRects(1, &scissorrect);

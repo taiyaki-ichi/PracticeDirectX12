@@ -7,12 +7,6 @@ Texture2D<float4> toon:register(t3);//3番スロットに設定されたテクスチャ(トゥーン
 SamplerState smp:register(s0);//0番スロットに設定されたサンプラ
 SamplerState smpToon:register(s1);//1番スロットに設定されたサンプラ
 
-cbuffer SceneData : register(b0) {
-	matrix world;//ワールド変換行列
-	matrix view;
-	matrix proj;//ビュープロジェクション行列
-	float3 eye;
-};
 
 cbuffer Material : register(b1) {
 	float4 diffuse;//ディフューズ色
@@ -22,9 +16,13 @@ cbuffer Material : register(b1) {
 
 float4 main(BasicType input) : SV_TARGET
 {
+	if (input.instNo == 1)
+	{
+		return float4(0.f, 0.f, 0.f, 1.f);
+	}
+
 	float3 light = normalize(float3(1,-1,1));//光の向かうベクトル(平行光線)
 	float3 lightColor = float3(1,1,1);//ライトのカラー(1,1,1で真っ白)
-
 
 	//ディフューズ計算
 	float diffuseB = saturate(dot(-light, input.normal));
@@ -39,7 +37,6 @@ float4 main(BasicType input) : SV_TARGET
 	sphereMapUV = (sphereMapUV + float2(1, -1)) * float2(0.5, -0.5);
 
 	float4 texColor = tex.Sample(smp, input.uv); //テクスチャカラー
-
 
 	return max(saturate(toonDif//輝度(トゥーン)
 		* diffuse//ディフューズ色

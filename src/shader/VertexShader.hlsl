@@ -1,20 +1,19 @@
 #include"BasicType.hlsli"
 
-cbuffer SceneData : register(b0) {
-	matrix world;//ワールド変換行列
-	matrix view;
-	matrix proj;//ビュープロジェクション行列
-	float3 eye;
-};
 
-
-
-
-BasicType main(float4 pos : POSITION, float4 normal : NORMAL, float2 uv : TEXCOORD)
+BasicType main(float4 pos : POSITION, float4 normal : NORMAL, float2 uv : TEXCOORD,uint instNo : SV_InstanceId)
 {
 
 	BasicType output;//ピクセルシェーダへ渡す値
 	pos = mul(world, pos);
+
+	if (instNo == 1)
+	{
+		//ワールド座標をかけてから
+		pos = mul(shadow, pos);
+	}
+
+
 	output.svpos = mul(mul(proj, view), pos);//シェーダでは列優先なので注意
 	output.pos = mul(view, pos);
 	normal.w = 0;//ここ重要(平行移動成分を無効にする)
@@ -22,6 +21,9 @@ BasicType main(float4 pos : POSITION, float4 normal : NORMAL, float2 uv : TEXCOO
 	output.vnormal = mul(view, output.normal);
 	output.uv = uv;
 	output.ray = normalize(pos.xyz - mul(view, eye));//視線ベクトル
+
+	output.instNo = instNo;
+	
 
 	return output;
 }

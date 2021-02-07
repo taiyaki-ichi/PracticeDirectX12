@@ -2,12 +2,13 @@
 
 float4 main(Output input) : SV_TARGET
 {
-	//return tex.Sample(smp,input.uv);
+	return tex.Sample(smp,input.uv);
 
 	//float4 col = tex.Sample(smp, input.uv);
 	//float Y = dot(col.rgb, float3(0.299, 0.587, 0.114));
 	//return float4(Y, Y, Y, 1);
 
+/*
 	float w, h, level;
 	tex.GetDimensions(0, w, h, level);
 	float dx = 1.0f / w;
@@ -25,4 +26,5 @@ float4 main(Output input) : SV_TARGET
 	Y = pow(1.0f - Y, 30.0f);
 	Y = step(0.2, Y);
 	return float4(Y, Y, Y, col.a);
+	*/
 }

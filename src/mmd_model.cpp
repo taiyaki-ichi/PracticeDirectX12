@@ -263,7 +263,8 @@ namespace ichi
 
 			cl->get()->SetGraphicsRootDescriptorTable(1, m_matarial_root_gpu_handle[i]);
 
-			cl->get()->DrawIndexedInstanced(m_material_info[i].m_vertex_num, 1, indexOffset, 0, 0);
+			//1->2
+			cl->get()->DrawIndexedInstanced(m_material_info[i].m_vertex_num, 2, indexOffset, 0, 0);
 
 			indexOffset += m_material_info[i].m_vertex_num;
 		

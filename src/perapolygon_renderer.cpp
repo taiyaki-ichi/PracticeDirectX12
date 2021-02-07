@@ -40,7 +40,7 @@ namespace ichi
 		//‚½‚Ô‚ñ‚Å‚«‚Ä‚é
 		//‚±‚±‚Å“n‚·’l‚ÆClear‚Ì’l‚ªˆÙ‚È‚é‚ÆŒxo‚é
 		//’x‚­‚È‚é‚æA‚Ý‚½‚¢‚È
-		D3D12_CLEAR_VALUE clearValue{ DXGI_FORMAT_R8G8B8A8_UNORM,{ 1.f,1.f,1.f,1.f } };
+		D3D12_CLEAR_VALUE clearValue{ DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.5f,0.5f,0.5f,1.f } };
 
 		if (FAILED(device->get()->CreateCommittedResource(
 			&heapprop,
@@ -106,7 +106,7 @@ namespace ichi
 
 	void perapolygon_renderer::clear(command_list* cl)
 	{
-		float clearColor[] = { 1.f,1.f,1.f,1.0f };
+		float clearColor[] = { 0.5f,0.5f,0.5f,1.0f };
 		cl->get()->ClearRenderTargetView(m_descriptor_heap->GetCPUDescriptorHandleForHeapStart(), clearColor, 0, nullptr);
 	}
 
