@@ -23,7 +23,6 @@
     <ClCompile Include="DirectX12\command_list.cpp" />
     <ClCompile Include="DirectX12\constant_buffer_resource.cpp" />
     <ClCompile Include="DirectX12\depth_buffer.cpp" />
-    <ClCompile Include="DirectX12\descriptor_heap.cpp" />
     <ClCompile Include="DirectX12\device.cpp" />
     <ClCompile Include="DirectX12\double_buffer.cpp" />
     <ClCompile Include="DirectX12\index_buffer.cpp" />

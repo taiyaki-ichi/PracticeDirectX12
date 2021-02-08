@@ -20,7 +20,6 @@ namespace ichi
 		ID3D12Resource* m_resource = nullptr;
 
 	public:
-		using resource_type = shader_resource_tag;
 		using create_view_type = typename create_view_type::SRV;
 
 		white_texture_resource() = default;
@@ -36,7 +35,6 @@ namespace ichi
 		ID3D12Resource* m_resource = nullptr;
 
 	public:
-		using resource_type = shader_resource_tag;
 		using create_view_type = typename create_view_type::SRV;
 
 		black_texture_resource() = default;
@@ -52,7 +50,6 @@ namespace ichi
 		ID3D12Resource* m_resource = nullptr;
 
 	public:
-		using resource_type = shader_resource_tag;
 		using create_view_type = typename create_view_type::SRV;
 
 		gray_gradation_texture_resource() = default;

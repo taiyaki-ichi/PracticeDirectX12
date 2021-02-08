@@ -40,7 +40,6 @@ namespace ichi
 		//リソースに描写したのちディスクリプターヒープにビューを作る用
 		//として、想定
 		//分けた方がよさそうだが
-		using resource_type = shader_resource_tag;
 		using create_view_type = typename create_view_type::SRV;
 		ID3D12Resource* get() noexcept;
 	};
