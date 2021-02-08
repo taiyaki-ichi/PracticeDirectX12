@@ -4,6 +4,7 @@
 
 namespace ichi
 {
+	/*
 	descriptor_heap::~descriptor_heap() {
 		if (m_descriptor_heap)
 			m_descriptor_heap->Release();
@@ -26,7 +27,6 @@ namespace ichi
 
 		m_size = size;
 		m_increment_size = device->get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		m_stride = 1;
 
 		return true;
 	}
@@ -52,8 +52,9 @@ namespace ichi
 	D3D12_GPU_DESCRIPTOR_HANDLE descriptor_heap::get_gpu_handle(unsigned int num)
 	{
 		auto h = m_descriptor_heap->GetGPUDescriptorHandleForHeapStart();
-		h.ptr += static_cast<UINT64>(m_increment_size) * static_cast<UINT64>(m_stride) * static_cast<UINT64>(num);
+		h.ptr += static_cast<UINT64>(m_increment_size) * static_cast<UINT64>(num);
 		return h;
 	}
+	*/
 
 }

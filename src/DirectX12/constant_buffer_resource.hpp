@@ -1,6 +1,7 @@
 #pragma once
 #include"utility.hpp"
 #include"resource_type_tag.hpp"
+#include"descriptor_heap.hpp"
 #include<d3d12.h>
 #include<dxgi1_6.h>
 
@@ -19,6 +20,7 @@ namespace ichi
 
 	public:
 		using resource_type = constant_buffer_tag;
+		using create_view_type = typename create_view_type::CBV;
 
 		constant_buffer_resource() = default;
 		~constant_buffer_resource();

@@ -184,7 +184,7 @@ int main()
 
 	//ぺら用ディスクリプタヒープ
 	//ぺらポリゴンを描写するときに使う
-	auto peraDescriptorHeap = std::make_shared<ichi::descriptor_heap>();
+	auto peraDescriptorHeap = std::make_shared<ichi::descriptor_heap<ichi::descriptor_heap_type::CBV_SRV_UAV>>();
 	//とりあえず大きさは1
 	if (!peraDescriptorHeap->initialize(device.get(), 1)) {
 		return 0;
@@ -244,8 +244,8 @@ int main()
 
 		commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		commList->get()->IASetVertexBuffers(0, 1, &peraVertexBuff->get_view());
-		commList->get()->SetDescriptorHeaps(1, &peraDescriptorHeap->get_ptr());
-		commList->get()->SetGraphicsRootDescriptorTable(0, peraDescriptorHeap->get_ptr()->GetGPUDescriptorHandleForHeapStart());
+		commList->get()->SetDescriptorHeaps(1, &peraDescriptorHeap->get());
+		commList->get()->SetGraphicsRootDescriptorTable(0, peraDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
 		commList->get()->DrawInstanced(4, 1, 0, 0);
 
 		doubleBuffer->end_drawing_to_backbuffer(commList.get());

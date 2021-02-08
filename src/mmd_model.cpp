@@ -237,8 +237,8 @@ namespace ichi
 	
 		//今のところ個数は行列1つとマテリアル分
 		//ライト深度ようにもう1つ
-		m_descriptor_heap = std::unique_ptr<descriptor_heap>{
-			device->create<descriptor_heap>(1 + m_material_info.size() * 5 + 1)
+		m_descriptor_heap = std::unique_ptr<descriptor_heap<descriptor_heap_type::CBV_SRV_UAV>>{
+			device->create<descriptor_heap<descriptor_heap_type::CBV_SRV_UAV>>(1 + m_material_info.size() * 5 + 1)
 		};
 		if (!m_descriptor_heap) {
 			std::cout << "mmd desc heap is failed\n";
@@ -356,7 +356,7 @@ namespace ichi
 
 			
 		
-			auto result = m_descriptor_heap->create_view<depth_buffer_tag>(device, m_light_depth_resource);
+			auto result = m_descriptor_heap->create_view<create_view_type::DSV>(device, m_light_depth_resource);
 			if (result)
 				m_light_depth_gpu_handle = result.value().first;
 			else {
@@ -382,7 +382,7 @@ namespace ichi
 		cl->get()->IASetVertexBuffers(0, 1, &m_vertex_buffer->get_view());
 		cl->get()->IASetIndexBuffer(&m_index_buffer->get_view());
 
-		cl->get()->SetDescriptorHeaps(1, &m_descriptor_heap->get_ptr());
+		cl->get()->SetDescriptorHeaps(1, &m_descriptor_heap->get());
 
 		cl->get()->SetGraphicsRootDescriptorTable(0, m_descriptor_heap->get_gpu_handle());
 
@@ -444,7 +444,7 @@ namespace ichi
 		cl->get()->IASetVertexBuffers(0, 1, &m_vertex_buffer->get_view());
 		cl->get()->IASetIndexBuffer(&m_index_buffer->get_view());
 
-		cl->get()->SetDescriptorHeaps(1, &m_descriptor_heap->get_ptr());
+		cl->get()->SetDescriptorHeaps(1, &m_descriptor_heap->get());
 		cl->get()->SetGraphicsRootDescriptorTable(0, m_descriptor_heap->get_gpu_handle());
 		cl->get()->SetGraphicsRootDescriptorTable(2, m_light_depth_gpu_handle);
 

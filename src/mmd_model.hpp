@@ -2,6 +2,7 @@
 #include"include/pmx_data_struct.hpp"
 #include"DirectX12/texture_shader_resource.hpp"
 #include"DirectX12/color_texture.hpp"
+#include"DirectX12/descriptor_heap.hpp"
 #include"scene_data.hpp"
 #include<memory>
 #include<vector>
@@ -14,11 +15,9 @@ namespace ichi
 	class index_buffer;
 	class constant_buffer_resource;
 	class command_list;
-	class descriptor_heap;
 	class white_texture_resource;
 	class black_texture_resource;
 	class pipeline_state;
-
 
 	class mmd_model
 	{
@@ -62,7 +61,7 @@ namespace ichi
 
 		//ディスクリプタヒープ
 		//SetDescriptorHeapsを複数回呼び出すとうまくいかなかったのであきらめて1つにまとめた
-		std::unique_ptr<descriptor_heap> m_descriptor_heap{};
+		std::unique_ptr<descriptor_heap<descriptor_heap_type::CBV_SRV_UAV>> m_descriptor_heap{};
 
 		//マテリアルごとのgpuハンドルの先頭
 		std::vector<D3D12_GPU_DESCRIPTOR_HANDLE> m_matarial_root_gpu_handle{};

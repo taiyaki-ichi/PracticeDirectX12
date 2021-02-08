@@ -21,6 +21,7 @@ namespace ichi
 
 	public:
 		using resource_type = shader_resource_tag;
+		using create_view_type = typename create_view_type::SRV;
 
 		white_texture_resource() = default;
 		~white_texture_resource();
@@ -36,6 +37,7 @@ namespace ichi
 
 	public:
 		using resource_type = shader_resource_tag;
+		using create_view_type = typename create_view_type::SRV;
 
 		black_texture_resource() = default;
 		~black_texture_resource();
@@ -51,6 +53,7 @@ namespace ichi
 
 	public:
 		using resource_type = shader_resource_tag;
+		using create_view_type = typename create_view_type::SRV;
 
 		gray_gradation_texture_resource() = default;
 		~gray_gradation_texture_resource();

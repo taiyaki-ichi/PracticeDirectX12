@@ -3,6 +3,7 @@
 #include"utility.hpp"
 #include"command_list.hpp"
 #include"resource_type_tag.hpp"
+#include"descriptor_heap.hpp"
 #include<d3d12.h>
 #include<dxgi1_6.h>
 #include<DirectXTex.h>
@@ -16,6 +17,10 @@ namespace ichi
 {
 	class device;
 	class command_list;
+
+	namespace create_view_type {
+		struct SRV;
+	}
 
 	//テクスチャのリソース
 	//テクスチャ専用のでスクリプタヒープにViewを作る
@@ -33,6 +38,7 @@ namespace ichi
 
 	public:
 		using resource_type = shader_resource_tag;
+		using create_view_type = typename create_view_type::SRV;
 
 		texture_shader_resource_base() = default;
 		~texture_shader_resource_base();

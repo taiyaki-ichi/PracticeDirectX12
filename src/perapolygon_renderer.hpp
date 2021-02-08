@@ -41,6 +41,7 @@ namespace ichi
 		//‚Æ‚µ‚ÄA‘z’è
 		//•ª‚¯‚½•û‚ª‚æ‚³‚»‚¤‚¾‚ª
 		using resource_type = shader_resource_tag;
+		using create_view_type = typename create_view_type::SRV;
 		ID3D12Resource* get() noexcept;
 	};
 
