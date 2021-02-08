@@ -1,6 +1,5 @@
 #include"command_list.hpp"
 #include"device.hpp"
-#include"pipeline_state.hpp"
 #include"texture_shader_resource.hpp"
 
 #include<iostream>
@@ -83,11 +82,10 @@ namespace ichi
 		}
 	}
 
-	void command_list::clear(pipeline_state* pipelineState)
+	void command_list::clear()
 	{
 		m_allocator->Reset();
-		ID3D12PipelineState* pipelineStatePtr = (pipelineState) ? pipelineState->get() : nullptr;
-		m_list->Reset(m_allocator, pipelineStatePtr);
+		m_list->Reset(m_allocator, nullptr);
 	}
 
 	void command_list::excute_copy_texture(texture_shader_resource_base<true>* src, texture_shader_resource_base<false>* dst)

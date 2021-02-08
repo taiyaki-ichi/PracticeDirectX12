@@ -17,7 +17,6 @@ namespace ichi
 	class command_list;
 	class white_texture_resource;
 	class black_texture_resource;
-	class pipeline_state;
 
 	class mmd_model
 	{

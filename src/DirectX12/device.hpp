@@ -16,7 +16,6 @@ namespace ichi
 	template<bool>
 	class texture_shader_resource_base;
 	class double_buffer;
-	class pipeline_state;
 
 	class device
 	{

@@ -6,7 +6,6 @@
 #include"DirectX12/texture_shader_resource.hpp"
 #include"DirectX12/descriptor_heap.hpp"
 #include"DirectX12/color_texture.hpp"
-#include"DirectX12/pipeline_state.hpp"
 #include"DirectX12/shader.hpp"
 #include"mmd_pipline_state.hpp"
 #include"window_size.hpp"

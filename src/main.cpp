@@ -3,7 +3,6 @@
 #include"DirectX12/device.hpp"
 #include"DirectX12/double_buffer.hpp"
 #include"DirectX12/command_list.hpp"
-#include"DirectX12/pipeline_state.hpp"
 #include"DirectX12/shader.hpp"
 #include"DirectX12/vertex_buffer.hpp"
 #include"DirectX12/index_buffer.hpp"

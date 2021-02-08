@@ -8,7 +8,6 @@
 namespace ichi
 {
 	class device;
-	class pipeline_state;
 	template<bool>
 	class texture_shader_resource_base;
 
@@ -41,7 +40,7 @@ namespace ichi
 		//引数は初期設定したいパイプラインステート
 		//nullptrでもよい
 		//pipelinestateクラスをなくす鴨
-		void clear(pipeline_state* pipelineState = nullptr);
+		void clear();
 
 		//テクスチャをsrcからdstにコピー
 		void excute_copy_texture(texture_shader_resource_base<true>* src, texture_shader_resource_base<false>* dst);

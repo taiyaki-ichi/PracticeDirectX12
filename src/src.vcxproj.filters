@@ -6,7 +6,6 @@
     <ClCompile Include="DirectX12\device.cpp" />
     <ClCompile Include="DirectX12\double_buffer.cpp" />
     <ClCompile Include="DirectX12\index_buffer.cpp" />
-    <ClCompile Include="DirectX12\pipeline_state.cpp" />
     <ClCompile Include="DirectX12\vertex_buffer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="DirectX12\color_texture.cpp" />
@@ -23,7 +22,6 @@
     <ClInclude Include="DirectX12\device.hpp" />
     <ClInclude Include="DirectX12\double_buffer.hpp" />
     <ClInclude Include="DirectX12\index_buffer.hpp" />
-    <ClInclude Include="DirectX12\pipeline_state.hpp" />
     <ClInclude Include="DirectX12\shader.hpp" />
     <ClInclude Include="DirectX12\texture_shader_resource.hpp" />
     <ClInclude Include="DirectX12\utility.hpp" />
