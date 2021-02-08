@@ -62,7 +62,7 @@ namespace ichi
 		//
 
 		//通常のと、トゥーン用
-		D3D12_STATIC_SAMPLER_DESC samplerDesc[]{ {},{} };
+		D3D12_STATIC_SAMPLER_DESC samplerDesc[]{ {},{} ,{} };
 		samplerDesc[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;//横繰り返し
 		samplerDesc[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;//縦繰り返し
 		samplerDesc[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;//奥行繰り返し
@@ -79,9 +79,15 @@ namespace ichi
 		samplerDesc[1].AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 		samplerDesc[1].ShaderRegister = 1;
 
+		samplerDesc[2] = samplerDesc[1];
+		samplerDesc[2].ComparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+		samplerDesc[2].Filter = D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;//比較結果をリニア補完
+		samplerDesc[2].MaxAnisotropy = 1;//深度傾斜を有効に
+		samplerDesc[2].ShaderRegister = 2;
+
 		//まとめる
 		rootSignatureDesc.pStaticSamplers = samplerDesc;
-		rootSignatureDesc.NumStaticSamplers = 2;
+		rootSignatureDesc.NumStaticSamplers = 3;
 
 
 		ID3DBlob* rootSigBlob = nullptr;

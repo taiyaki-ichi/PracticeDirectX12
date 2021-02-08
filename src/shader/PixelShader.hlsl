@@ -7,6 +7,7 @@ Texture2D<float> lightDepthTex:register(t4);//ライト深度
 
 SamplerState smp:register(s0);//0番スロットに設定されたサンプラ
 SamplerState smpToon:register(s1);//1番スロットに設定されたサンプラ
+SamplerComparisonState shadowSmp:register(s2);
 
 
 cbuffer Material : register(b1) {
@@ -39,15 +40,7 @@ float4 main(BasicType input) : SV_TARGET
 
 	float4 texColor = tex.Sample(smp, input.uv); //テクスチャカラー
 
-	float shadowWeight = 1.0f;
-	float3 posFromLightVP = input.tpos.xyz / input.tpos.w;
-	float2 shadowUV = (posFromLightVP + float2(1, -1)) * float2(0.5, -0.5);
-	float depthFromLight = lightDepthTex.Sample(smp,shadowUV);
-	if (depthFromLight < posFromLightVP.z-0.001f) {
-		shadowWeight = 0.5f;
-	}
-
-	float4 result= max(saturate(toonDif//輝度(トゥーン)
+	float4 result = max(saturate(toonDif//輝度(トゥーン)
 		* diffuse//ディフューズ色
 		* texColor//テクスチャカラー
 		* sph.Sample(smp, sphereMapUV))//スフィアマップ(乗算)
@@ -56,5 +49,15 @@ float4 main(BasicType input) : SV_TARGET
 		, float4(texColor * ambient, 1));//アンビエント
 
 
-	return /*float4(depthFromLight, depthFromLight, depthFromLight, 1.0);*/ float4(result.rgb * shadowWeight, result.a);
+
+	float shadowWeight = 1.0f;
+	float3 posFromLightVP = input.tpos.xyz / input.tpos.w;
+	float2 shadowUV = (posFromLightVP + float2(1, -1)) * float2(0.5, -0.5);
+	float depthFromLight = lightDepthTex.SampleCmp(
+		shadowSmp,
+		shadowUV,
+		posFromLightVP.z - 0.005f);
+	shadowWeight = lerp(0.5f, 1.0f, depthFromLight);
+
+	return float4(result.rgb * shadowWeight, result.a);
 }
