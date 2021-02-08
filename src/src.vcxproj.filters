@@ -9,7 +9,6 @@
     <ClCompile Include="DirectX12\pipeline_state.cpp" />
     <ClCompile Include="DirectX12\vertex_buffer.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="DirectX12\depth_buffer.cpp" />
     <ClCompile Include="DirectX12\color_texture.cpp" />
     <ClCompile Include="mmd_model.cpp" />
     <ClCompile Include="perapolygon_pipline_state.cpp" />
@@ -30,7 +29,6 @@
     <ClInclude Include="DirectX12\utility.hpp" />
     <ClInclude Include="DirectX12\vertex_buffer.hpp" />
     <ClInclude Include="window.hpp" />
-    <ClInclude Include="DirectX12\depth_buffer.hpp" />
     <ClInclude Include="DirectX12\color_texture.hpp" />
     <ClInclude Include="mmd_model.hpp" />
     <ClInclude Include="DirectX12\resource_type_tag.hpp" />

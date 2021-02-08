@@ -1,7 +1,6 @@
 #include"double_buffer.hpp"
 #include"command_list.hpp"
 #include"device.hpp"
-#include"depth_buffer.hpp"
 
 #include<iostream>
 
@@ -89,29 +88,6 @@ namespace ichi
 		m_descriptor_handle_increment_size = device->get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 		return true;
-	}
-
-	void double_buffer::begin_drawing_to_backbuffer(command_list* cl, depth_buffer* db)
-	{
-		auto bbIdx = m_swap_chain->GetCurrentBackBufferIndex();
-
-		//リソースバリアの作製
-		D3D12_RESOURCE_BARRIER BarrierDesc = {};
-		BarrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-		BarrierDesc.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		BarrierDesc.Transition.pResource = m_buffer[bbIdx];
-		BarrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-		BarrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-		BarrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-		cl->get()->ResourceBarrier(1, &BarrierDesc);
-
-		auto dsvH = db->get_cpu_descriptor_handle();
-
-		//レンダーターゲットの作製
-		auto rtvH = m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
-		rtvH.ptr += static_cast<ULONG_PTR>(bbIdx) * m_descriptor_handle_increment_size;
-		cl->get()->OMSetRenderTargets(1, &rtvH, false, &dsvH);
-
 	}
 
 	void double_buffer::begin_drawing_to_backbuffer(command_list* cl, const D3D12_CPU_DESCRIPTOR_HANDLE& handle)

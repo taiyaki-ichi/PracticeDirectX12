@@ -1,8 +1,6 @@
 #include"perapolygon_renderer.hpp"
 #include"DirectX12/device.hpp"
 #include"DirectX12/command_list.hpp"
-#include"DirectX12/depth_buffer.hpp"
-
 
 namespace ichi
 {

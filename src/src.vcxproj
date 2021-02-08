@@ -22,7 +22,6 @@
     <ClCompile Include="DirectX12\color_texture.cpp" />
     <ClCompile Include="DirectX12\command_list.cpp" />
     <ClCompile Include="DirectX12\constant_buffer_resource.cpp" />
-    <ClCompile Include="DirectX12\depth_buffer.cpp" />
     <ClCompile Include="DirectX12\device.cpp" />
     <ClCompile Include="DirectX12\double_buffer.cpp" />
     <ClCompile Include="DirectX12\index_buffer.cpp" />
@@ -39,7 +38,6 @@
     <ClInclude Include="DirectX12\color_texture.hpp" />
     <ClInclude Include="DirectX12\command_list.hpp" />
     <ClInclude Include="DirectX12\constant_buffer_resource.hpp" />
-    <ClInclude Include="DirectX12\depth_buffer.hpp" />
     <ClInclude Include="DirectX12\descriptor_heap.hpp" />
     <ClInclude Include="DirectX12\device.hpp" />
     <ClInclude Include="DirectX12\double_buffer.hpp" />

@@ -11,7 +11,6 @@
 #include"DirectX12/descriptor_heap.hpp"
 #include"DirectX12/texture_shader_resource.hpp"
 #include"include/load_pmx.hpp"
-#include"DirectX12/depth_buffer.hpp"
 #include<DirectXMath.h>
 #include<memory>
 #include<array>
