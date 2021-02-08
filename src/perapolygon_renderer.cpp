@@ -74,9 +74,8 @@ namespace ichi
 		return true;
 	}
 
-	void perapolygon_renderer::begin_drawing(command_list* cl, depth_buffer* db)
+	void perapolygon_renderer::begin_drawing(command_list* cl, const D3D12_CPU_DESCRIPTOR_HANDLE& handle)
 	{
-
 		D3D12_RESOURCE_BARRIER BarrierDesc{};
 		BarrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		BarrierDesc.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -87,9 +86,7 @@ namespace ichi
 		cl->get()->ResourceBarrier(1, &BarrierDesc);
 
 		auto descPtr = m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
-		auto bdDescPtr = db->get_cpu_descriptor_handle();
-		cl->get()->OMSetRenderTargets(1, &descPtr,false, &bdDescPtr);
-
+		cl->get()->OMSetRenderTargets(1, &descPtr, false, &handle);
 	}
 
 	void perapolygon_renderer::end_drawing(command_list* cl)

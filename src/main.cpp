@@ -1,4 +1,5 @@
 #include"window.hpp"
+#include"window_size.hpp"
 #include"DirectX12/device.hpp"
 #include"DirectX12/double_buffer.hpp"
 #include"DirectX12/command_list.hpp"
@@ -22,6 +23,7 @@
 #include"perapolygon_renderer.hpp"
 
 
+
 #include<iostream>
 
 
@@ -34,9 +36,7 @@ std::shared_ptr<T> create_shared_ptr(ichi::device* device,Args&&... args) {
 
 int main()
 {
-	
-	constexpr unsigned int window_width = 800;
-	constexpr unsigned int window_height = 600;
+
 	auto hwnd = ichi::create_window(L"aaaaa", window_width, window_height);
 
 	//解放めんどいのでとりあえずスマートポインタ使っておく
@@ -137,11 +137,6 @@ int main()
 		return 0;
 	}
 
-	//
-	//ディプス
-	//
-	auto depthBuffer = create_shared_ptr<ichi::depth_buffer>(device.get(), window_width, window_height);
-
 	
 	//
 	//
@@ -219,9 +214,9 @@ int main()
 		commList->get()->RSSetViewports(1, &viewport);
 		commList->get()->RSSetScissorRects(1, &scissorrect);
 
-		peraRenderer->begin_drawing(commList.get(), depthBuffer.get());
+		peraRenderer->begin_drawing(commList.get(), mmdModel->get_depth_resource_cpu_handle());
 
-		depthBuffer->clear(commList.get());
+		commList->get()->ClearDepthStencilView(mmdModel->get_depth_resource_cpu_handle(),D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 		peraRenderer->clear(commList.get());
 
 		mmdModel->draw(commList.get());
@@ -234,10 +229,10 @@ int main()
 
 		//ぺらポリゴンをバックバッファに描写
 		
-		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer.get());
+		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), mmdModel->get_depth_resource_cpu_handle());
 		doubleBuffer->clear_back_buffer(commList.get());
 
-		depthBuffer->clear(commList.get());
+		commList->get()->ClearDepthStencilView(mmdModel->get_depth_resource_cpu_handle(),D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 		commList->get()->SetPipelineState(peraPipelineState->get());
 		commList->get()->SetGraphicsRootSignature(peraPipelineState->get_root_signature());

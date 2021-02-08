@@ -39,6 +39,8 @@ namespace ichi
 		//バックバッファをリソースバリアし、レンダーターゲットに指定
 		//あと、バッファのクリア
 		void begin_drawing_to_backbuffer(command_list*,depth_buffer*);
+		void begin_drawing_to_backbuffer(command_list*, const D3D12_CPU_DESCRIPTOR_HANDLE&);
+
 		//バックバッファへの描写を終了する
 		//描写が完了するまでバリアする
 		void end_drawing_to_backbuffer(command_list*);

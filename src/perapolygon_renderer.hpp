@@ -10,7 +10,6 @@ namespace ichi
 {
 	class device;
 	class command_list;
-	class depth_buffer;
 
 	//ぺらポリゴンのレンダラー関係
 	class perapolygon_renderer
@@ -28,7 +27,7 @@ namespace ichi
 		bool initialize(device*);
 
 		//リソースへの描写の開始と終わり
-		void begin_drawing(command_list* cl, depth_buffer* db);
+		void begin_drawing(command_list*, const D3D12_CPU_DESCRIPTOR_HANDLE&);
 		void end_drawing(command_list* cl);
 
 		//リソースのクリア

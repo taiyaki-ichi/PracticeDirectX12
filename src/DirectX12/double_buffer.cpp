@@ -114,6 +114,27 @@ namespace ichi
 
 	}
 
+	void double_buffer::begin_drawing_to_backbuffer(command_list* cl, const D3D12_CPU_DESCRIPTOR_HANDLE& handle)
+	{
+		auto bbIdx = m_swap_chain->GetCurrentBackBufferIndex();
+
+		//リソースバリアの作製
+		D3D12_RESOURCE_BARRIER BarrierDesc{};
+		BarrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		BarrierDesc.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		BarrierDesc.Transition.pResource = m_buffer[bbIdx];
+		BarrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+		BarrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+		BarrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		cl->get()->ResourceBarrier(1, &BarrierDesc);
+
+
+		//レンダーターゲットの作製
+		auto rtvH = m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
+		rtvH.ptr += static_cast<ULONG_PTR>(bbIdx) * m_descriptor_handle_increment_size;
+		cl->get()->OMSetRenderTargets(1, &rtvH, false, &handle);
+	}
+
 	void double_buffer::end_drawing_to_backbuffer(command_list* cl)
 	{
 		auto bbIdx = m_swap_chain->GetCurrentBackBufferIndex();

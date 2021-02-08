@@ -9,6 +9,8 @@
 #include"DirectX12/pipeline_state.hpp"
 #include"DirectX12/shader.hpp"
 #include"mmd_pipline_state.hpp"
+#include"window_size.hpp"
+#include"mmd_depth_buffer.hpp"
 #include<algorithm>
 #include<iterator>
 #include<utility>
@@ -92,8 +94,8 @@ namespace ichi
 
 	mmd_model::~mmd_model()
 	{
-		if (m_light_depth_descriptor_heap)
-			m_light_depth_descriptor_heap->Release();
+		if (m_depth_resource)
+			m_depth_resource->Release();
 		if (m_light_depth_resource)
 			m_light_depth_resource->Release();
 		if (m_pipeline_state)
@@ -165,9 +167,7 @@ namespace ichi
 				std::cout << "mmd material is failed\n";
 				return false;
 			}
-			//
-			//仮
-			//
+
 			map_material tmp[] = { m };
 			ptr->map(tmp);
 			m_material_resource.emplace_back(std::unique_ptr<constant_buffer_resource>(ptr));
@@ -288,10 +288,10 @@ namespace ichi
 				m_descriptor_heap->create_view(device, m_gray_gradation_texture_resource.get());
 		}
 
+		
 		{
-			
+			/*
 			//とりあえずDepthの設定の個ぴへ
-
 			//深度バッファの仕様
 			D3D12_RESOURCE_DESC depthResDesc{};
 			depthResDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;//2次元のテクスチャデータとして
@@ -363,9 +363,57 @@ namespace ichi
 				std::cout << "mmd init descriptor light shader failed\n";
 				return false;
 			}
+			*/
+			
 		}
 
+		{
+			auto result = create_mmd_depth_buffers(device, window_width, window_height, shadow_difinition);
+			if (result) {
+				m_depth_resource = result.value().first;
+				m_light_depth_resource = result.value().second;
+			}
+			else {
+				std::cout << "create mmd depth bu is failed\n";
+				return false;
+			}
+		}
+		
+		{
+			m_depth_descriptor_heap = std::unique_ptr<descriptor_heap<descriptor_heap_type::DSV>>{
+				device->create<descriptor_heap<descriptor_heap_type::DSV>>(2)//普通のとライト用の2つ
+			};
+			if (!m_depth_descriptor_heap) {
+				std::cout << "mmd depth desc heap is failed\n";
+				return false;
+			}
+		}
 
+		{
+			auto result = m_depth_descriptor_heap->create_view<create_view_type::DSV>(device, m_depth_resource);
+			if (!result){
+				std::cout << "mmd create view depth is faield\n";
+				return false;
+			}
+		}
+
+		{
+			auto result = m_depth_descriptor_heap->create_view<create_view_type::DSV>(device, m_light_depth_resource);
+			if (!result) {
+				std::cout << "mmd create view light depth failed \n";
+				return false;
+			}
+		}
+		
+		{
+			auto result = m_descriptor_heap->create_view<create_view_type::DSV>(device, m_light_depth_resource);
+			if (result)
+				m_light_depth_gpu_handle = result.value().first;
+			else {
+				std::cout << "mmd init descriptor light shader failed\n";
+				return false;
+			}
+		}
 		return true;
 	}
 
@@ -416,7 +464,8 @@ namespace ichi
 
 	void mmd_model::draw_light_depth(command_list* cl)
 	{
-		cl->get()->ClearDepthStencilView(m_light_depth_descriptor_heap->GetCPUDescriptorHandleForHeapStart(),
+		//ここは先頭のハンドルで大丈夫かな
+		cl->get()->ClearDepthStencilView(m_depth_descriptor_heap->get_cpu_handle(1),
 			D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 		D3D12_VIEWPORT viewport{};
@@ -448,10 +497,15 @@ namespace ichi
 		cl->get()->SetGraphicsRootDescriptorTable(0, m_descriptor_heap->get_gpu_handle());
 		cl->get()->SetGraphicsRootDescriptorTable(2, m_light_depth_gpu_handle);
 
-		auto handle = m_light_depth_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
+		auto handle = m_depth_descriptor_heap->get_cpu_handle(1);
 		cl->get()->OMSetRenderTargets(0, nullptr, false, &handle);
 
 		cl->get()->DrawIndexedInstanced(m_all_index_num, 1, 0, 0, 0);
+	}
+
+	D3D12_CPU_DESCRIPTOR_HANDLE mmd_model::get_depth_resource_cpu_handle() const noexcept
+	{
+		return m_depth_descriptor_heap->get_cpu_handle(0);
 	}
 
 }

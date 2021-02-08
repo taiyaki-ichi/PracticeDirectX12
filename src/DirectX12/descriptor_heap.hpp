@@ -185,7 +185,6 @@ namespace ichi
 			ID3D12DescriptorHeap* result = nullptr;
 
 			D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc{};
-			dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 			dsvHeapDesc.NodeMask = 0;
 			dsvHeapDesc.NumDescriptors = size;
 			dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
@@ -197,7 +196,7 @@ namespace ichi
 
 		static unsigned int get_increment_size(device* device)
 		{
-			device->get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+			return device->get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 		}
 	};
 

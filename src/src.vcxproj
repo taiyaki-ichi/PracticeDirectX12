@@ -29,6 +29,7 @@
     <ClCompile Include="DirectX12\pipeline_state.cpp" />
     <ClCompile Include="DirectX12\vertex_buffer.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="mmd_depth_buffer.cpp" />
     <ClCompile Include="mmd_model.cpp" />
     <ClCompile Include="mmd_pipline_state.cpp" />
     <ClCompile Include="perapolygon_pipline_state.cpp" />
@@ -49,12 +50,14 @@
     <ClInclude Include="DirectX12\texture_shader_resource.hpp" />
     <ClInclude Include="DirectX12\utility.hpp" />
     <ClInclude Include="DirectX12\vertex_buffer.hpp" />
+    <ClInclude Include="mmd_depth_buffer.hpp" />
     <ClInclude Include="mmd_model.hpp" />
     <ClInclude Include="mmd_pipline_state.hpp" />
     <ClInclude Include="perapolygon_pipline_state.hpp" />
     <ClInclude Include="perapolygon_renderer.hpp" />
     <ClInclude Include="scene_data.hpp" />
     <ClInclude Include="window.hpp" />
+    <ClInclude Include="window_size.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\BasicType.hlsli" />
