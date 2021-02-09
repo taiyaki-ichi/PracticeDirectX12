@@ -14,6 +14,8 @@
     <ClCompile Include="perapolygon_renderer.cpp" />
     <ClCompile Include="mmd_pipline_state.cpp" />
     <ClCompile Include="mmd_depth_buffer.cpp" />
+    <ClCompile Include="perapolygon_helper_functions.cpp" />
+    <ClCompile Include="perapolygon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectX12\command_list.hpp" />
@@ -36,6 +38,8 @@
     <ClInclude Include="mmd_pipline_state.hpp" />
     <ClInclude Include="mmd_depth_buffer.hpp" />
     <ClInclude Include="window_size.hpp" />
+    <ClInclude Include="perapolygon.hpp" />
+    <ClInclude Include="perapolygon_helper_functions.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\BasicType.hlsli" />

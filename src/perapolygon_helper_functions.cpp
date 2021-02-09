@@ -1,21 +1,14 @@
-#include"perapolygon_pipline_state.hpp"
+#include"perapolygon_helper_functions.hpp"
 #include"DirectX12/device.hpp"
-
-#include<iostream>
+#include"DirectX12/shader.hpp"
+#include"DirectX12/vertex_buffer.hpp"
 
 namespace ichi
 {
-
-	perapolygon_pipline_state::~perapolygon_pipline_state()
+	std::optional<ID3D12RootSignature*> create_perapolygon_root_signature(device* device)
 	{
-		if (m_pipeline_state)
-			m_pipeline_state->Release();
-		if (m_root_signature)
-			m_root_signature->Release();
-	}
+		ID3D12RootSignature* resultPtr = nullptr;
 
-	bool perapolygon_pipline_state::initialize(device* device, ID3DBlob* vertexShader, ID3DBlob* pixelShader)
-	{
 		D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 		rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
@@ -26,7 +19,7 @@ namespace ichi
 		range.BaseShaderRegister = 0;
 		range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-		
+
 		D3D12_ROOT_PARAMETER rootparam{};
 		rootparam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		rootparam.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
@@ -55,7 +48,7 @@ namespace ichi
 
 		auto result = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &rootSigBlob, &errorBlob);
 		if (FAILED(result)) {
-			std::cout << "D3D12SerializeRootSignature is failed : D3D12SerializeRootSignature ";
+			std::cout << "perapolygon D3D12SerializeRootSignature is failed : D3D12SerializeRootSignature ";
 
 			//エラー内容
 			std::string errstr;
@@ -63,16 +56,27 @@ namespace ichi
 			std::copy_n((char*)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize(), errstr.begin());
 			std::cout << " : " << errstr << "\n";
 
-			return false;
+			return std::nullopt;
 		}
 
-		result = device->get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&m_root_signature));
+		result = device->get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&resultPtr));
 		if (FAILED(result)) {
-			std::cout << "CreateRootSignature is falied : CreateRootSignature\n";
-			return false;
+			std::cout << "perapolygon CreateRootSignature is falied : CreateRootSignature\n";
+			return std::nullopt;
 		}
 
 		rootSigBlob->Release();
+
+		return resultPtr;
+	}
+
+
+	std::optional<ID3D12PipelineState*> create_perapolygon_pipline_state(device* device, ID3D12RootSignature* rootSignature)
+	{
+		ID3D12PipelineState* result = nullptr;
+
+		auto vertexShader = create_shader_blob(L"shader/peraVertexShader.hlsl", "main", "vs_5_0");
+		auto pixelShader = create_shader_blob(L"shader/peraPixelShader.hlsl", "main", "ps_5_0");
 
 
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineDesc{};
@@ -152,25 +156,100 @@ namespace ichi
 		graphicsPipelineDesc.SampleDesc.Quality = 0;//クオリティは最低
 
 		//ルートシグネチャ
-		graphicsPipelineDesc.pRootSignature = m_root_signature;
+		graphicsPipelineDesc.pRootSignature = rootSignature;
 
-		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&m_pipeline_state))))
+		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&result))))
 		{
 			std::cout << "pera CreateGraphicsPipelineState is failed\n";
-			return false;
+			vertexShader->Release();
+			pixelShader->Release();
+			return std::nullopt;
 		}
 
-		return true;
+		vertexShader->Release();
+		pixelShader->Release();
+		return result;
 	}
 
-	ID3D12PipelineState* perapolygon_pipline_state::get() const noexcept
+	std::optional<std::pair<ID3D12Resource*, ID3D12Resource*>> create_perapolygon_resource(device* device)
 	{
-		return m_pipeline_state;
+		ID3D12Resource* colorResource = nullptr;
+		ID3D12Resource* normalResource = nullptr;
+
+		D3D12_RESOURCE_DESC resdesc{};
+		resdesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		resdesc.Alignment = 65536;
+		resdesc.DepthOrArraySize = 1;
+		resdesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+		resdesc.MipLevels = 1;
+		resdesc.Height = 600;
+		resdesc.Width = 800;
+		resdesc.SampleDesc = { 1,0 };
+		resdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+		D3D12_HEAP_PROPERTIES heapprop{};
+		heapprop.Type = D3D12_HEAP_TYPE_DEFAULT;
+		heapprop.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+		heapprop.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+		heapprop.CreationNodeMask = 0;
+		heapprop.VisibleNodeMask = 0;
+
+		//ここで渡す値とClearの値が異なると警告出る
+		//遅くなるよ、みたいな
+		D3D12_CLEAR_VALUE clearValue{ DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.5f,0.5f,0.5f,1.f } };
+
+		//普通の
+		if (FAILED(device->get()->CreateCommittedResource(
+			&heapprop,
+			D3D12_HEAP_FLAG_NONE,
+			&resdesc,
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,//rendertargetではない
+			&clearValue,
+			IID_PPV_ARGS(&colorResource)
+		))) {
+			std::cout << "colorResource failed perapolygon render init \n";
+			return std::nullopt;
+		}
+
+		//法線用
+		if (FAILED(device->get()->CreateCommittedResource(
+			&heapprop,
+			D3D12_HEAP_FLAG_NONE,
+			&resdesc,
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,//rendertargetではない
+			&clearValue,
+			IID_PPV_ARGS(&normalResource)
+		))) {
+			std::cout << "normalResource failed perapolygon render normal init \n";
+			if (colorResource)
+				colorResource->Release();
+			return std::nullopt;
+		}
+
+	
+		return std::make_pair(colorResource, normalResource);
 	}
 
-	ID3D12RootSignature* perapolygon_pipline_state::get_root_signature() const noexcept
+
+	std::optional<std::unique_ptr<vertex_buffer>> create_perapolygon_vertex_buffer(device* device)
 	{
-		return m_root_signature;
-	}
+		auto peraVertexBuff = std::make_unique<ichi::vertex_buffer>();
+		struct PeraVert {
+			DirectX::XMFLOAT3 pos;
+			DirectX::XMFLOAT2 uv;
+		};
+		PeraVert pv[4] = {
+			{{-1.f,-1.f,0.1f},{0,1.f}},
+			{{-1.f,1.f,0.1f},{0,0}},
+			{{1.f,-1.f,0.1f},{1.f,1.f}},
+			{{1.f,1.f,0.1f},{1.f,0}},
+		};
 
+		if (!peraVertexBuff->initialize(device, sizeof(pv), sizeof(pv[0]))) 
+			return std::nullopt;
+	
+		peraVertexBuff->map(pv);
+
+		return peraVertexBuff;
+	}
 }

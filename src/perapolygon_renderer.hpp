@@ -21,7 +21,6 @@ namespace ichi
 	class perapolygon_renderer
 	{
 		//書き込み用のリソースのビューを作る
-		//ID3D12DescriptorHeap* m_descriptor_heap = nullptr;
 		std::unique_ptr<descriptor_heap<descriptor_heap_type::RTV>> m_descriptor_heap{};
 
 		//実際のリソース、色用

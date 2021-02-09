@@ -20,6 +20,7 @@
 #include"perapolygon_pipline_state.hpp"
 #include"perapolygon_renderer.hpp"
 
+#include"perapolygon.hpp"
 
 
 #include<iostream>
@@ -37,7 +38,7 @@ int main()
 
 	auto hwnd = ichi::create_window(L"aaaaa", window_width, window_height);
 
-	//解放めんどいのでとりあえずスマートポインタ使っておく
+	//とりあえずスマートポインタ使っておく
 	auto device = std::make_shared<ichi::device>();
 	if (!device->initialize()) {
 		std::cout << "device is failed\n";
@@ -135,72 +136,17 @@ int main()
 		return 0;
 	}
 
+
+	//
+	//ぺらポリゴン
+	//
+	auto perapolygon = std::make_unique<ichi::perapolygon>();
+	if (!perapolygon->initialize(device.get())) {
+		std::cout << "pera false";
+		return 0;
+	}
 	
-	//
-	//
-	//
-	//ぺらポリごん用のシェーダ
-	auto peraVertShaderBlob = ichi::create_shader_blob(L"shader/peraVertexShader.hlsl", "main", "vs_5_0");
-	auto peraPixcShaderBlob = ichi::create_shader_blob(L"shader/peraPixelShader.hlsl", "main", "ps_5_0");
-
-	//ぺら用パイプライン
-	auto peraPipelineState = std::make_shared<ichi::perapolygon_pipline_state>();
-	if (!peraPipelineState->initialize(device.get(),peraVertShaderBlob,peraPixcShaderBlob)) {
-		return 0;
-	}
-
-	//
-	auto peraRenderer = std::make_shared<ichi::perapolygon_renderer>();
-	if (!peraRenderer->initialize(device.get())) {
-		return 0;
-	}
-
-	//ぺら用頂点バッファ
-	auto peraVertexBuff = std::make_shared<ichi::vertex_buffer>();
-	{
-		struct PeraVert{
-			DirectX::XMFLOAT3 pos;
-			DirectX::XMFLOAT2 uv;
-		};
-		PeraVert pv[4] = {
-			{{-1.f,-1.f,0.1f},{0,1.f}},
-			{{-1.f,1.f,0.1f},{0,0}},
-			{{1.f,-1.f,0.1f},{1.f,1.f}},
-			{{1.f,1.f,0.1f},{1.f,0}},
-		};
-
-		if (!peraVertexBuff->initialize(device.get(), sizeof(pv), sizeof(pv[0]))) {
-			return 0;
-		}
-		peraVertexBuff->map(pv);
-	}
-
-	//以下、まとめたいね
-
-	//ぺら用ディスクリプタヒープ
-	//ぺらポリゴンを描写するときに使う
-	auto peraDescriptorHeap = std::make_shared<ichi::descriptor_heap<ichi::descriptor_heap_type::CBV_SRV_UAV>>();
-	//とりあえず大きさは2
-	if (!peraDescriptorHeap->initialize(device.get(), 2)) {
-		return 0;
-	}
-
-	auto peraDescriptorHeapHandle = peraDescriptorHeap->create_view<ichi::create_view_type::SRV>(device.get(), peraRenderer->get_resource_ptr());
-	if (!peraDescriptorHeapHandle) {
-		std::cout << "pera handle is failed\n";
-		return 0;
-	}
-
-	auto peraNormalDescirptorHeapHandle = peraDescriptorHeap->create_view<ichi::create_view_type::SRV>(device.get(), peraRenderer->get_normal_resource_ptr());
-	if (!peraNormalDescirptorHeapHandle) {
-		std::cout << "normal pera handle is failed\n";
-		return 0;
-	}
-
 	
-	//
-	//
-	//
 
 	while (ichi::update_window()) {
 		
@@ -210,9 +156,9 @@ int main()
 
 		mmdModel->map_scene_data({ worldMat,view,proj,lightCamera, shadow, eye });
 
-	
-
-
+		//
+		//光のディプス描写
+		//
 		mmdModel->draw_light_depth(commList.get());
 
 		//
@@ -222,34 +168,27 @@ int main()
 		commList->get()->RSSetViewports(1, &viewport);
 		commList->get()->RSSetScissorRects(1, &scissorrect);
 
-		peraRenderer->begin_drawing(commList.get(), mmdModel->get_depth_resource_cpu_handle());
+		perapolygon->begin_drawing_resource_barrier(commList.get());
+		perapolygon->clear(commList.get());
+
+		auto [renderNum, perapolygonHandle] = perapolygon->get_render_target_info();
+		auto mmdCpuHandle = mmdModel->get_depth_resource_cpu_handle();
+		commList->get()->OMSetRenderTargets(renderNum, perapolygonHandle, false, &mmdCpuHandle);
 
 		commList->get()->ClearDepthStencilView(mmdModel->get_depth_resource_cpu_handle(),D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-		peraRenderer->clear(commList.get());
 
 		mmdModel->draw(commList.get());
 
-		peraRenderer->end_drawing(commList.get());
+		perapolygon->end_drawing_resource_barrier(commList.get());
 
 		//
-		//
-		//
-
 		//ぺらポリゴンをバックバッファに描写
-		
+		//
+
 		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), mmdModel->get_depth_resource_cpu_handle());
 		doubleBuffer->clear_back_buffer(commList.get());
 
-		commList->get()->ClearDepthStencilView(mmdModel->get_depth_resource_cpu_handle(),D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-
-		commList->get()->SetPipelineState(peraPipelineState->get());
-		commList->get()->SetGraphicsRootSignature(peraPipelineState->get_root_signature());
-
-		commList->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		commList->get()->IASetVertexBuffers(0, 1, &peraVertexBuff->get_view());
-		commList->get()->SetDescriptorHeaps(1, &peraDescriptorHeap->get());
-		commList->get()->SetGraphicsRootDescriptorTable(0, peraDescriptorHeap->get()->GetGPUDescriptorHandleForHeapStart());
-		commList->get()->DrawInstanced(4, 1, 0, 0);
+		perapolygon->draw(commList.get());
 
 		doubleBuffer->end_drawing_to_backbuffer(commList.get());
 
