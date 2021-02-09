@@ -2,6 +2,11 @@
 
 float4 main(Output input) : SV_TARGET
 {
+	if (input.uv.x < 0.4 && input.uv.y < 0.4)
+	{
+		return texNormal.Sample(smp, input.uv * 2.5);
+	}
+
 	return tex.Sample(smp,input.uv);
 
 	//float4 col = tex.Sample(smp, input.uv);

@@ -16,12 +16,18 @@ cbuffer Material : register(b1) {
 	float3 ambient;//アンビエント
 };
 
-float4 main(BasicType input) : SV_TARGET
+//float main(BasicType input) : SV_TARGET
+PixcelOutput main(BasicType input)
 {
+	
 	if (input.instNo == 1)
 	{
-		return float4(0.f, 0.f, 0.f, 1.f);
+		PixcelOutput output;
+		output.col = float4(0.f, 0.f, 0.f, 1.f);
+		output.normal = float4(0.f, 0.f, 0.f, 1.f);
+		return output;
 	}
+	
 
 	float3 light = normalize(float3(1,-1,1));//光の向かうベクトル(平行光線)
 	float3 lightColor = float3(1,1,1);//ライトのカラー(1,1,1で真っ白)
@@ -59,5 +65,10 @@ float4 main(BasicType input) : SV_TARGET
 		posFromLightVP.z - 0.005f);
 	shadowWeight = lerp(0.5f, 1.0f, depthFromLight);
 
-	return float4(result.rgb * shadowWeight, result.a);
+	PixcelOutput output;
+	output.col = float4(result.rgb * shadowWeight, result.a);
+	output.normal.rgb = float3((input.normal.xyz + 1.0f) / 2.0f);
+	output.normal.a = 1;
+
+	return output;
 }

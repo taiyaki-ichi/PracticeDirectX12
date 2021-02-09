@@ -19,3 +19,9 @@ cbuffer SceneData : register(b0) {
 	matrix shadow;//‰e
 	float3 eye;
 };
+
+struct PixcelOutput
+{
+	float4 col : SV_TARGET0;//’Êí‚ÌB‚Â‚Ü‚èF
+	float4 normal : SV_TARGET1;//–@ü
+};

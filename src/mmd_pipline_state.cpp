@@ -207,8 +207,9 @@ namespace ichi
 		graphicsPipelineDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;//ストリップ時のカットなし
 		graphicsPipelineDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;//三角形で構成
 
-		graphicsPipelineDesc.NumRenderTargets = 1;//今は１つのみ
+		graphicsPipelineDesc.NumRenderTargets = 2;
 		graphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;//0～1に正規化されたRGBA
+		graphicsPipelineDesc.RTVFormats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 		graphicsPipelineDesc.SampleDesc.Count = 1;//サンプリングは1ピクセルにつき１
 		graphicsPipelineDesc.SampleDesc.Quality = 0;//クオリティは最低
@@ -235,6 +236,8 @@ namespace ichi
 		//レンダーターゲット必要なし
 		graphicsPipelineDesc.NumRenderTargets = 0;
 		graphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_UNKNOWN;
+		//[1]のクリアを忘れずに
+		graphicsPipelineDesc.RTVFormats[1] = DXGI_FORMAT_UNKNOWN;
 
 		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&shadowPipelineState))))
 		{

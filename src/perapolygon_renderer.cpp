@@ -11,6 +11,8 @@ namespace ichi
 	{
 		if (m_resource)
 			m_resource->Release();
+		if (m_normal_resource)
+			m_normal_resource->Release();
 	}
 
 	bool perapolygon_renderer::initialize(device* device)
@@ -35,11 +37,11 @@ namespace ichi
 		heapprop.CreationNodeMask = 0;
 		heapprop.VisibleNodeMask = 0;
 
-		//‚½‚Ô‚ñ‚Å‚«‚Ä‚é
 		//‚±‚±‚Å“n‚·’l‚ÆClear‚Ì’l‚ªˆÙ‚È‚é‚ÆŒxo‚é
 		//’x‚­‚È‚é‚æA‚Ý‚½‚¢‚È
 		D3D12_CLEAR_VALUE clearValue{ DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.5f,0.5f,0.5f,1.f } };
 
+		//•’Ê‚Ì
 		if (FAILED(device->get()->CreateCommittedResource(
 			&heapprop,
 			D3D12_HEAP_FLAG_NONE,
@@ -52,8 +54,22 @@ namespace ichi
 			return false; 
 		}
 
+		//–@ü—p
+		if (FAILED(device->get()->CreateCommittedResource(
+			&heapprop,
+			D3D12_HEAP_FLAG_NONE,
+			&resdesc,
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,//rendertarget‚Å‚Í‚È‚¢
+			&clearValue,
+			IID_PPV_ARGS(&m_normal_resource)
+		))) {
+			std::cout << "failed perapolygon render normal init \n";
+			return false;
+		}
+
+
 		m_descriptor_heap = std::unique_ptr<descriptor_heap<descriptor_heap_type::RTV>>{
-			device->create<descriptor_heap<descriptor_heap_type::RTV>>(1)
+			device->create<descriptor_heap<descriptor_heap_type::RTV>>(2)
 		};
 		if (!m_descriptor_heap) {
 			std::cout << "perapolygon init CreateDescriptorHeap is failed\n";
@@ -61,6 +77,7 @@ namespace ichi
 		}
 
 		m_descriptor_heap->create_view<create_view_type::RTV>(device, m_resource);
+		m_descriptor_heap->create_view<create_view_type::RTV>(device, m_normal_resource);
 
 		return true;
 	}
@@ -76,8 +93,15 @@ namespace ichi
 		BarrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		cl->get()->ResourceBarrier(1, &BarrierDesc);
 
-		auto rtvH = m_descriptor_heap->get_cpu_handle();
-		cl->get()->OMSetRenderTargets(1, &rtvH, false, &handle);
+		BarrierDesc.Transition.pResource = m_normal_resource;
+		cl->get()->ResourceBarrier(1, &BarrierDesc);
+
+		//auto rtvH = m_descriptor_heap->get_cpu_handle();
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvH[2] = {
+			m_descriptor_heap->get_cpu_handle(0),
+			m_descriptor_heap->get_cpu_handle(1)
+		};
+		cl->get()->OMSetRenderTargets(2, rtvH, false, &handle);
 	}
 
 	void perapolygon_renderer::end_drawing(command_list* cl)
@@ -90,17 +114,26 @@ namespace ichi
 		BarrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		BarrierDesc.Transition.StateAfter =  D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 		cl->get()->ResourceBarrier(1, &BarrierDesc);
+
+		BarrierDesc.Transition.pResource = m_normal_resource;
+		cl->get()->ResourceBarrier(1, &BarrierDesc);
 	}
 
 	void perapolygon_renderer::clear(command_list* cl)
 	{
 		float clearColor[] = { 0.5f,0.5f,0.5f,1.0f };
-		cl->get()->ClearRenderTargetView(m_descriptor_heap->get_cpu_handle(), clearColor, 0, nullptr);
+		cl->get()->ClearRenderTargetView(m_descriptor_heap->get_cpu_handle(0), clearColor, 0, nullptr);
+		cl->get()->ClearRenderTargetView(m_descriptor_heap->get_cpu_handle(1), clearColor, 0, nullptr);
 	}
 
-	ID3D12Resource* perapolygon_renderer::ger_resource_ptr() noexcept
+	ID3D12Resource* perapolygon_renderer::get_resource_ptr() noexcept
 	{
 		return m_resource;
+	}
+
+	ID3D12Resource* perapolygon_renderer::get_normal_resource_ptr() noexcept
+	{
+		return m_normal_resource;
 	}
 
 

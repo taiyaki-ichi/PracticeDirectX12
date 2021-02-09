@@ -175,18 +175,28 @@ int main()
 		peraVertexBuff->map(pv);
 	}
 
+	//以下、まとめたいね
+
 	//ぺら用ディスクリプタヒープ
 	//ぺらポリゴンを描写するときに使う
 	auto peraDescriptorHeap = std::make_shared<ichi::descriptor_heap<ichi::descriptor_heap_type::CBV_SRV_UAV>>();
-	//とりあえず大きさは1
-	if (!peraDescriptorHeap->initialize(device.get(), 1)) {
+	//とりあえず大きさは2
+	if (!peraDescriptorHeap->initialize(device.get(), 2)) {
 		return 0;
 	}
-	auto peraDescriptorHeapHandle = peraDescriptorHeap->create_view<ichi::create_view_type::SRV>(device.get(), peraRenderer->ger_resource_ptr());
+
+	auto peraDescriptorHeapHandle = peraDescriptorHeap->create_view<ichi::create_view_type::SRV>(device.get(), peraRenderer->get_resource_ptr());
 	if (!peraDescriptorHeapHandle) {
 		std::cout << "pera handle is failed\n";
 		return 0;
 	}
+
+	auto peraNormalDescirptorHeapHandle = peraDescriptorHeap->create_view<ichi::create_view_type::SRV>(device.get(), peraRenderer->get_normal_resource_ptr());
+	if (!peraNormalDescirptorHeapHandle) {
+		std::cout << "normal pera handle is failed\n";
+		return 0;
+	}
+
 	
 	//
 	//

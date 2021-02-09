@@ -24,8 +24,10 @@ namespace ichi
 		//ID3D12DescriptorHeap* m_descriptor_heap = nullptr;
 		std::unique_ptr<descriptor_heap<descriptor_heap_type::RTV>> m_descriptor_heap{};
 
-		//実際のリソース
+		//実際のリソース、色用
 		ID3D12Resource* m_resource = nullptr;
+		//法線用
+		ID3D12Resource* m_normal_resource = nullptr;
 
 	public:
 		perapolygon_renderer() = default;
@@ -45,7 +47,8 @@ namespace ichi
 
 		//リソースの取得
 		//ぺらポリゴンに描写されたデータを加工するときとかに使う
-		ID3D12Resource* ger_resource_ptr() noexcept;
+		ID3D12Resource* get_resource_ptr() noexcept;
+		ID3D12Resource* get_normal_resource_ptr() noexcept;
 	};
 
 }

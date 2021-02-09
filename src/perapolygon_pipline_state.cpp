@@ -21,10 +21,11 @@ namespace ichi
 
 		//テクスチャ
 		D3D12_DESCRIPTOR_RANGE range{};
-		range.NumDescriptors = 1;
+		range.NumDescriptors = 2;//とりあえず２
 		range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		range.BaseShaderRegister = 0;
 		range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
 		
 		D3D12_ROOT_PARAMETER rootparam{};
 		rootparam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
@@ -144,8 +145,9 @@ namespace ichi
 		graphicsPipelineDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;//ストリップ時のカットなし
 		graphicsPipelineDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;//三角形で構成
 
-		graphicsPipelineDesc.NumRenderTargets = 1;//今は１つのみ
+		graphicsPipelineDesc.NumRenderTargets = 1;
 		graphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;//0～1に正規化されたRGBA
+		//graphicsPipelineDesc.RTVFormats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;//0～1に正規化されたRGBA
 
 		graphicsPipelineDesc.SampleDesc.Count = 1;//サンプリングは1ピクセルにつき１
 		graphicsPipelineDesc.SampleDesc.Quality = 0;//クオリティは最低
