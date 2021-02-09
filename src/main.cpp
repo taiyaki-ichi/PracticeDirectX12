@@ -182,7 +182,7 @@ int main()
 	if (!peraDescriptorHeap->initialize(device.get(), 1)) {
 		return 0;
 	}
-	auto peraDescriptorHeapHandle = peraDescriptorHeap->create_view(device.get(), peraRenderer.get());
+	auto peraDescriptorHeapHandle = peraDescriptorHeap->create_view<ichi::create_view_type::SRV>(device.get(), peraRenderer->ger_resource_ptr());
 	if (!peraDescriptorHeapHandle) {
 		std::cout << "pera handle is failed\n";
 		return 0;

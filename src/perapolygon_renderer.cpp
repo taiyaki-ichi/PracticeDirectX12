@@ -1,14 +1,14 @@
 #include"perapolygon_renderer.hpp"
 #include"DirectX12/device.hpp"
 #include"DirectX12/command_list.hpp"
+#include"DirectX12/descriptor_heap.hpp"
+#include"DirectX12/resource_type_tag.hpp"
 
 namespace ichi
 {
 
 	perapolygon_renderer::~perapolygon_renderer()
 	{
-		if (m_descriptor_heap)
-			m_descriptor_heap->Release();
 		if (m_resource)
 			m_resource->Release();
 	}
@@ -52,22 +52,15 @@ namespace ichi
 			return false; 
 		}
 
-
-		D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
-		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;//レンダーターゲットビューなので当然RTV
-		heapDesc.NodeMask = 0;
-		heapDesc.NumDescriptors = 1;
-		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;//特に指定なし
-		if (FAILED(device->get()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_descriptor_heap)))) {
+		m_descriptor_heap = std::unique_ptr<descriptor_heap<descriptor_heap_type::RTV>>{
+			device->create<descriptor_heap<descriptor_heap_type::RTV>>(1)
+		};
+		if (!m_descriptor_heap) {
 			std::cout << "perapolygon init CreateDescriptorHeap is failed\n";
 			return false;
 		}
 
-		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
-		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-
-		device->get()->CreateRenderTargetView(m_resource, &rtvDesc, m_descriptor_heap->GetCPUDescriptorHandleForHeapStart());
+		m_descriptor_heap->create_view<create_view_type::RTV>(device, m_resource);
 
 		return true;
 	}
@@ -83,8 +76,8 @@ namespace ichi
 		BarrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		cl->get()->ResourceBarrier(1, &BarrierDesc);
 
-		auto descPtr = m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
-		cl->get()->OMSetRenderTargets(1, &descPtr, false, &handle);
+		auto rtvH = m_descriptor_heap->get_cpu_handle();
+		cl->get()->OMSetRenderTargets(1, &rtvH, false, &handle);
 	}
 
 	void perapolygon_renderer::end_drawing(command_list* cl)
@@ -102,14 +95,13 @@ namespace ichi
 	void perapolygon_renderer::clear(command_list* cl)
 	{
 		float clearColor[] = { 0.5f,0.5f,0.5f,1.0f };
-		cl->get()->ClearRenderTargetView(m_descriptor_heap->GetCPUDescriptorHandleForHeapStart(), clearColor, 0, nullptr);
+		cl->get()->ClearRenderTargetView(m_descriptor_heap->get_cpu_handle(), clearColor, 0, nullptr);
 	}
 
-	ID3D12Resource* perapolygon_renderer::get() noexcept
+	ID3D12Resource* perapolygon_renderer::ger_resource_ptr() noexcept
 	{
 		return m_resource;
 	}
-
 
 
 }

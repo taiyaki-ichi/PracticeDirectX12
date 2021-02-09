@@ -117,7 +117,6 @@ namespace ichi
 		auto cpuHandle = get_cpu_handle(m_offset);
 
 		//view‚Ì¶¬
-		//create_view_func<DescriptorHeapType,CreateType>(device,resource,cpuHandle)‚Ìì»
 		if (!create_view_func<DescriptorHeapType,CreateType>(device, resource, cpuHandle))
 			return std::nullopt;
 
