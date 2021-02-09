@@ -18,10 +18,11 @@ namespace ichi
 
 	//タイプ指定用
 	//初期化用の関数の定義
-	//インクリメントの幅の取得用関数
+	//インクリメントの幅の取得用関数とか
 	namespace descriptor_heap_type {
 		struct CBV_SRV_UAV;
 		struct DSV;
+		struct RTV;
 	};
 
 
@@ -143,9 +144,9 @@ namespace ichi
 		return std::nullopt;
 	}
 
-	//
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//ディスクリプターのタイプ用のパラメータのクラスの定義
-	//
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 	//定数バッファとシェーダ理ソールと他１用
@@ -179,7 +180,7 @@ namespace ichi
 	//ディプス用
 	struct descriptor_heap_type::DSV
 	{
-		//こちらもとりあえずすべてのシェーダから見えるように
+		//こちらもとりあえずすべてのシェーダから見えるようにしたらエラーはいた
 		static ID3D12DescriptorHeap* initialize(device* device, int size)
 		{
 			ID3D12DescriptorHeap* result = nullptr;
@@ -201,10 +202,37 @@ namespace ichi
 	};
 
 
+	//レンダーターゲット用
+	struct descriptor_heap_type::RTV
+	{
+		static ID3D12DescriptorHeap* initialize(device* device, int size)
+		{
+			ID3D12DescriptorHeap* result = nullptr;
 
-	//
+			D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
+			heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;//レンダーターゲットビューなので当然RTV
+			heapDesc.NodeMask = 0;
+			heapDesc.NumDescriptors = size;
+			heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;//特に指定なし
+			if (FAILED(device->get()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&result))))
+				return nullptr;
+			else
+				return result;
+		}
+
+		static unsigned int get_increment_size(device* device)
+		{
+			return device->get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		}
+
+	};
+
+
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//Viewを作る関数の定義
-	//
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	//デフォ
 	template<typename DescriptorHeapType,typename CreateType>
@@ -290,4 +318,23 @@ namespace ichi
 
 		return true;
 	}
+
+
+	//レンダーターゲット用のディスクリプタヒープに
+	//レンダーターゲットのViewを作る
+	template<>
+	inline bool create_view_func<descriptor_heap_type::RTV, create_view_type::RTV>
+		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
+	{
+		//SRGBレンダーターゲットビュー設定
+		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+
+		device->get()->CreateRenderTargetView(resource, &rtvDesc, cpuHandle);
+
+		return true;
+	}
+
+
 }

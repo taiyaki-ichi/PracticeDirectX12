@@ -1,6 +1,8 @@
 #include"double_buffer.hpp"
 #include"command_list.hpp"
 #include"device.hpp"
+#include"descriptor_heap.hpp"
+#include"resource_type_tag.hpp"
 
 #include<iostream>
 
@@ -10,8 +12,6 @@ namespace ichi
 	{
 		if (m_factory)
 			m_factory->Release();
-		if (m_descriptor_heap)
-			m_descriptor_heap->Release();
 		if (m_swap_chain)
 			m_swap_chain->Release();
 		for (size_t i = 0; i < m_buffer.size(); i++)
@@ -53,22 +53,14 @@ namespace ichi
 		}
 			
 		//ディスクリプタヒープ
-		D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
-		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;//レンダーターゲットビューなので当然RTV
-		heapDesc.NodeMask = 0;
-		heapDesc.NumDescriptors = 2;//表裏の２つ
-		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;//特に指定なし
-		if (FAILED(device->get()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_descriptor_heap)))) {
-			std::cout << "CreateDescriptorHeap is failed\n";
+		m_descriptor_heap = std::unique_ptr<descriptor_heap<descriptor_heap_type::RTV>>{
+			device->create<descriptor_heap<descriptor_heap_type::RTV>>(2)
+		};
+		if (!m_descriptor_heap) {
+			std::cout << "double buufer DescriptorHeap is failed\n";
 			return false;
 		}
-			
-		//ビュー作成
-		D3D12_CPU_DESCRIPTOR_HANDLE handle = m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
-		//SRGBレンダーターゲットビュー設定
-		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+
 
 		for (size_t i = 0; i < m_buffer.size(); i++) {
 
@@ -77,15 +69,8 @@ namespace ichi
 				std::cout << "GetBuffer is failed\n";
 				return false;
 			}
-			device->get()->CreateRenderTargetView(m_buffer[i], &rtvDesc, handle);
-			
-			handle.ptr += device->get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);	
+			m_descriptor_heap->create_view<create_view_type::RTV>(device, m_buffer[i]);
 		}
-
-		auto hoge = m_buffer[0]->GetDesc();
-
-		//インクリメント用のサイズのメモ
-		m_descriptor_handle_increment_size = device->get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 		return true;
 	}
@@ -106,8 +91,7 @@ namespace ichi
 
 
 		//レンダーターゲットの作製
-		auto rtvH = m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
-		rtvH.ptr += static_cast<ULONG_PTR>(bbIdx) * m_descriptor_handle_increment_size;
+		auto rtvH = m_descriptor_heap->get_cpu_handle(bbIdx);
 		cl->get()->OMSetRenderTargets(1, &rtvH, false, &handle);
 	}
 
@@ -131,8 +115,7 @@ namespace ichi
 	void double_buffer::clear_back_buffer(command_list* cl)
 	{
 		auto bbIdx = m_swap_chain->GetCurrentBackBufferIndex();
-		auto rtvH = m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
-		rtvH.ptr += static_cast<ULONG_PTR>(bbIdx) * m_descriptor_handle_increment_size;
+		auto rtvH = m_descriptor_heap->get_cpu_handle(bbIdx);
 		//バックバッファのクリア
 		float clearColor[] = { 1.0f,1.0f,1.0f,1.0f };
 		cl->get()->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);

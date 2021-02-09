@@ -10,5 +10,6 @@ namespace ichi
 		struct CBV {};
 		struct SRV {};
 		struct DSV {};
+		struct RTV {};
 	};
 }

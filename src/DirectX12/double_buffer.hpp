@@ -1,4 +1,5 @@
 #pragma once
+#include<memory>
 #include<array>
 #include<d3d12.h>
 #include<dxgi1_6.h>
@@ -11,6 +12,11 @@ namespace ichi
 	class device;
 	class command_list;
 	class depth_buffer;
+	template<typename>
+	class descriptor_heap;
+	namespace descriptor_heap_type {
+		struct RTV;
+	}
 
 	//ダブルバッファ用
 	//リソースバリアとかしたり
@@ -18,14 +24,9 @@ namespace ichi
 	{
 		IDXGIFactory5* m_factory = nullptr;
 		IDXGISwapChain4* m_swap_chain = nullptr;
-		ID3D12DescriptorHeap* m_descriptor_heap = nullptr;
+		std::unique_ptr<descriptor_heap<descriptor_heap_type::RTV>> m_descriptor_heap{};
 
 		std::array<ID3D12Resource*, 2> m_buffer = { nullptr,nullptr };
-
-		//バッファをインクリメントするようにメモしておく
-		//begin_drawing_to_backbafferでdeviceを参照したくない
-		UINT m_descriptor_handle_increment_size = 0;
-
 	public:
 		double_buffer() = default;
 		~double_buffer();
