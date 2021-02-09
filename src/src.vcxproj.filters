@@ -10,12 +10,9 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="DirectX12\color_texture.cpp" />
     <ClCompile Include="mmd_model.cpp" />
-    <ClCompile Include="perapolygon_pipline_state.cpp" />
-    <ClCompile Include="perapolygon_renderer.cpp" />
-    <ClCompile Include="mmd_pipline_state.cpp" />
-    <ClCompile Include="mmd_depth_buffer.cpp" />
     <ClCompile Include="perapolygon_helper_functions.cpp" />
     <ClCompile Include="perapolygon.cpp" />
+    <ClCompile Include="mmd_model_helper_functions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectX12\command_list.hpp" />
@@ -33,13 +30,10 @@
     <ClInclude Include="mmd_model.hpp" />
     <ClInclude Include="DirectX12\resource_type_tag.hpp" />
     <ClInclude Include="scene_data.hpp" />
-    <ClInclude Include="perapolygon_pipline_state.hpp" />
-    <ClInclude Include="perapolygon_renderer.hpp" />
-    <ClInclude Include="mmd_pipline_state.hpp" />
-    <ClInclude Include="mmd_depth_buffer.hpp" />
     <ClInclude Include="window_size.hpp" />
     <ClInclude Include="perapolygon.hpp" />
     <ClInclude Include="perapolygon_helper_functions.hpp" />
+    <ClInclude Include="mmd_model_helper_functions.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\BasicType.hlsli" />

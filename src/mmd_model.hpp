@@ -90,11 +90,6 @@ namespace ichi
 		//コマンドリストはテクスチャのコピー用
 		bool initialize(device*,const MMDL::pmx_model<std::wstring>&,command_list*);
 
-
-		//
-		//仮
-		//drawはコマンドリストのメンバ関数にしたいな
-		//
 		void draw(command_list* cl);
 
 		void map_scene_data(const scene_data&);

@@ -7,9 +7,8 @@
 #include"DirectX12/descriptor_heap.hpp"
 #include"DirectX12/color_texture.hpp"
 #include"DirectX12/shader.hpp"
-#include"mmd_pipline_state.hpp"
+#include"mmd_model_helper_functions.hpp"
 #include"window_size.hpp"
-#include"mmd_depth_buffer.hpp"
 #include<algorithm>
 #include<iterator>
 #include<utility>
@@ -287,84 +286,6 @@ namespace ichi
 				m_descriptor_heap->create_view(device, m_gray_gradation_texture_resource.get());
 		}
 
-		
-		{
-			/*
-			//とりあえずDepthの設定の個ぴへ
-			//深度バッファの仕様
-			D3D12_RESOURCE_DESC depthResDesc{};
-			depthResDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;//2次元のテクスチャデータとして
-			depthResDesc.Width = shadow_difinition;//幅と高さはレンダーターゲットと同じ
-			depthResDesc.Height = shadow_difinition;//上に同じ
-			depthResDesc.DepthOrArraySize = 1;//テクスチャ配列でもないし3Dテクスチャでもない
-			depthResDesc.Format = DXGI_FORMAT_R32_TYPELESS;//深度値書き込み用フォーマット
-			depthResDesc.SampleDesc.Count = 1;//サンプルは1ピクセル当たり1つ
-			depthResDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;//このバッファは深度ステンシルとして使用します
-			depthResDesc.MipLevels = 1;
-			depthResDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-			depthResDesc.Alignment = 0;
-
-			//デプス用ヒーププロパティ
-			D3D12_HEAP_PROPERTIES depthHeapProp{};
-			depthHeapProp.Type = D3D12_HEAP_TYPE_DEFAULT;//DEFAULTだから後はUNKNOWNでよし
-			depthHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-			depthHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-
-			//このクリアバリューが重要な意味を持つ
-			D3D12_CLEAR_VALUE depthClearValue{};
-			depthClearValue.DepthStencil.Depth = 1.0f;//深さ１(最大値)でクリア
-			depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;//32bit深度値としてクリア
-
-	
-			if (FAILED(device->get()->CreateCommittedResource(
-				&depthHeapProp,
-				D3D12_HEAP_FLAG_NONE,
-				&depthResDesc,
-				D3D12_RESOURCE_STATE_DEPTH_WRITE, //デプス書き込みに使用
-				&depthClearValue,
-				IID_PPV_ARGS(&m_light_depth_resource)
-			))) {
-				std::cout << "mmd light depth initialize is failed\n";
-				return false;
-			}
-			
-			//lightdesccriptorの生成
-			D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc{};
-			dsvHeapDesc.NumDescriptors = 1;//1つのみ
-			dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;//デプスステンシルビューとして使う
-			if (FAILED(device->get()->CreateDescriptorHeap(
-				&dsvHeapDesc, IID_PPV_ARGS(&m_light_depth_descriptor_heap)))) {
-				std::cout << "mmd light depth descriptor is failed\n";
-				return false;
-			}
-
-
-			//viewの生成
-			auto heapHandle = m_light_depth_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
-			
-			//深度ビュー作成
-			D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
-			dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;//デプス値に32bit使用
-			dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;//2Dテクスチャ
-			dsvDesc.Flags = D3D12_DSV_FLAG_NONE;//フラグは特になし
-
-			device->get()->CreateDepthStencilView(m_light_depth_resource, //ビューと関連付けるバッファ
-				&dsvDesc, //先ほど設定したテクスチャ設定情報
-				heapHandle//ヒープのどこに割り当てるか
-			);
-
-			
-		
-			auto result = m_descriptor_heap->create_view<create_view_type::DSV>(device, m_light_depth_resource);
-			if (result)
-				m_light_depth_gpu_handle = result.value().first;
-			else {
-				std::cout << "mmd init descriptor light shader failed\n";
-				return false;
-			}
-			*/
-			
-		}
 
 		{
 			auto result = create_mmd_depth_buffers(device, window_width, window_height, shadow_difinition);
@@ -442,7 +363,6 @@ namespace ichi
 
 			cl->get()->SetGraphicsRootDescriptorTable(1, m_matarial_root_gpu_handle[i]);
 
-			//1->2
 			cl->get()->DrawIndexedInstanced(m_material_info[i].m_vertex_num, 2, indexOffset, 0, 0);
 
 			indexOffset += m_material_info[i].m_vertex_num;

@@ -17,9 +17,6 @@
 #include"mmd_model.hpp"
 #include"scene_data.hpp"
 
-#include"perapolygon_pipline_state.hpp"
-#include"perapolygon_renderer.hpp"
-
 #include"perapolygon.hpp"
 
 
