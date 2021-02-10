@@ -25,6 +25,7 @@ PixcelOutput main(BasicType input)
 		PixcelOutput output;
 		output.col = float4(0.f, 0.f, 0.f, 1.f);
 		output.normal = float4(0.f, 0.f, 0.f, 1.f);
+		output.highLum = float4(0.f, 0.f, 0.f, 0.f);
 		return output;
 	}
 	
@@ -70,5 +71,11 @@ PixcelOutput main(BasicType input)
 	output.normal.rgb = float3((input.normal.xyz + 1.0f) / 2.0f);
 	output.normal.a = 1;
 
+	//output.highLum = (result > 1.f);
+	float y = dot(float3(0.299f, 0.587f, 0.114f), output.col);
+	output.highLum = y > 0.99f ? output.col : 0.0f;
+	output.highLum.a = 1.0;
+
 	return output;
 }
+

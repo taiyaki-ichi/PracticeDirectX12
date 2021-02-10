@@ -121,6 +121,7 @@ int main()
 	auto mmdModel = std::shared_ptr<ichi::mmd_model>{};
 
 	auto modelIf = MMDL::load_pmx("../../mmd/Paimon/”h–Ö.pmx");
+	//auto modelIf = MMDL::load_pmx("../../mmd/Diona/çŒ‰œ›P.pmx");
 	if (modelIf)
 	{
 		//‚Æ‚è‚ ‚¦‚¸
@@ -176,11 +177,19 @@ int main()
 
 		mmdModel->draw(commList.get());
 
+
+		perapolygon->draw_shrink_texture_for_blur(commList.get());
+
 		perapolygon->end_drawing_resource_barrier(commList.get());
 
+
+		
 		//
 		//‚Ø‚çƒ|ƒŠƒSƒ“‚ðƒoƒbƒNƒoƒbƒtƒ@‚É•`ŽÊ
 		//
+
+		commList->get()->RSSetViewports(1, &viewport);
+		commList->get()->RSSetScissorRects(1, &scissorrect);
 
 		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), mmdModel->get_depth_resource_cpu_handle());
 		doubleBuffer->clear_back_buffer(commList.get());

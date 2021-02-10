@@ -2,6 +2,7 @@
 #include"DirectX12/device.hpp"
 #include"DirectX12/shader.hpp"
 #include"DirectX12/vertex_buffer.hpp"
+#include"window_size.hpp"
 
 namespace ichi
 {
@@ -14,7 +15,7 @@ namespace ichi
 
 		//テクスチャ
 		D3D12_DESCRIPTOR_RANGE range{};
-		range.NumDescriptors = 2;//とりあえず２
+		range.NumDescriptors = 4;
 		range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		range.BaseShaderRegister = 0;
 		range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -71,12 +72,14 @@ namespace ichi
 	}
 
 
-	std::optional<ID3D12PipelineState*> create_perapolygon_pipline_state(device* device, ID3D12RootSignature* rootSignature)
+	std::optional<std::pair<ID3D12PipelineState*, ID3D12PipelineState*>> create_perapolygon_pipline_state(device* device, ID3D12RootSignature* rootSignature)
 	{
 		ID3D12PipelineState* result = nullptr;
+		ID3D12PipelineState* result2 = nullptr;
 
 		auto vertexShader = create_shader_blob(L"shader/peraVertexShader.hlsl", "main", "vs_5_0");
 		auto pixelShader = create_shader_blob(L"shader/peraPixelShader.hlsl", "main", "ps_5_0");
+		auto blurPixelShader = create_shader_blob(L"shader/peraPixelShader.hlsl", "BlurPS", "ps_5_0");
 
 
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineDesc{};
@@ -163,12 +166,32 @@ namespace ichi
 			std::cout << "pera CreateGraphicsPipelineState is failed\n";
 			vertexShader->Release();
 			pixelShader->Release();
+			blurPixelShader->Release();
+			return std::nullopt;
+		}
+
+		//ピクセルシェーダの設定
+		graphicsPipelineDesc.PS.pShaderBytecode = blurPixelShader->GetBufferPointer();
+		graphicsPipelineDesc.PS.BytecodeLength = blurPixelShader->GetBufferSize();
+
+		graphicsPipelineDesc.DepthStencilState.DepthEnable = false;
+		//graphicsPipelineDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+
+		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&result2))))
+		{
+			std::cout << "pera CreateGraphicsPipelineState 2 is failed\n";
+			vertexShader->Release();
+			pixelShader->Release();
+			blurPixelShader->Release();
+			result->Release();
 			return std::nullopt;
 		}
 
 		vertexShader->Release();
 		pixelShader->Release();
-		return result;
+		blurPixelShader->Release();
+
+		return std::make_pair(result, result2);
 	}
 
 	std::optional<std::pair<ID3D12Resource*, ID3D12Resource*>> create_perapolygon_resource(device* device)
@@ -182,8 +205,8 @@ namespace ichi
 		resdesc.DepthOrArraySize = 1;
 		resdesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 		resdesc.MipLevels = 1;
-		resdesc.Height = 600;
-		resdesc.Width = 800;
+		resdesc.Height = window_height;
+		resdesc.Width = window_width;
 		resdesc.SampleDesc = { 1,0 };
 		resdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
@@ -251,5 +274,67 @@ namespace ichi
 		peraVertexBuff->map(pv);
 
 		return peraVertexBuff;
+	}
+
+
+	std::optional<std::pair<ID3D12Resource*, ID3D12Resource*>> create_perapolygon_bloom_resource(device* device)
+	{
+		ID3D12Resource* bloomResource = nullptr;
+		ID3D12Resource* shrinkResource = nullptr;
+
+		D3D12_RESOURCE_DESC resdesc{};
+		resdesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		resdesc.Alignment = 65536;
+		resdesc.DepthOrArraySize = 1;
+		resdesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+		resdesc.MipLevels = 1;
+		resdesc.Height = window_height;
+		resdesc.Width = window_width;
+		resdesc.SampleDesc = { 1,0 };
+		resdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+		D3D12_HEAP_PROPERTIES heapprop{};
+		heapprop.Type = D3D12_HEAP_TYPE_DEFAULT;
+		heapprop.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+		heapprop.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+		heapprop.CreationNodeMask = 0;
+		heapprop.VisibleNodeMask = 0;
+
+		//ここで渡す値とClearの値が異なると警告出る
+		//遅くなるよ、みたいな
+		D3D12_CLEAR_VALUE clearValue{ DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.5f,0.5f,0.5f,1.f } };
+
+		//bloom用
+		if (FAILED(device->get()->CreateCommittedResource(
+			&heapprop,
+			D3D12_HEAP_FLAG_NONE,
+			&resdesc,
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,//rendertargetではない
+			&clearValue,
+			IID_PPV_ARGS(&bloomResource)
+		))) {
+			std::cout << "bloomResource failed perapolygon render init \n";
+			return std::nullopt;
+		}
+
+		//横幅を半分に縮小
+		resdesc.Width >>= 1;
+
+		//縮小されたリソース
+		if (FAILED(device->get()->CreateCommittedResource(
+			&heapprop,
+			D3D12_HEAP_FLAG_NONE,
+			&resdesc,
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,//rendertargetではない
+			&clearValue,
+			IID_PPV_ARGS(&shrinkResource)
+		))) {
+			std::cout << "shrinkBloomResource failed perapolygon render init \n";
+			if (bloomResource)
+				bloomResource->Release();
+			return std::nullopt;
+		}
+
+		return std::make_pair(bloomResource, shrinkResource);
 	}
 }

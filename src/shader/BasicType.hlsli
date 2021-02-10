@@ -24,4 +24,5 @@ struct PixcelOutput
 {
 	float4 col : SV_TARGET0;//通常の。つまり色
 	float4 normal : SV_TARGET1;//法線
+	float4 highLum : SV_TARGET2;//高輝度
 };

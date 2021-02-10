@@ -12,12 +12,18 @@ namespace ichi
 	{
 		if (m_pipeline_state)
 			m_pipeline_state->Release();
+		if (m_blur_pipeline_state)
+			m_blur_pipeline_state->Release();
 		if (m_root_signature)
 			m_root_signature->Release();
 		if (m_color_resource)
 			m_color_resource->Release();
 		if (m_normal_resource)
 			m_normal_resource->Release();
+		if (m_bloom_resource)
+			m_bloom_resource->Release();
+		if (m_shrink_bloom_resource)
+			m_shrink_bloom_resource->Release();
 	}
 
 	bool perapolygon::initialize(device* device)
@@ -36,15 +42,17 @@ namespace ichi
 		//パイプインステート
 		{
 			auto result = create_perapolygon_pipline_state(device, m_root_signature);
-			if (result)
-				m_pipeline_state = result.value();
+			if (result) {
+				m_pipeline_state = result.value().first;
+				m_blur_pipeline_state = result.value().second;
+			}
 			else {
 				std::cout << "pera pipe line is failed\n";
 				return false;
 			}
 		}
 
-		//実際のリソース
+		//実際のリソース達
 		{
 			auto result = create_perapolygon_resource(device);
 			if (result) {
@@ -57,10 +65,23 @@ namespace ichi
 			}
 		}
 
+		//bloom用のリソース達
+		{
+			auto result = create_perapolygon_bloom_resource(device);
+			if (result) {
+				m_bloom_resource = result.value().first;
+				m_shrink_bloom_resource = result.value().second;
+			}
+			else {
+				std::cout << "pera bloom resource is failed\n";
+				return false;
+			}
+		}
+
 		//レンダーターゲット用の
 		{
 			m_rtv_descriptor_heap = std::unique_ptr<descriptor_heap<descriptor_heap_type::RTV>>{
-				device->create<descriptor_heap<descriptor_heap_type::RTV>>(2)
+				device->create<descriptor_heap<descriptor_heap_type::RTV>>(4)
 			};
 			if (!m_rtv_descriptor_heap) {
 				std::cout << "pera rtv descriptor heap is failed\n";
@@ -71,7 +92,7 @@ namespace ichi
 		//シェーダリソースの
 		{
 			m_cbv_srv_usv_descriptor_heap = std::unique_ptr<descriptor_heap<descriptor_heap_type::CBV_SRV_UAV>>{
-				device->create<descriptor_heap<descriptor_heap_type::CBV_SRV_UAV>>(2)
+				device->create<descriptor_heap<descriptor_heap_type::CBV_SRV_UAV>>(4)
 			};
 			if (!m_cbv_srv_usv_descriptor_heap) {
 				std::cout << "pera srv descriptoe heap is failed\n";
@@ -109,6 +130,22 @@ namespace ichi
 				return false;
 			}
 		}
+		{
+			auto result = m_rtv_descriptor_heap->create_view<create_view_type::RTV>(device, m_bloom_resource);
+			if (result)
+				m_render_target_view_cpu_handle_array[2] = result.value().second;
+			else {
+				std::cout << "pera rtv create view 3 is failed\n";
+				return false;
+			}
+		}
+		{
+			auto result = m_rtv_descriptor_heap->create_view<create_view_type::RTV>(device, m_shrink_bloom_resource);
+			if (!result) {
+				std::cout << "pera rtv create view 4 is failed\n";
+				return false;
+			}
+		}
 
 		
 		//シェーダリソース用のディスクリプタヒープにViewを作製
@@ -122,18 +159,31 @@ namespace ichi
 		{
 			auto result = m_cbv_srv_usv_descriptor_heap->create_view<create_view_type::SRV>(device, m_normal_resource);
 			if (!result) {
-				std::cout << "pera srv create view is failed\n";
+				std::cout << "pera srv create view 2 is failed\n";
 				return false;
 			}
 		}
-		
+		{
+			auto result = m_cbv_srv_usv_descriptor_heap->create_view<create_view_type::SRV>(device, m_bloom_resource);
+			if (!result) {
+				std::cout << "pera srv create view 3 is failed\n";
+				return false;
+			}
+		}
+		{
+			auto result = m_cbv_srv_usv_descriptor_heap->create_view<create_view_type::SRV>(device, m_shrink_bloom_resource);
+			if (!result) {
+				std::cout << "pera srv create view 4 is failed\n";
+				return false;
+			}
+		}
 
 		return true;
 	}
 
 	std::pair<int, D3D12_CPU_DESCRIPTOR_HANDLE*> perapolygon::get_render_target_info()
 	{
-		return std::make_pair(2, m_render_target_view_cpu_handle_array);
+		return std::make_pair(3, m_render_target_view_cpu_handle_array);
 	}
 
 	void perapolygon::begin_drawing_resource_barrier(command_list* cl)
@@ -148,6 +198,12 @@ namespace ichi
 		cl->get()->ResourceBarrier(1, &BarrierDesc);
 
 		BarrierDesc.Transition.pResource = m_normal_resource;
+		cl->get()->ResourceBarrier(1, &BarrierDesc);
+
+		BarrierDesc.Transition.pResource = m_bloom_resource;
+		cl->get()->ResourceBarrier(1, &BarrierDesc);
+
+		BarrierDesc.Transition.pResource = m_shrink_bloom_resource;
 		cl->get()->ResourceBarrier(1, &BarrierDesc);
 	}
 
@@ -165,6 +221,12 @@ namespace ichi
 		BarrierDesc.Transition.pResource = m_normal_resource;
 		cl->get()->ResourceBarrier(1, &BarrierDesc);
 
+		BarrierDesc.Transition.pResource = m_bloom_resource;
+		cl->get()->ResourceBarrier(1, &BarrierDesc);
+
+		BarrierDesc.Transition.pResource = m_shrink_bloom_resource;
+		cl->get()->ResourceBarrier(1, &BarrierDesc);
+
 	}
 
 	void perapolygon::clear(command_list* cl)
@@ -174,6 +236,8 @@ namespace ichi
 		//どうなんかな
 		cl->get()->ClearRenderTargetView(m_rtv_descriptor_heap->get_cpu_handle(0), clearColor, 0, nullptr);
 		cl->get()->ClearRenderTargetView(m_rtv_descriptor_heap->get_cpu_handle(1), clearColor, 0, nullptr);
+		cl->get()->ClearRenderTargetView(m_rtv_descriptor_heap->get_cpu_handle(2), clearColor, 0, nullptr);
+		cl->get()->ClearRenderTargetView(m_rtv_descriptor_heap->get_cpu_handle(3), clearColor, 0, nullptr);
 	}
 
 	void perapolygon::draw(command_list* cl)
@@ -188,5 +252,50 @@ namespace ichi
 		cl->get()->DrawInstanced(4, 1, 0, 0);
 
 	}
+
+	void perapolygon::draw_shrink_texture_for_blur(command_list* cl)
+	{
+
+		cl->get()->SetPipelineState(m_blur_pipeline_state);
+		cl->get()->SetGraphicsRootSignature(m_root_signature);
+
+		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		cl->get()->IASetVertexBuffers(0, 1, &m_vertex_buffer->get_view());
+
+		auto rtvHandle = m_rtv_descriptor_heap->get_cpu_handle(3);
+		cl->get()->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
+
+		cl->get()->SetDescriptorHeaps(1, &m_cbv_srv_usv_descriptor_heap->get());
+		cl->get()->SetGraphicsRootDescriptorTable(0, m_cbv_srv_usv_descriptor_heap->get_gpu_handle(2));
+
+		auto desc = m_bloom_resource->GetDesc();
+		D3D12_VIEWPORT vp{};
+		D3D12_RECT sr{};
+
+		vp.MaxDepth = 1.0f;
+		vp.MinDepth = 0.0f;
+		vp.Height = desc.Height / 2.f;
+		vp.Width = desc.Width / 2.f;
+		sr.top = 0;
+		sr.left = 0;
+		sr.right = vp.Width;
+		sr.bottom = vp.Height;
+
+		for (int i = 0; i < 8; i++)
+		{
+			cl->get()->RSSetViewports(1, &vp);
+			cl->get()->RSSetScissorRects(1, &sr);
+			cl->get()->DrawInstanced(4, 1, 0, 0);
+
+			sr.top += vp.Height;
+			vp.TopLeftX = 0;
+			vp.TopLeftY = sr.top;
+
+			vp.Width /= 2;
+			vp.Height /= 2;
+			sr.bottom = sr.top + vp.Height;
+		}
+	}
+
 
 }
