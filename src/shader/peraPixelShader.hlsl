@@ -17,6 +17,7 @@ float4 Get5x5GaussianBlur(Texture2D<float4> tex, SamplerState smp, float2 uv, fl
 	d1 = min(uv.y + d1, rect.w - dy) - uv.y;
 	d2 = min(uv.y + d2, rect.w - dy) - uv.y;
 
+
 	return float4((
 		tex.Sample(smp, uv + float2(l2, u2)).rgb
 		+ tex.Sample(smp, uv + float2(l1, u2)).rgb * 4
@@ -48,6 +49,7 @@ float4 Get5x5GaussianBlur(Texture2D<float4> tex, SamplerState smp, float2 uv, fl
 		+ tex.Sample(smp, uv + float2(r1, d2)).rgb * 4
 		+ tex.Sample(smp, uv + float2(r2, d2)).rgb
 		) / 256.0f, ret.a);
+
 }
 
 
@@ -77,12 +79,8 @@ float4 main(Output input) : SV_TARGET
 	float4 bloomAccum = float4(0, 0, 0, 0);
 	float2 uvSize = float2(1, 0.5);
 	float2 uvOfst = float2(0, 0);
-
-	
-	for (int i = 0; i < 2; i++)
-	{
-		bloomAccum += Get5x5GaussianBlur(
-			texShrinkHighLum, smp, inputuv * uvSize + uvOfst, dx, dy, float4(uvOfst, uvOfst + uvSize));
+	for (int i = 0; i < 3; ++i) {
+		bloomAccum += Get5x5GaussianBlur(texShrinkHighLum, smp, inputuv * uvSize + uvOfst, dx, dy, float4(uvOfst, uvOfst + uvSize));
 		uvOfst.y += uvSize.y;
 		uvSize *= 0.5f;
 	}
@@ -90,29 +88,6 @@ float4 main(Output input) : SV_TARGET
 
 	return tex.Sample(smp, inputuv) + Get5x5GaussianBlur(texHighLum, smp, inputuv, dx, dy, float4(0, 0, 1, 1)) +saturate(bloomAccum);
 
-	//float4 col = tex.Sample(smp, input.uv);
-	//float Y = dot(col.rgb, float3(0.299, 0.587, 0.114));
-	//return float4(Y, Y, Y, 1);
-
-/*
-	float w, h, level;
-	tex.GetDimensions(0, w, h, level);
-	float dx = 1.0f / w;
-	float dy = 1.0f / h;
-	float4 ret = float4(0, 0, 0, 0);
-	float4 col = tex.Sample(smp, input.uv);
-
-	ret += tex.Sample(smp, input.uv + float2(0, -2 * dy)) * -1;//ã
-	ret += tex.Sample(smp, input.uv + float2(-2 * dx, 0)) * -1;//¶
-	ret += tex.Sample(smp, input.uv) * 4;//Ž©•ª
-	ret += tex.Sample(smp, input.uv + float2(2 * dx, 0)) * -1;//‰E
-	ret += tex.Sample(smp, input.uv + float2(0, 2 * dy)) * -1;//‰º
-	//‚±‚±‚Å”½“]
-	float Y = dot(ret.rgb, float3(0.299, 0.587, 0.114));
-	Y = pow(1.0f - Y, 30.0f);
-	Y = step(0.2, Y);
-	return float4(Y, Y, Y, col.a);
-	*/
 }
 
 
@@ -123,5 +98,5 @@ float4 BlurPS(Output input) : SV_Target
 	float dx = 1.0 / w;
 	float dy = 1.0 / h;
 
-	return  Get5x5GaussianBlur(tex, smp, input.uv, dx, dy, float4(0, 0, 1, 1));
+	return Get5x5GaussianBlur(tex, smp, input.uv, dx, dy, float4(0, 0, 1, 1));
 }

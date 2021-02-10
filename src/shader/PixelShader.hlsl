@@ -73,7 +73,7 @@ PixcelOutput main(BasicType input)
 
 	//output.highLum = (result > 1.f);
 	float y = dot(float3(0.299f, 0.587f, 0.114f), output.col);
-	output.highLum = y > 0.99f ? output.col : 0.0f;
+	output.highLum = y > 0.995f ? output.col : 0.0f;
 	output.highLum.a = 1.0;
 
 	return output;

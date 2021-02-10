@@ -231,13 +231,15 @@ namespace ichi
 
 	void perapolygon::clear(command_list* cl)
 	{
-		float clearColor[] = { 0.5f,0.5f,0.5f,1.0f };
+		float clearColor[] = { 0.5f,0.5f,0.5f,1.f };
+		//ガウス補正で使うためクリアカラーは黒
+		float clearColor2[] = { 0.f,0.f,0.f,1.f };
 		//レンダーターゲットじゃあなくてシェーダリソースのディスクリプタからハンドルを取得しても行けそうだけど。。。
 		//どうなんかな
 		cl->get()->ClearRenderTargetView(m_rtv_descriptor_heap->get_cpu_handle(0), clearColor, 0, nullptr);
 		cl->get()->ClearRenderTargetView(m_rtv_descriptor_heap->get_cpu_handle(1), clearColor, 0, nullptr);
-		cl->get()->ClearRenderTargetView(m_rtv_descriptor_heap->get_cpu_handle(2), clearColor, 0, nullptr);
-		cl->get()->ClearRenderTargetView(m_rtv_descriptor_heap->get_cpu_handle(3), clearColor, 0, nullptr);
+		cl->get()->ClearRenderTargetView(m_rtv_descriptor_heap->get_cpu_handle(2), clearColor2, 0, nullptr);
+		cl->get()->ClearRenderTargetView(m_rtv_descriptor_heap->get_cpu_handle(3), clearColor2, 0, nullptr);
 	}
 
 	void perapolygon::draw(command_list* cl)

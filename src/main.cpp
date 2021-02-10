@@ -72,7 +72,7 @@ int main()
 	//
 	//viewproj
 	//
-	DirectX::XMFLOAT3 eye{ 0,6,-6 };
+	DirectX::XMFLOAT3 eye{ 0,8,-6 };
 	DirectX::XMFLOAT3 target{ 0,5,0 };
 	DirectX::XMFLOAT3 up{ 0,1,0 };
 	auto view = DirectX::XMMatrixLookAtLH(
@@ -109,7 +109,7 @@ int main()
 	auto lightPos = XMLoadFloat3(&target) + XMVector3Normalize(XMLoadFloat3(&parallelLightVec))
 		* XMVector3Length(XMVectorSubtract(XMLoadFloat3(&target), XMLoadFloat3(&eye))).m128_f32[0];
 
-	auto lightCamera = XMMatrixLookAtLH(lightPos, XMLoadFloat3(&target), XMLoadFloat3(&up))* XMMatrixOrthographicLH(50, 50, 1.f, 100.f);
+	auto lightCamera = XMMatrixLookAtLH(lightPos, XMLoadFloat3(&target), XMLoadFloat3(&up))* XMMatrixOrthographicLH(50, 50, -10.f, 100.f);
 
 
 	//

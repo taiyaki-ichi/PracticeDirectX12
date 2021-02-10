@@ -302,7 +302,8 @@ namespace ichi
 
 		//ここで渡す値とClearの値が異なると警告出る
 		//遅くなるよ、みたいな
-		D3D12_CLEAR_VALUE clearValue{ DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.5f,0.5f,0.5f,1.f } };
+		//ガウス補正を書けるのでクリアカラーは真っ黒に
+		D3D12_CLEAR_VALUE clearValue{ DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.f,0.f,0.f,1.f } };
 
 		//bloom用
 		if (FAILED(device->get()->CreateCommittedResource(

@@ -117,7 +117,7 @@ namespace ichi
 		auto bbIdx = m_swap_chain->GetCurrentBackBufferIndex();
 		auto rtvH = m_descriptor_heap->get_cpu_handle(bbIdx);
 		//バックバッファのクリア
-		float clearColor[] = { 1.0f,1.0f,1.0f,1.0f };
+		float clearColor[] = { 0.5f,0.5f,0.5f,1.0f };
 		cl->get()->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
 		
 	}
