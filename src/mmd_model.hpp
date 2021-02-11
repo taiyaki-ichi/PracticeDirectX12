@@ -4,6 +4,7 @@
 #include"DirectX12/color_texture.hpp"
 #include"DirectX12/descriptor_heap.hpp"
 #include"scene_data.hpp"
+#include"DirectX12/resource.hpp"
 #include<memory>
 #include<vector>
 #include<string>
@@ -13,10 +14,10 @@ namespace ichi
 	class device;
 	class vertex_buffer;
 	class index_buffer;
-	class constant_buffer_resource;
 	class command_list;
 	class white_texture_resource;
 	class black_texture_resource;
+	class resource;
 
 	class mmd_model
 	{
@@ -36,12 +37,12 @@ namespace ichi
 		//マテリアルによって添え字で指定される
 		std::vector<std::unique_ptr<texture_shader_resource>> m_texture{};
 
-		//シェーダに送る用
-		std::unique_ptr<constant_buffer_resource> m_scene_data_resource{};
+		//シーンのデータの定数バッファ
+		std::unique_ptr<resource> m_scene_constant_resource{};
 
 		//今のところfloat4,float3,float,float3のmaterial
 		//マテリアルの描写毎に定数バッファをリセットしビューを作製
-		std::vector<std::unique_ptr<constant_buffer_resource>> m_material_resource{};
+		std::vector<std::unique_ptr<resource>> m_material_constant_resource{};
 
 		//マテリアルの情報保持用
 		struct material_info {

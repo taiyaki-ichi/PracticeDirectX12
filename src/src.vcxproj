@@ -21,10 +21,11 @@
   <ItemGroup>
     <ClCompile Include="DirectX12\color_texture.cpp" />
     <ClCompile Include="DirectX12\command_list.cpp" />
-    <ClCompile Include="DirectX12\constant_buffer_resource.cpp" />
     <ClCompile Include="DirectX12\device.cpp" />
     <ClCompile Include="DirectX12\double_buffer.cpp" />
     <ClCompile Include="DirectX12\index_buffer.cpp" />
+    <ClCompile Include="DirectX12\resource.cpp" />
+    <ClCompile Include="DirectX12\resource_helper_functions.cpp" />
     <ClCompile Include="DirectX12\vertex_buffer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mmd_model.cpp" />
@@ -35,11 +36,12 @@
   <ItemGroup>
     <ClInclude Include="DirectX12\color_texture.hpp" />
     <ClInclude Include="DirectX12\command_list.hpp" />
-    <ClInclude Include="DirectX12\constant_buffer_resource.hpp" />
     <ClInclude Include="DirectX12\descriptor_heap.hpp" />
     <ClInclude Include="DirectX12\device.hpp" />
     <ClInclude Include="DirectX12\double_buffer.hpp" />
     <ClInclude Include="DirectX12\index_buffer.hpp" />
+    <ClInclude Include="DirectX12\resource.hpp" />
+    <ClInclude Include="DirectX12\resource_helper_functions.hpp" />
     <ClInclude Include="DirectX12\resource_type_tag.hpp" />
     <ClInclude Include="DirectX12\shader.hpp" />
     <ClInclude Include="DirectX12\texture_shader_resource.hpp" />

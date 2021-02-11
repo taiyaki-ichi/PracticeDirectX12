@@ -205,7 +205,7 @@ namespace ichi
 
 		D3D12_RESOURCE_DESC resdesc{};
 		resdesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		resdesc.Alignment = 65536;
+		//resdesc.Alignment = 65536;
 		resdesc.DepthOrArraySize = 1;
 		resdesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 		resdesc.MipLevels = 1;
@@ -288,7 +288,7 @@ namespace ichi
 
 		D3D12_RESOURCE_DESC resdesc{};
 		resdesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		resdesc.Alignment = 65536;
+		//resdesc.Alignment = 65536;
 		resdesc.DepthOrArraySize = 1;
 		resdesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 		resdesc.MipLevels = 1;

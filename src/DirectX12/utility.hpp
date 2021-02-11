@@ -24,7 +24,7 @@ namespace ichi
 	template<typename T>
 	inline  bool map_func(ID3D12Resource* buffer, T&& t)
 	{
-		using value_type = std::remove_reference_t<decltype(t[0])>;
+		using value_type = std::remove_reference_t<decltype(*std::begin(t))>;
 
 		value_type* target = nullptr;
 		auto result = buffer->Map(0, nullptr, (void**)&target);

@@ -55,7 +55,7 @@ float4 Get5x5GaussianBlur(Texture2D<float4> tex, SamplerState smp, float2 uv, fl
 
 float4 main(Output input) : SV_TARGET
 {
-	/*
+	
 	if (input.uv.x < 0.3 && input.uv.y < 0.3)
 	{
 		return texNormal.Sample(smp, input.uv / 0.3);
@@ -68,7 +68,6 @@ float4 main(Output input) : SV_TARGET
 	{
 		return texShrinkHighLum.Sample(smp, (input.uv - float2(0, 0.6)) / 0.3);
 	}
-	*/
 
 	
 	float2 inputuv = input.uv -float2(0.1, 0);
@@ -88,9 +87,11 @@ float4 main(Output input) : SV_TARGET
 	}
 	
 
-	//return tex.Sample(smp, inputuv) + Get5x5GaussianBlur(texHighLum, smp, inputuv, dx, dy, float4(0, 0, 1, 1)) +saturate(bloomAccum);
+	return tex.Sample(smp, inputuv) + Get5x5GaussianBlur(texHighLum, smp, inputuv, dx, dy, float4(0, 0, 1, 1)) +saturate(bloomAccum);
 	
 	
+	//‚ ‚Á‚Ä‚ñ‚Ì‚©•ª‚©‚ç‚Ê
+	/*
 	//‰æ–Ê^‚ñ’†‚©‚ç‚Ì[“x‚Ì·‚ð‘ª‚é
 	float depthDiff = abs(depthTex.Sample(smp, float2(0.5,0.5)) - depthTex.Sample(smp, input.uv));
 	depthDiff = pow(depthDiff,0.5f);
@@ -116,6 +117,7 @@ float4 main(Output input) : SV_TARGET
 		}
 	}
 	return lerp(retColor[0],retColor[1],t);
+	*/
 	
 }
 

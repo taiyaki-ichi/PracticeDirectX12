@@ -2,13 +2,14 @@
 #include"DirectX12/device.hpp"
 #include"DirectX12/vertex_buffer.hpp"
 #include"DirectX12/index_buffer.hpp"
-#include"DirectX12/constant_buffer_resource.hpp"
 #include"DirectX12/texture_shader_resource.hpp"
 #include"DirectX12/descriptor_heap.hpp"
 #include"DirectX12/color_texture.hpp"
 #include"DirectX12/shader.hpp"
 #include"mmd_model_helper_functions.hpp"
 #include"window_size.hpp"
+#include"DirectX12/resource.hpp"
+#include"DirectX12/resource_helper_functions.hpp"
 #include<algorithm>
 #include<iterator>
 #include<utility>
@@ -160,15 +161,14 @@ namespace ichi
 		//マテリアル
 		auto material = generate_map_material(pmxModel.m_material);
 		for (auto& m : material) {
-			auto ptr = device->create<constant_buffer_resource>(sizeof(m));
-			if (!ptr) {
+			auto ptr = create_constant_resource(device, sizeof(m));
+			if (ptr->is_empty()) {
 				std::cout << "mmd material is failed\n";
 				return false;
 			}
-
 			map_material tmp[] = { m };
-			ptr->map(tmp);
-			m_material_resource.emplace_back(std::unique_ptr<constant_buffer_resource>(ptr));
+			map_to_resource(ptr, tmp);
+			m_material_constant_resource.emplace_back(std::unique_ptr<resource>(ptr));
 		}
 		
 		//マテリアルインフォ
@@ -200,11 +200,11 @@ namespace ichi
 		}
 
 		//シーンデータ
-		m_scene_data_resource = std::unique_ptr<ichi::constant_buffer_resource>{
-			device->create<constant_buffer_resource>(sizeof(scene_data))
+		m_scene_constant_resource = std::unique_ptr<resource>{
+			create_constant_resource(device,sizeof(scene_data))
 		};
-		if (!m_scene_data_resource) {
-			std::cout << "mmd scene data is failed\n";
+		if (m_scene_constant_resource->is_empty()) {
+			std::cout << "scene data constant init is failed\n";
 			return false;
 		}
 
@@ -243,13 +243,12 @@ namespace ichi
 			return false;
 		}
 
-
-		m_descriptor_heap->create_view(device, m_scene_data_resource.get());
+		m_descriptor_heap->create_view<create_view_type::CBV>(device, m_scene_constant_resource->get());
 
 		for (int i = 0; i < m_material_info.size(); i++)
 		{
 			//先頭のハンドルはメモしておく
-			auto handle = m_descriptor_heap->create_view(device, m_material_resource[i].get());
+			auto handle = m_descriptor_heap->create_view<create_view_type::CBV>(device, m_material_constant_resource[i]->get());
 			if (handle)
 				m_matarial_root_gpu_handle.emplace_back(handle.value().first);
 			else {
@@ -374,11 +373,11 @@ namespace ichi
 	void mmd_model::map_scene_data(const scene_data& sd)
 	{
 		scene_data* ptr = nullptr;
-		m_scene_data_resource->get()->Map(0, nullptr, (void**)&ptr);
+		m_scene_constant_resource->get()->Map(0, nullptr, (void**)&ptr);
 
 		*ptr = sd;
 
-		m_scene_data_resource->get()->Unmap(0, nullptr);
+		m_scene_constant_resource->get()->Unmap(0, nullptr);
 	}
 
 	void mmd_model::draw_light_depth(command_list* cl)

@@ -6,7 +6,6 @@
 #include"DirectX12/shader.hpp"
 #include"DirectX12/vertex_buffer.hpp"
 #include"DirectX12/index_buffer.hpp"
-#include"DirectX12/constant_buffer_resource.hpp"
 #include"DirectX12/descriptor_heap.hpp"
 #include"DirectX12/texture_shader_resource.hpp"
 #include"include/load_pmx.hpp"
@@ -72,7 +71,7 @@ int main()
 	//
 	//viewproj
 	//
-	DirectX::XMFLOAT3 eye{ 0,5,-5 };
+	DirectX::XMFLOAT3 eye{ 0,5,-6 };
 	DirectX::XMFLOAT3 target{ 0,5,0 };
 	DirectX::XMFLOAT3 up{ 0,1,0 };
 	auto view = DirectX::XMMatrixLookAtLH(

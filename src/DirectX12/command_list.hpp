@@ -45,6 +45,7 @@ namespace ichi
 		//テクスチャをsrcからdstにコピー
 		void excute_copy_texture(texture_shader_resource_base<true>* src, texture_shader_resource_base<false>* dst);
 
+
 		//
 		//その他のメンバ関数は適宜追加していく
 		//
