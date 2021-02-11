@@ -29,6 +29,16 @@ namespace ichi
 		}
 	}
 
+	bool resource::initialize(ID3D12Resource* resource)
+	{
+		if (resource != nullptr && is_empty()) {
+			m_resource = resource;
+			return true;
+		}
+		else
+			return false;
+	}
+
 	void resource::barrior(command_list* cl, D3D12_RESOURCE_STATES state)
 	{
 		if (m_state == state)

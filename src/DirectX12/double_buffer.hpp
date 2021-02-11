@@ -1,4 +1,5 @@
 #pragma once
+#include"resource.hpp"
 #include<memory>
 #include<array>
 #include<d3d12.h>
@@ -26,7 +27,7 @@ namespace ichi
 		IDXGISwapChain4* m_swap_chain = nullptr;
 		std::unique_ptr<descriptor_heap<descriptor_heap_type::RTV>> m_descriptor_heap{};
 
-		std::array<ID3D12Resource*, 2> m_buffer = { nullptr,nullptr };
+		std::array<resource, 2> m_buffer{};
 	public:
 		double_buffer() = default;
 		~double_buffer();

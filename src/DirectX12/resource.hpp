@@ -27,6 +27,9 @@ namespace ichi
 		bool initialize(device*, const D3D12_HEAP_PROPERTIES*, D3D12_HEAP_FLAGS,
 			const D3D12_RESOURCE_DESC*, D3D12_RESOURCE_STATES, const D3D12_CLEAR_VALUE*);
 
+		//リソースからの初期化
+		bool initialize(ID3D12Resource*);
+
 		//リソースバリア
 		void barrior(command_list*, D3D12_RESOURCE_STATES);
 

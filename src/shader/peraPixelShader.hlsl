@@ -68,7 +68,7 @@ float4 main(Output input) : SV_TARGET
 	{
 		return texShrinkHighLum.Sample(smp, (input.uv - float2(0, 0.6)) / 0.3);
 	}
-
+	
 	
 	float2 inputuv = input.uv -float2(0.1, 0);
 
@@ -89,9 +89,9 @@ float4 main(Output input) : SV_TARGET
 
 	return tex.Sample(smp, inputuv) + Get5x5GaussianBlur(texHighLum, smp, inputuv, dx, dy, float4(0, 0, 1, 1)) +saturate(bloomAccum);
 	
-	
-	//‚ ‚Á‚Ä‚ñ‚Ì‚©•ª‚©‚ç‚Ê
 	/*
+	//‚ ‚Á‚Ä‚ñ‚Ì‚©•ª‚©‚ç‚Ê
+	
 	//‰æ–Ê^‚ñ’†‚©‚ç‚Ì[“x‚Ì·‚ğ‘ª‚é
 	float depthDiff = abs(depthTex.Sample(smp, float2(0.5,0.5)) - depthTex.Sample(smp, input.uv));
 	depthDiff = pow(depthDiff,0.5f);

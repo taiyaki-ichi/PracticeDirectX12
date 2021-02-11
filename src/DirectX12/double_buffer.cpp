@@ -14,9 +14,6 @@ namespace ichi
 			m_factory->Release();
 		if (m_swap_chain)
 			m_swap_chain->Release();
-		for (size_t i = 0; i < m_buffer.size(); i++)
-			if (m_buffer[i])
-				m_buffer[i]->Release();
 	}
 
 	bool double_buffer::initialize(device* device,HWND hwnd,command_list* cl)
@@ -64,12 +61,16 @@ namespace ichi
 
 		for (size_t i = 0; i < m_buffer.size(); i++) {
 
+			ID3D12Resource* resourcePtr;
+
 			//失敗したとき
-			if (FAILED(m_swap_chain->GetBuffer(static_cast<UINT>(i), IID_PPV_ARGS(&m_buffer[i])))) {
+			if (FAILED(m_swap_chain->GetBuffer(static_cast<UINT>(i), IID_PPV_ARGS(&resourcePtr)))) {
 				std::cout << "GetBuffer is failed\n";
 				return false;
 			}
-			m_descriptor_heap->create_view<create_view_type::RTV>(device, m_buffer[i]);
+			
+			m_buffer[i].initialize(resourcePtr);
+			m_descriptor_heap->create_view<create_view_type::RTV>(device, m_buffer[i].get());
 		}
 
 		return true;
@@ -78,17 +79,7 @@ namespace ichi
 	void double_buffer::begin_drawing_to_backbuffer(command_list* cl, const D3D12_CPU_DESCRIPTOR_HANDLE& handle)
 	{
 		auto bbIdx = m_swap_chain->GetCurrentBackBufferIndex();
-
-		//リソースバリアの作製
-		D3D12_RESOURCE_BARRIER BarrierDesc{};
-		BarrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-		BarrierDesc.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		BarrierDesc.Transition.pResource = m_buffer[bbIdx];
-		BarrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-		BarrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-		BarrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-		cl->get()->ResourceBarrier(1, &BarrierDesc);
-
+		m_buffer[bbIdx].barrior(cl, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 		//レンダーターゲットの作製
 		auto rtvH = m_descriptor_heap->get_cpu_handle(bbIdx);
@@ -98,18 +89,7 @@ namespace ichi
 	void double_buffer::end_drawing_to_backbuffer(command_list* cl)
 	{
 		auto bbIdx = m_swap_chain->GetCurrentBackBufferIndex();
-
-		//リソースバリアの作製
-		D3D12_RESOURCE_BARRIER BarrierDesc = {};
-		BarrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-		BarrierDesc.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		BarrierDesc.Transition.pResource = m_buffer[bbIdx];
-		BarrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-		BarrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-		BarrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-		cl->get()->ResourceBarrier(1, &BarrierDesc);
-
-	
+		m_buffer[bbIdx].barrior(cl, D3D12_RESOURCE_STATE_PRESENT);
 	}
 
 	void double_buffer::clear_back_buffer(command_list* cl)
