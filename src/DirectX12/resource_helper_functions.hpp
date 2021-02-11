@@ -25,11 +25,7 @@ namespace ichi
 	//テクスチャのシェーダリソースの取得
 	resource* create_texture_resource(device*, command_list*, const DirectX::TexMetadata*, const DirectX::ScratchImage*);
 
-	//インデックスバッファとそのビューの作製
-	std::pair<resource*, D3D12_INDEX_BUFFER_VIEW> create_index_resource_and_view(device*, unsigned int size);
 
-	//頂点バッファとそのビューの作製
-	//std::pair<resource*, D3D12_VERTEX_BUFFER_VIEW> create_vertex_resource_and_view(device*, unsigned int size, unsigned int stride);
 
 	//レンダーターゲット用のリソースの作製
 	//resource* create_rtv_resource(device*, D3D12_CLEAR_VALUE);

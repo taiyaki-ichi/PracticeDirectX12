@@ -277,6 +277,7 @@ namespace ichi
 			return std::nullopt;
 	
 		map_to_resource(peraVertexBuff.get(), pv);
+	
 
 		return peraVertexBuff;
 	}

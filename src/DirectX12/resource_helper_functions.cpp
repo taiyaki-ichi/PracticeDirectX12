@@ -159,48 +159,6 @@ namespace ichi
 	}
 	
 
-	std::pair<resource*, D3D12_INDEX_BUFFER_VIEW> create_index_resource_and_view(device* device, unsigned int size)
-	{
-		auto result = new resource{};
-		D3D12_INDEX_BUFFER_VIEW view{};
-
-		D3D12_HEAP_PROPERTIES heapprop{};
-		heapprop.Type = D3D12_HEAP_TYPE_UPLOAD;
-		heapprop.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-		heapprop.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-
-		D3D12_RESOURCE_DESC resdesc{};
-		resdesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-		resdesc.Width = size;
-		resdesc.Height = 1;
-		resdesc.DepthOrArraySize = 1;
-		resdesc.MipLevels = 1;
-		resdesc.Format = DXGI_FORMAT_UNKNOWN;
-		resdesc.SampleDesc.Count = 1;
-		resdesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-		resdesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-		if (!result->initialize(
-			device,
-			&heapprop,
-			D3D12_HEAP_FLAG_NONE,
-			&resdesc,
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr)) {
-			std::cout << "vert_index_buufer init is failed\n";
-		}
-
-		view.BufferLocation = result->get()->GetGPUVirtualAddress();
-		view.Format = DXGI_FORMAT_R16_UINT;
-		view.SizeInBytes = size;
-
-		return std::make_pair(result, std::move(view));
-	}
-
-
-
-
-
 
 
 	bool map_to_resource(resource* resource, const DirectX::Image& image)

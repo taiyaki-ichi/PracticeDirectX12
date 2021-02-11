@@ -208,7 +208,7 @@ namespace ichi
 		m_white_texture_resource = std::unique_ptr<white_texture_resource>{
 			device->create<white_texture_resource>()
 		};
-		if (!m_white_texture_resource) {
+		if (m_white_texture_resource->is_empty()) {
 			std::cout << "mmd whire tex is falied\n";
 			return false;
 		}
@@ -216,7 +216,7 @@ namespace ichi
 		m_black_texture_resource = std::unique_ptr<black_texture_resource>{
 			device->create<black_texture_resource>()
 		};
-		if (!m_black_texture_resource) {
+		if (m_black_texture_resource->is_empty()) {
 			std::cout << "mmd black tex is failed\n";
 			return false;
 		}
@@ -224,7 +224,7 @@ namespace ichi
 		m_gray_gradation_texture_resource = std::unique_ptr<gray_gradation_texture_resource>{
 			device->create<gray_gradation_texture_resource>()
 		};
-		if (!m_gray_gradation_texture_resource) {
+		if (m_gray_gradation_texture_resource->is_empty()) {
 			std::cout << "mmd gray grade is failed\n";
 			return false;
 		}

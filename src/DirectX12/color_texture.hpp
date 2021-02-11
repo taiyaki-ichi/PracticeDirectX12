@@ -1,5 +1,8 @@
 #pragma once
 #include"resource_type_tag.hpp"
+#include"resource.hpp"
+#include"device.hpp"
+#include<vector>
 #include<d3d12.h>
 #include<dxgi1_6.h>
 
@@ -8,56 +11,61 @@
 
 namespace ichi
 {
-	class device;
-
-	ID3D12Resource* create_white_texture(device*);
-	ID3D12Resource* create_black_texture(device*);
-	ID3D12Resource* create_gray_gradation_texture(device*);
-
-	//4×4の白
-	class white_texture_resource
+	
+	//カラーテクスチャのベースとなるクラス
+	class color_texture_resource_base : public resource
 	{
-		ID3D12Resource* m_resource = nullptr;
+	public:
+		virtual ~color_texture_resource_base() = default;
 
+		bool initialize(device*, unsigned int width, unsigned int height);
+	};
+
+	//4*4の単色のリソース
+	template<unsigned char Color>
+	class simple_color_texture_resource : public color_texture_resource_base
+	{
 	public:
 		using create_view_type = typename create_view_type::SRV;
 
-		white_texture_resource() = default;
-		~white_texture_resource();
-
-		bool initialize(device*);
-
-		ID3D12Resource* get();
+		bool initialize(device* device);
 	};
 
-	class black_texture_resource
-	{
-		ID3D12Resource* m_resource = nullptr;
+	using white_texture_resource = simple_color_texture_resource<0xff>;
+	using black_texture_resource = simple_color_texture_resource<0x00>;
 
+
+	class gray_gradation_texture_resource : public color_texture_resource_base
+	{
 	public:
 		using create_view_type = typename create_view_type::SRV;
 
-		black_texture_resource() = default;
-		~black_texture_resource();
-
 		bool initialize(device*);
-
-		ID3D12Resource* get();
 	};
 
-	class gray_gradation_texture_resource
+
+
+
+	//
+	//以下、simple_color_texture_resourceの定義
+	//
+
+
+	template<unsigned char Color>
+	inline bool simple_color_texture_resource<Color>::initialize(device* device)
 	{
-		ID3D12Resource* m_resource = nullptr;
+		if (!color_texture_resource_base::initialize(device, 4, 4))
+			return false;
 
-	public:
-		using create_view_type = typename create_view_type::SRV;
+		std::vector<unsigned char> data(4 * 4 * 4);
+		std::fill(data.begin(), data.end(), static_cast<unsigned char>(Color));
 
-		gray_gradation_texture_resource() = default;
-		~gray_gradation_texture_resource();
+		if (FAILED(get()->WriteToSubresource(0, nullptr, data.data(), 4 * 4, data.size()))) {
+			std::cout << "color write is failed\n";
+			return false;
+		}
 
-		bool initialize(device*);
-
-		ID3D12Resource* get();
-	};
-
+		return true;
+	}
+	
 }

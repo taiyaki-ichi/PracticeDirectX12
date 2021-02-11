@@ -4,6 +4,7 @@
 #include"DirectX12/descriptor_heap.hpp"
 #include"scene_data.hpp"
 #include"DirectX12/resource.hpp"
+#include"DirectX12/color_texture.hpp"
 #include<memory>
 #include<vector>
 #include<string>
@@ -14,8 +15,6 @@ namespace ichi
 	class vertex_buffer;
 	class index_buffer;
 	class command_list;
-	class white_texture_resource;
-	class black_texture_resource;
 	class resource;
 
 	class mmd_model
