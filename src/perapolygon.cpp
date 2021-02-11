@@ -24,9 +24,11 @@ namespace ichi
 			m_bloom_resource->Release();
 		if (m_shrink_bloom_resource)
 			m_shrink_bloom_resource->Release();
+		if (m_DOF_resource)
+			m_DOF_resource->Release();
 	}
 
-	bool perapolygon::initialize(device* device)
+	bool perapolygon::initialize(device* device, ID3D12Resource* depthResource)
 	{
 		//ルートシグネチャ
 		{
@@ -81,7 +83,7 @@ namespace ichi
 		//レンダーターゲット用の
 		{
 			m_rtv_descriptor_heap = std::unique_ptr<descriptor_heap<descriptor_heap_type::RTV>>{
-				device->create<descriptor_heap<descriptor_heap_type::RTV>>(4)
+				device->create<descriptor_heap<descriptor_heap_type::RTV>>(5)
 			};
 			if (!m_rtv_descriptor_heap) {
 				std::cout << "pera rtv descriptor heap is failed\n";
@@ -92,7 +94,7 @@ namespace ichi
 		//シェーダリソースの
 		{
 			m_cbv_srv_usv_descriptor_heap = std::unique_ptr<descriptor_heap<descriptor_heap_type::CBV_SRV_UAV>>{
-				device->create<descriptor_heap<descriptor_heap_type::CBV_SRV_UAV>>(4)
+				device->create<descriptor_heap<descriptor_heap_type::CBV_SRV_UAV>>(6)
 			};
 			if (!m_cbv_srv_usv_descriptor_heap) {
 				std::cout << "pera srv descriptoe heap is failed\n";
@@ -107,6 +109,17 @@ namespace ichi
 				m_vertex_buffer = std::move(result.value());
 			else {
 				std::cout << "pera vert buffer is failed\n";
+				return false;
+			}
+		}
+
+		//被写界深度用
+		{
+			auto result = create_perapolygon_DOF_resource(device);
+			if (result)
+				m_DOF_resource = result.value();
+			else {
+				std::cout << "pera dof resource is failed\n";
 				return false;
 			}
 		}
@@ -146,6 +159,13 @@ namespace ichi
 				return false;
 			}
 		}
+		{
+			auto result = m_rtv_descriptor_heap->create_view<create_view_type::RTV>(device, m_DOF_resource);
+			if (!result) {
+				std::cout << "pera rtv dof view si faiededdldvvsd\n";
+				return false;
+			}
+		}
 
 		
 		//シェーダリソース用のディスクリプタヒープにViewを作製
@@ -177,6 +197,20 @@ namespace ichi
 				return false;
 			}
 		}
+		{
+			auto result = m_cbv_srv_usv_descriptor_heap->create_view<create_view_type::SRV>(device, m_DOF_resource);
+			if (!result) {
+				std::cout << "pera srv dof create view is failed\n";
+				return false;
+			}
+		}
+		{
+			auto result = m_cbv_srv_usv_descriptor_heap->create_view<create_view_type::DSV>(device, depthResource);
+			if (!result) {
+				std::cout << "pera srv depth resource create view is failed\n";
+				return false;
+			}
+		}
 
 		return true;
 	}
@@ -205,6 +239,9 @@ namespace ichi
 
 		BarrierDesc.Transition.pResource = m_shrink_bloom_resource;
 		cl->get()->ResourceBarrier(1, &BarrierDesc);
+
+		BarrierDesc.Transition.pResource = m_DOF_resource;
+		cl->get()->ResourceBarrier(1, &BarrierDesc);
 	}
 
 	void perapolygon::end_drawing_resource_barrier(command_list* cl)
@@ -227,6 +264,9 @@ namespace ichi
 		BarrierDesc.Transition.pResource = m_shrink_bloom_resource;
 		cl->get()->ResourceBarrier(1, &BarrierDesc);
 
+		BarrierDesc.Transition.pResource = m_DOF_resource;
+		cl->get()->ResourceBarrier(1, &BarrierDesc);
+
 	}
 
 	void perapolygon::clear(command_list* cl)
@@ -240,6 +280,7 @@ namespace ichi
 		cl->get()->ClearRenderTargetView(m_rtv_descriptor_heap->get_cpu_handle(1), clearColor, 0, nullptr);
 		cl->get()->ClearRenderTargetView(m_rtv_descriptor_heap->get_cpu_handle(2), clearColor2, 0, nullptr);
 		cl->get()->ClearRenderTargetView(m_rtv_descriptor_heap->get_cpu_handle(3), clearColor2, 0, nullptr);
+		cl->get()->ClearRenderTargetView(m_rtv_descriptor_heap->get_cpu_handle(4), clearColor2, 0, nullptr);
 	}
 
 	void perapolygon::draw(command_list* cl)
@@ -264,11 +305,16 @@ namespace ichi
 		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		cl->get()->IASetVertexBuffers(0, 1, &m_vertex_buffer->get_view());
 
-		auto rtvHandle = m_rtv_descriptor_heap->get_cpu_handle(3);
-		cl->get()->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle[] = {
+			m_rtv_descriptor_heap->get_cpu_handle(3),
+			m_rtv_descriptor_heap->get_cpu_handle(4)
+		};
+		//auto rtvHandle = m_rtv_descriptor_heap->get_cpu_handle(3);
+		//cl->get()->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
+		cl->get()->OMSetRenderTargets(2, rtvHandle, false, nullptr);
 
 		cl->get()->SetDescriptorHeaps(1, &m_cbv_srv_usv_descriptor_heap->get());
-		cl->get()->SetGraphicsRootDescriptorTable(0, m_cbv_srv_usv_descriptor_heap->get_gpu_handle(2));
+		cl->get()->SetGraphicsRootDescriptorTable(0, m_cbv_srv_usv_descriptor_heap->get_gpu_handle());
 
 		auto desc = m_bloom_resource->GetDesc();
 		D3D12_VIEWPORT vp{};

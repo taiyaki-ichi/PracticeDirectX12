@@ -36,6 +36,8 @@ namespace ichi
 		ID3D12Resource* m_bloom_resource = nullptr;
 		//ブルームの際使用する縮小されたバッファ
 		ID3D12Resource* m_shrink_bloom_resource = nullptr;
+		//非写界深度用ぼかしフィルタ用
+		ID3D12Resource* m_DOF_resource = nullptr;
 
 
 		//ぺらポリゴンのリソースにデータを書き込む用
@@ -54,7 +56,8 @@ namespace ichi
 		perapolygon() = default;
 		~perapolygon();
 
-		bool initialize(device*);
+		//深度バッファのViewを作りたいので引数に深度バッファ
+		bool initialize(device*, ID3D12Resource* depthResource);
 
 		//レンダーターゲットの数とその先頭のハンドルの取得
 		//ぺらポリゴンをレンダーターゲットとする際に使用することを想定

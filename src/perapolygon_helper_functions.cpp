@@ -15,7 +15,7 @@ namespace ichi
 
 		//テクスチャ
 		D3D12_DESCRIPTOR_RANGE range{};
-		range.NumDescriptors = 4;
+		range.NumDescriptors = 6;
 		range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		range.BaseShaderRegister = 0;
 		range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -175,7 +175,11 @@ namespace ichi
 		graphicsPipelineDesc.PS.BytecodeLength = blurPixelShader->GetBufferSize();
 
 		graphicsPipelineDesc.DepthStencilState.DepthEnable = false;
-		//graphicsPipelineDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+		
+		graphicsPipelineDesc.NumRenderTargets = 2;
+		graphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		graphicsPipelineDesc.RTVFormats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;
+
 
 		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&result2))))
 		{
@@ -337,5 +341,47 @@ namespace ichi
 		}
 
 		return std::make_pair(bloomResource, shrinkResource);
+	}
+
+	std::optional<ID3D12Resource*> create_perapolygon_DOF_resource(device* device)
+	{
+		ID3D12Resource* DOFResource = nullptr;
+
+		D3D12_RESOURCE_DESC resdesc{};
+		resdesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		resdesc.Alignment = 65536;
+		resdesc.DepthOrArraySize = 1;
+		resdesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+		resdesc.MipLevels = 1;
+		resdesc.Height = window_height;
+		resdesc.Width = window_width / 2;//縮小バッファなのではーんぶん
+		resdesc.SampleDesc = { 1,0 };
+		resdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+		D3D12_HEAP_PROPERTIES heapprop{};
+		heapprop.Type = D3D12_HEAP_TYPE_DEFAULT;
+		heapprop.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+		heapprop.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+		heapprop.CreationNodeMask = 0;
+		heapprop.VisibleNodeMask = 0;
+
+		//ここで渡す値とClearの値が異なると警告出る
+		//遅くなるよ、みたいな
+		//とりあえず黒
+		D3D12_CLEAR_VALUE clearValue{ DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.f,0.f,0.f,1.f } };
+
+		if (FAILED(device->get()->CreateCommittedResource(
+			&heapprop,
+			D3D12_HEAP_FLAG_NONE,
+			&resdesc,
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,//rendertargetではない
+			&clearValue,
+			IID_PPV_ARGS(&DOFResource)
+		))) {
+			std::cout << "DOF Resource failed perapolygon render init \n";
+			return std::nullopt;
+		}
+
+		return DOFResource;
 	}
 }

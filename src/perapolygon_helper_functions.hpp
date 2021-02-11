@@ -31,5 +31,9 @@ namespace ichi
 	//色用とかのとほぼ同じなのでまとめるかな
 	std::optional<std::pair<ID3D12Resource*, ID3D12Resource*>> create_perapolygon_bloom_resource(device*);
 
+	//被写界深度用
+	//あとでまとめる
+	std::optional<ID3D12Resource*> create_perapolygon_DOF_resource(device*);
+
 
 }

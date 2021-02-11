@@ -427,4 +427,9 @@ namespace ichi
 		return m_depth_descriptor_heap->get_cpu_handle(0);
 	}
 
+	ID3D12Resource* mmd_model::get_depth_resource() noexcept
+	{
+		return m_depth_resource;
+	}
+
 }

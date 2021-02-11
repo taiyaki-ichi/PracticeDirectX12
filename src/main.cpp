@@ -72,7 +72,7 @@ int main()
 	//
 	//viewproj
 	//
-	DirectX::XMFLOAT3 eye{ 0,8,-6 };
+	DirectX::XMFLOAT3 eye{ 0,5,-5 };
 	DirectX::XMFLOAT3 target{ 0,5,0 };
 	DirectX::XMFLOAT3 up{ 0,1,0 };
 	auto view = DirectX::XMMatrixLookAtLH(
@@ -139,7 +139,7 @@ int main()
 	//‚Ø‚çƒ|ƒŠƒSƒ“
 	//
 	auto perapolygon = std::make_unique<ichi::perapolygon>();
-	if (!perapolygon->initialize(device.get())) {
+	if (!perapolygon->initialize(device.get(),mmdModel->get_depth_resource())) {
 		std::cout << "pera false";
 		return 0;
 	}

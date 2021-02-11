@@ -97,7 +97,11 @@ namespace ichi
 		//ライト深度バッファへの描写
 		void draw_light_depth(command_list* cl);
 
+
+		//これらは仮
+		//多分深度バッファは他を描写するとき使いまわしそうだから外に出したい
 		D3D12_CPU_DESCRIPTOR_HANDLE get_depth_resource_cpu_handle() const noexcept;
+		ID3D12Resource* get_depth_resource() noexcept;
 
 	};
 
