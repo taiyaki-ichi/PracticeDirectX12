@@ -10,6 +10,7 @@
 #include"DirectX12/resource.hpp"
 #include"DirectX12/resource_helper_functions.hpp"
 #include"DirectX12/command_list.hpp"
+#include"DirectX12/utility.hpp"
 #include<algorithm>
 #include<iterator>
 #include<utility>
@@ -109,7 +110,6 @@ namespace ichi
 	bool mmd_model::initialize(device* device,const MMDL::pmx_model<std::wstring>& pmxModel,command_list* cl)
 	{
 
-
 		{
 			auto result = create_mmd_rootsignature(device);
 			if (result)
@@ -142,7 +142,7 @@ namespace ichi
 			std::cout << "mmd　model v is failed\n";
 			return false;
 		}
-		m_vertex_buffer->map(std::move(vertex));
+		map_to_resource(m_vertex_buffer.get(), std::move(vertex));
 
 
 		//インデックス
@@ -155,7 +155,7 @@ namespace ichi
 			std::cout << "mmd model i is failed\n";
 			return false;
 		}
-		m_index_buffer->map(std::move(index));
+		map_to_resource(m_index_buffer.get(), std::move(index));
 
 
 		//マテリアル
@@ -181,7 +181,7 @@ namespace ichi
 		//テクスチャ
 		for (auto& path : pmxModel.m_texture_path)
 		{
-			auto imageResult = ichi::get_texture(path.c_str());
+			auto imageResult = get_texture(path.c_str());
 			if (!imageResult) {
 				std::cout << "image si failed\n";
 				return false;

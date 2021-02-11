@@ -21,7 +21,7 @@ namespace ichi
 
 	public:
 		resource() = default;
-		~resource();
+		virtual ~resource();
 
 		//‰Šú‰»
 		bool initialize(device*, const D3D12_HEAP_PROPERTIES*, D3D12_HEAP_FLAGS,

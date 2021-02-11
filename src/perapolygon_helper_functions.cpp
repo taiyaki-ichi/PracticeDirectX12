@@ -3,6 +3,7 @@
 #include"DirectX12/shader.hpp"
 #include"DirectX12/vertex_buffer.hpp"
 #include"window_size.hpp"
+#include"DirectX12/resource_helper_functions.hpp"
 
 namespace ichi
 {
@@ -275,7 +276,7 @@ namespace ichi
 		if (!peraVertexBuff->initialize(device, sizeof(pv), sizeof(pv[0]))) 
 			return std::nullopt;
 	
-		peraVertexBuff->map(pv);
+		map_to_resource(peraVertexBuff.get(), pv);
 
 		return peraVertexBuff;
 	}

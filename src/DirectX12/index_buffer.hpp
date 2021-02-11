@@ -1,5 +1,5 @@
 #pragma once
-#include"utility.hpp"
+#include"resource.hpp"
 #include<d3d12.h>
 #include<dxgi1_6.h>
 
@@ -8,24 +8,12 @@
 
 namespace ichi
 {
-	class device;
-
-	class index_buffer
+	class index_buffer : public resource
 	{
-		ID3D12Resource* m_resource = nullptr;
 		D3D12_INDEX_BUFFER_VIEW m_buffer_view{};
 
 	public:
-		index_buffer() = default;
-		~index_buffer();
-
-		bool initialize(device*,unsigned int size);
-
-		//データのマップ
-		template<typename T>
-		bool map(T&& t) {
-			return map_func(m_resource, std::forward<T>(t));
-		}
+		bool initialize(device*, unsigned int size);
 
 		const D3D12_INDEX_BUFFER_VIEW& get_view() const noexcept;
 	};

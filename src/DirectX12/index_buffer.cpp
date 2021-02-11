@@ -5,11 +5,6 @@
 
 namespace ichi
 {
-	index_buffer::~index_buffer()
-	{
-		if (m_resource)
-			m_resource->Release();
-	}
 	bool index_buffer::initialize(device* device, unsigned int size)
 	{
 
@@ -29,20 +24,20 @@ namespace ichi
 		resdesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 		resdesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
-		//Ž¸”s
-		if (FAILED(device->get()->CreateCommittedResource(
+	
+		if (!resource::initialize(
+			device,
 			&heapprop,
 			D3D12_HEAP_FLAG_NONE,
 			&resdesc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&m_resource)))) {
+			nullptr)) {
 
 			std::cout << "vert_index_buufer init is failed\n";
 			return false;
 		}
 
-		m_buffer_view.BufferLocation = m_resource->GetGPUVirtualAddress();
+		m_buffer_view.BufferLocation = get()->GetGPUVirtualAddress();
 		m_buffer_view.Format = DXGI_FORMAT_R16_UINT;
 		m_buffer_view.SizeInBytes = size;
 

@@ -5,14 +5,9 @@
 
 namespace ichi
 {
-	vertex_buffer::~vertex_buffer()
-	{
-		if (m_resource)
-			m_resource->Release();
-	}
+
 	bool vertex_buffer::initialize(device* device, unsigned int size, unsigned int stride)
 	{
-
 		D3D12_HEAP_PROPERTIES heapprop{};
 		heapprop.Type = D3D12_HEAP_TYPE_UPLOAD;
 		heapprop.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -29,20 +24,19 @@ namespace ichi
 		resdesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 		resdesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
-		//失敗
-		if (FAILED(device->get()->CreateCommittedResource(
+		if (!resource::initialize(
+			device,
 			&heapprop,
 			D3D12_HEAP_FLAG_NONE,
 			&resdesc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&m_resource)))) {
+			nullptr)) {
 
 			std::cout << "vert_index_buufer init is failed\n";
 			return false;
 		}
 
-		m_buffer_view.BufferLocation = m_resource->GetGPUVirtualAddress();//バッファの仮想アドレス
+		m_buffer_view.BufferLocation = get()->GetGPUVirtualAddress();//バッファの仮想アドレス
 		m_buffer_view.SizeInBytes = size;//全バイト数
 		m_buffer_view.StrideInBytes = stride;//1頂点あたりのバイト数
 
