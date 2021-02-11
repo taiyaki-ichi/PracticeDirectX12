@@ -1,6 +1,5 @@
 #include"command_list.hpp"
 #include"device.hpp"
-#include"texture_shader_resource.hpp"
 
 #include<iostream>
 
@@ -88,21 +87,6 @@ namespace ichi
 		m_list->Reset(m_allocator, nullptr);
 	}
 
-	void command_list::excute_copy_texture(texture_shader_resource_base<true>* src, texture_shader_resource_base<false>* dst)
-	{
-		
-		//clear();
-
-		dst->resource_barrier(this, D3D12_RESOURCE_STATE_COPY_DEST);
-		m_list->CopyTextureRegion(&dst->get_copy_location(), 0, 0, 0, &src->get_copy_location(), nullptr);
-		dst->resource_barrier(this, D3D12_RESOURCE_STATE_GENERIC_READ);
-
-		m_list->Close();
-		execute();
-		clear();
-		
-
-	}
 
 
 

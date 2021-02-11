@@ -23,7 +23,7 @@ namespace ichi
 	resource* create_constant_resource(device*, unsigned int size);
 
 	//テクスチャのシェーダリソースの取得
-	//resource* create_texture_resource(device*, command_list*, const DirectX::TexMetadata*, const DirectX::ScratchImage*);
+	resource* create_texture_resource(device*, command_list*, const DirectX::TexMetadata*, const DirectX::ScratchImage*);
 
 	//インデックスバッファとそのビューの作製
 	//std::pair<resource*, D3D12_INDEX_BUFFER_VIEW> create_index_resource_and_view(device*, unsigned int size);
@@ -61,6 +61,7 @@ namespace ichi
 
 		return true;
 	}
+
 
 
 

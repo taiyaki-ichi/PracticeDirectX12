@@ -4,6 +4,7 @@
 #include"DirectX12/vertex_buffer.hpp"
 #include"DirectX12/resource_type_tag.hpp"
 #include"DirectX12/descriptor_heap.hpp"
+#include"DirectX12/command_list.hpp"
 
 namespace ichi
 {

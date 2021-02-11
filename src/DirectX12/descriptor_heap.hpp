@@ -1,6 +1,5 @@
 #pragma once
 #include"device.hpp"
-#include"texture_shader_resource.hpp"
 #include"resource_type_tag.hpp"
 #include<optional>
 #include<type_traits>

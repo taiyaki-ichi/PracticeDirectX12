@@ -1,6 +1,5 @@
 #pragma once
 #include"include/pmx_data_struct.hpp"
-#include"DirectX12/texture_shader_resource.hpp"
 #include"DirectX12/color_texture.hpp"
 #include"DirectX12/descriptor_heap.hpp"
 #include"scene_data.hpp"
@@ -35,7 +34,7 @@ namespace ichi
 
 		//テクスチャ
 		//マテリアルによって添え字で指定される
-		std::vector<std::unique_ptr<texture_shader_resource>> m_texture{};
+		std::vector<std::unique_ptr<resource>> m_texture{};
 
 		//シーンのデータの定数バッファ
 		std::unique_ptr<resource> m_scene_constant_resource{};

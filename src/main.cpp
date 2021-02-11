@@ -7,7 +7,6 @@
 #include"DirectX12/vertex_buffer.hpp"
 #include"DirectX12/index_buffer.hpp"
 #include"DirectX12/descriptor_heap.hpp"
-#include"DirectX12/texture_shader_resource.hpp"
 #include"include/load_pmx.hpp"
 #include<DirectXMath.h>
 #include<memory>

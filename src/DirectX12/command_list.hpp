@@ -8,8 +8,6 @@
 namespace ichi
 {
 	class device;
-	template<bool>
-	class texture_shader_resource_base;
 
 	class command_list
 	{
@@ -42,16 +40,7 @@ namespace ichi
 		//pipelinestateクラスをなくす鴨
 		void clear();
 
-		//テクスチャをsrcからdstにコピー
-		void excute_copy_texture(texture_shader_resource_base<true>* src, texture_shader_resource_base<false>* dst);
 
-
-		//
-		//その他のメンバ関数は適宜追加していく
-		//
-
-		//ViewPortとシザー矩形はここに置くかも
-		//Drawの中か
 	};
 
 }

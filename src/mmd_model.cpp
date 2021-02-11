@@ -2,7 +2,6 @@
 #include"DirectX12/device.hpp"
 #include"DirectX12/vertex_buffer.hpp"
 #include"DirectX12/index_buffer.hpp"
-#include"DirectX12/texture_shader_resource.hpp"
 #include"DirectX12/descriptor_heap.hpp"
 #include"DirectX12/color_texture.hpp"
 #include"DirectX12/shader.hpp"
@@ -10,6 +9,7 @@
 #include"window_size.hpp"
 #include"DirectX12/resource.hpp"
 #include"DirectX12/resource_helper_functions.hpp"
+#include"DirectX12/command_list.hpp"
 #include<algorithm>
 #include<iterator>
 #include<utility>
@@ -188,15 +188,12 @@ namespace ichi
 			}
 			auto& [metaData, scratchImage] = imageResult.value();
 
-			auto textureBuffer = device->create<texture_shader_resource>(&metaData, &scratchImage);
-			auto uploadTextureBuffer = device->create<upload_texture_shader_resource>(&metaData, &scratchImage);
-
-			uploadTextureBuffer->map(*scratchImage.GetImage(0, 0, 0));
-
-			cl->excute_copy_texture(uploadTextureBuffer, textureBuffer);
-
-			delete uploadTextureBuffer;
-			m_texture.emplace_back(std::unique_ptr<texture_shader_resource>{textureBuffer});
+			auto ptr = create_texture_resource(device, cl, &metaData, &scratchImage);
+			if (ptr->is_empty()) {
+				std::cout << "mmd texture init is failed\n";
+				return false;
+			}
+			m_texture.emplace_back(std::unique_ptr<resource>{ptr});
 		}
 
 		//シーンデータ
@@ -258,7 +255,7 @@ namespace ichi
 
 			//有効なテクスチャがある場合
 			if (0 <= m_material_info[i].m_texture_index && m_material_info[i].m_texture_index < m_texture.size())
-				m_descriptor_heap->create_view(device, m_texture[m_material_info[i].m_texture_index].get());
+				m_descriptor_heap->create_view<create_view_type::SRV>(device, m_texture[m_material_info[i].m_texture_index]->get());
 			//ない場合は白テクスチャ
 			else
 				m_descriptor_heap->create_view(device, m_white_texture_resource.get());
@@ -266,13 +263,13 @@ namespace ichi
 
 			//加算スフィア
 			if (pmxModel.m_material[i].m_sphere_mode == 2)
-				m_descriptor_heap->create_view(device, m_texture[m_material_info[i].m_toon_index].get());
+				m_descriptor_heap->create_view<create_view_type::SRV>(device, m_texture[m_material_info[i].m_toon_index]->get());
 			else
 				m_descriptor_heap->create_view(device, m_black_texture_resource.get());
 
 			//乗算スフィア
 			if (pmxModel.m_material[i].m_sphere_mode == 1)
-				m_descriptor_heap->create_view(device, m_texture[m_material_info[i].m_toon_index].get());
+				m_descriptor_heap->create_view<create_view_type::SRV>(device, m_texture[m_material_info[i].m_toon_index]->get());
 			else
 				m_descriptor_heap->create_view(device, m_white_texture_resource.get());
 
@@ -280,7 +277,7 @@ namespace ichi
 			//個別toonなら対応
 			const unsigned int* ptr = std::get_if<0>(&pmxModel.m_material[i].m_toon);
 			if (ptr && *ptr < m_texture.size())
-				m_descriptor_heap->create_view(device, m_texture[*ptr].get());
+				m_descriptor_heap->create_view<create_view_type::SRV>(device, m_texture[*ptr]->get());
 			else 
 				m_descriptor_heap->create_view(device, m_gray_gradation_texture_resource.get());
 		}

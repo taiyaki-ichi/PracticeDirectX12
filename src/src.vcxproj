@@ -44,7 +44,6 @@
     <ClInclude Include="DirectX12\resource_helper_functions.hpp" />
     <ClInclude Include="DirectX12\resource_type_tag.hpp" />
     <ClInclude Include="DirectX12\shader.hpp" />
-    <ClInclude Include="DirectX12\texture_shader_resource.hpp" />
     <ClInclude Include="DirectX12\utility.hpp" />
     <ClInclude Include="DirectX12\vertex_buffer.hpp" />
     <ClInclude Include="mmd_model.hpp" />

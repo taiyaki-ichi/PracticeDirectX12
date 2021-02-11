@@ -42,7 +42,7 @@ namespace ichi
 		return result;
 	}
 
-	/*
+
 	resource* create_texture_resource(device* device, command_list* cl, const DirectX::TexMetadata* metaData, const DirectX::ScratchImage* scratchImage)
 	{
 		//中間バッファ用
@@ -116,7 +116,7 @@ namespace ichi
 		//
 		//テクスチャのデータをマップ
 		//
-		map_to_resource(&src, image);
+		map_to_resource(&src, *image);
 
 
 		//
@@ -150,19 +150,44 @@ namespace ichi
 		//
 		//戻り値のリソースにコピーするコマンドを実行
 		//
-
-		cl->clear();
-
-		//dst->resource_barrier(this, D3D12_RESOURCE_STATE_COPY_DEST);
 		cl->get()->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
-		//dst->resource_barrier(this, D3D12_RESOURCE_STATE_GENERIC_READ);
-
 		cl->get()->Close();
 		cl->execute();
 		cl->clear();
 
 		return dst;
 	}
-	*/
+	
+
+
+
+
+
+
+
+	bool map_to_resource(resource* resource, const DirectX::Image& image)
+	{
+		uint8_t* mapforImage = nullptr;
+		if (FAILED(resource->get()->Map(0, nullptr, (void**)&mapforImage))) {
+			std::cout << __func__ << " is failed\n";
+			return false;
+		}
+
+		uint8_t* srcAddress = image.pixels;
+		size_t rowPitch = alignment_size(image.rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+
+		for (size_t y = 0; y < image.height; ++y) {
+			std::copy_n(srcAddress,
+				rowPitch,
+				mapforImage);//コピー
+			//1行ごとの辻褄を合わせてやる
+			srcAddress += image.rowPitch;
+			mapforImage += rowPitch;
+		}
+
+		resource->get()->Unmap(0, nullptr);
+
+		return true;
+	}
 
 }

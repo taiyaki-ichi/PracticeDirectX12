@@ -22,7 +22,6 @@
     <ClInclude Include="DirectX12\double_buffer.hpp" />
     <ClInclude Include="DirectX12\index_buffer.hpp" />
     <ClInclude Include="DirectX12\shader.hpp" />
-    <ClInclude Include="DirectX12\texture_shader_resource.hpp" />
     <ClInclude Include="DirectX12\utility.hpp" />
     <ClInclude Include="DirectX12\vertex_buffer.hpp" />
     <ClInclude Include="window.hpp" />
