@@ -35,6 +35,7 @@
     <ClInclude Include="mmd_model_helper_functions.hpp" />
     <ClInclude Include="DirectX12\resource.hpp" />
     <ClInclude Include="DirectX12\resource_helper_functions.hpp" />
+    <ClInclude Include="DirectX12\depth_buffer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\BasicType.hlsli" />

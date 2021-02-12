@@ -36,6 +36,7 @@
   <ItemGroup>
     <ClInclude Include="DirectX12\color_texture.hpp" />
     <ClInclude Include="DirectX12\command_list.hpp" />
+    <ClInclude Include="DirectX12\depth_buffer.hpp" />
     <ClInclude Include="DirectX12\descriptor_heap.hpp" />
     <ClInclude Include="DirectX12\device.hpp" />
     <ClInclude Include="DirectX12\double_buffer.hpp" />

@@ -70,24 +70,15 @@ namespace ichi
 		//グラデーションも
 		std::unique_ptr<gray_gradation_texture_resource> m_gray_gradation_texture_resource{};
 
-		//深度書き込み用のバッファ
-		ID3D12Resource* m_depth_resource = nullptr;
-		//シャドウマップ用の深度バッファ
-		ID3D12Resource* m_light_depth_resource = nullptr;
-		//深度バッファとライト深度バッファ用のディスクリプタヒープ
-		//普通のを0番目、ライト用を1番目となるようにViewを作製す
-		std::unique_ptr<descriptor_heap<descriptor_heap_type::DSV>> m_depth_descriptor_heap{};
-
-		//描写用のGPUハンドル
+		//lightDepthのビューのハンドルのメモ
 		D3D12_GPU_DESCRIPTOR_HANDLE m_light_depth_gpu_handle{};
-	
 
 	public:
 		mmd_model() = default;
 		~mmd_model();
 
 		//コマンドリストはテクスチャのコピー用
-		bool initialize(device*,const MMDL::pmx_model<std::wstring>&,command_list*);
+		bool initialize(device*, const MMDL::pmx_model<std::wstring>&, command_list*, resource* lightDepthResource);
 
 		void draw(command_list* cl);
 
@@ -95,12 +86,6 @@ namespace ichi
 
 		//ライト深度バッファへの描写
 		void draw_light_depth(command_list* cl);
-
-
-		//これらは仮
-		//多分深度バッファは他を描写するとき使いまわしそうだから外に出したい
-		D3D12_CPU_DESCRIPTOR_HANDLE get_depth_resource_cpu_handle() const noexcept;
-		ID3D12Resource* get_depth_resource() noexcept;
 
 	};
 

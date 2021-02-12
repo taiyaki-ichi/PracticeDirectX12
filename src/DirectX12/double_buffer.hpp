@@ -12,7 +12,6 @@ namespace ichi
 {
 	class device;
 	class command_list;
-	class depth_buffer;
 	template<typename>
 	class descriptor_heap;
 	namespace descriptor_heap_type {

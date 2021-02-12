@@ -21,7 +21,7 @@ namespace ichi
 	namespace
 	{
 		//シャドウマップ用の深度バッファ生成時に使用
-		constexpr uint32_t shadow_difinition = 1024;
+		//constexpr uint32_t shadow_difinition = 1024;
 
 
 		//頂点のmap用の構造体
@@ -94,20 +94,15 @@ namespace ichi
 
 	mmd_model::~mmd_model()
 	{
-		if (m_depth_resource)
-			m_depth_resource->Release();
-		if (m_light_depth_resource)
-			m_light_depth_resource->Release();
 		if (m_pipeline_state)
 			m_pipeline_state->Release();
 		if (m_shadow_pipeline_state)
 			m_shadow_pipeline_state->Release();
 		if (m_root_signature)
 			m_root_signature->Release();
-
 	}
 
-	bool mmd_model::initialize(device* device,const MMDL::pmx_model<std::wstring>& pmxModel,command_list* cl)
+	bool mmd_model::initialize(device* device,const MMDL::pmx_model<std::wstring>& pmxModel,command_list* cl, resource* lightDepthResource)
 	{
 
 		{
@@ -281,48 +276,11 @@ namespace ichi
 			else 
 				m_descriptor_heap->create_view(device, m_gray_gradation_texture_resource.get());
 		}
-
-
-		{
-			auto result = create_mmd_depth_buffers(device, window_width, window_height, shadow_difinition);
-			if (result) {
-				m_depth_resource = result.value().first;
-				m_light_depth_resource = result.value().second;
-			}
-			else {
-				std::cout << "create mmd depth bu is failed\n";
-				return false;
-			}
-		}
 		
+		//ライト深度のリソースの描写用のViewを生成
+		//ハンドルはメモしておく（おっふせっとからアクセスできるけど。。）
 		{
-			m_depth_descriptor_heap = std::unique_ptr<descriptor_heap<descriptor_heap_type::DSV>>{
-				device->create<descriptor_heap<descriptor_heap_type::DSV>>(2)//普通のとライト用の2つ
-			};
-			if (!m_depth_descriptor_heap) {
-				std::cout << "mmd depth desc heap is failed\n";
-				return false;
-			}
-		}
-
-		{
-			auto result = m_depth_descriptor_heap->create_view<create_view_type::DSV>(device, m_depth_resource);
-			if (!result){
-				std::cout << "mmd create view depth is faield\n";
-				return false;
-			}
-		}
-
-		{
-			auto result = m_depth_descriptor_heap->create_view<create_view_type::DSV>(device, m_light_depth_resource);
-			if (!result) {
-				std::cout << "mmd create view light depth failed \n";
-				return false;
-			}
-		}
-		
-		{
-			auto result = m_descriptor_heap->create_view<create_view_type::DSV>(device, m_light_depth_resource);
+			auto result = m_descriptor_heap->create_view<create_view_type::DSV>(device, lightDepthResource->get());
 			if (result)
 				m_light_depth_gpu_handle = result.value().first;
 			else {
@@ -379,26 +337,6 @@ namespace ichi
 
 	void mmd_model::draw_light_depth(command_list* cl)
 	{
-		//ここは先頭のハンドルで大丈夫かな
-		cl->get()->ClearDepthStencilView(m_depth_descriptor_heap->get_cpu_handle(1),
-			D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-
-		D3D12_VIEWPORT viewport{};
-		viewport.Width = static_cast<float>(shadow_difinition);//出力先の幅(ピクセル数)
-		viewport.Height = static_cast<float>(shadow_difinition);//出力先の高さ(ピクセル数)
-		viewport.TopLeftX = 0;//出力先の左上座標X
-		viewport.TopLeftY = 0;//出力先の左上座標Y
-		viewport.MaxDepth = 1.0f;//深度最大値
-		viewport.MinDepth = 0.0f;//深度最小値
-		cl->get()->RSSetViewports(1, &viewport);
-
-		D3D12_RECT scissorrect{};
-		scissorrect.top = 0;//切り抜き上座標
-		scissorrect.left = 0;//切り抜き左座標
-		scissorrect.right = scissorrect.left + shadow_difinition;//切り抜き右座標
-		scissorrect.bottom = scissorrect.top + shadow_difinition;//切り抜き下座標
-		cl->get()->RSSetScissorRects(1, &scissorrect);
-
 
 		cl->get()->SetPipelineState(m_shadow_pipeline_state);
 		cl->get()->SetGraphicsRootSignature(m_root_signature);
@@ -410,22 +348,8 @@ namespace ichi
 
 		cl->get()->SetDescriptorHeaps(1, &m_descriptor_heap->get());
 		cl->get()->SetGraphicsRootDescriptorTable(0, m_descriptor_heap->get_gpu_handle());
-		cl->get()->SetGraphicsRootDescriptorTable(2, m_light_depth_gpu_handle);
-
-		auto handle = m_depth_descriptor_heap->get_cpu_handle(1);
-		cl->get()->OMSetRenderTargets(0, nullptr, false, &handle);
 
 		cl->get()->DrawIndexedInstanced(m_all_index_num, 1, 0, 0, 0);
-	}
-
-	D3D12_CPU_DESCRIPTOR_HANDLE mmd_model::get_depth_resource_cpu_handle() const noexcept
-	{
-		return m_depth_descriptor_heap->get_cpu_handle(0);
-	}
-
-	ID3D12Resource* mmd_model::get_depth_resource() noexcept
-	{
-		return m_depth_resource;
 	}
 
 }

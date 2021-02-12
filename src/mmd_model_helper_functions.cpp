@@ -267,7 +267,7 @@ namespace ichi
 		depthResDesc.Width = windowWidth;//幅と高さはレンダーターゲットと同じ
 		depthResDesc.Height = windowHeight;//上に同じ
 		depthResDesc.DepthOrArraySize = 1;//テクスチャ配列でもないし3Dテクスチャでもない
-		depthResDesc.Format = DXGI_FORMAT_D32_FLOAT;//深度値書き込み用フォーマット
+		depthResDesc.Format = DXGI_FORMAT_R32_TYPELESS;//深度値書き込み用フォーマット
 		depthResDesc.SampleDesc.Count = 1;//サンプルは1ピクセル当たり1つ
 		depthResDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;//このバッファは深度ステンシルとして使用します
 		depthResDesc.MipLevels = 1;
@@ -302,7 +302,7 @@ namespace ichi
 
 		depthResDesc.Width = shadowDifinition;
 		depthResDesc.Height = shadowDifinition;
-		depthResDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+		//depthResDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 
 		if (FAILED(device->get()->CreateCommittedResource(
 			&depthHeapProp,

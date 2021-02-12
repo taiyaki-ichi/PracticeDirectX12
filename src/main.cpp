@@ -8,6 +8,7 @@
 #include"DirectX12/index_buffer.hpp"
 #include"DirectX12/descriptor_heap.hpp"
 #include"include/load_pmx.hpp"
+#include"DirectX12/depth_buffer.hpp"
 #include<DirectXMath.h>
 #include<memory>
 #include<array>
@@ -27,6 +28,8 @@ std::shared_ptr<T> create_shared_ptr(ichi::device* device,Args&&... args) {
 	return std::shared_ptr<T>{ device->create<T>(std::forward<Args>(args)...)};
 }
 
+//シャドウマップ用の深度バッファ生成時に使用
+constexpr uint32_t shadow_difinition = 1024;
 
 int main()
 {
@@ -52,6 +55,12 @@ int main()
 		return 0;
 	}
 
+	//普通の深度とライトの深度用
+	auto depthBuffer = std::make_unique<ichi::depth_buffer<2>>();
+	if (!depthBuffer->initialize(device.get(), std::make_pair(window_width, window_height), std::make_pair(1024u, 1024u))) {
+		std::cout << "depth is failed\n";
+		return false;
+	}
 
 	D3D12_VIEWPORT viewport{};
 	viewport.Width = static_cast<float>(window_width);//出力先の幅(ピクセル数)
@@ -86,7 +95,6 @@ int main()
 	//モデル本体を回転させたり移動させたりする行列
 	//
 	DirectX::XMMATRIX worldMat = DirectX::XMMatrixIdentity();
-
 
 	//平行ライトの向き
 	//右下奥向き
@@ -125,7 +133,7 @@ int main()
 		//とりあえず
 		auto& model = std::get<MMDL::pmx_model<std::wstring>>(modelIf.value());
 
-		mmdModel = create_shared_ptr<ichi::mmd_model>(device.get(), model, commList.get());
+		mmdModel = create_shared_ptr<ichi::mmd_model>(device.get(), model, commList.get(), depthBuffer->get_resource(1));
 	}
 	else {
 		std::cout << "model loaf failed\n";
@@ -137,12 +145,29 @@ int main()
 	//ぺらポリゴン
 	//
 	auto perapolygon = std::make_unique<ichi::perapolygon>();
-	if (!perapolygon->initialize(device.get(),mmdModel->get_depth_resource())) {
+	if (!perapolygon->initialize(device.get(),depthBuffer->get_resource(0)->get())) {
 		std::cout << "pera false";
 		return 0;
 	}
+
+
+
+	//
+	//ライト深度用
+	//
+	D3D12_VIEWPORT lightDepthViewport{};
+	lightDepthViewport.Width = static_cast<float>(shadow_difinition);//出力先の幅(ピクセル数)
+	lightDepthViewport.Height = static_cast<float>(shadow_difinition);//出力先の高さ(ピクセル数)
+	lightDepthViewport.TopLeftX = 0;//出力先の左上座標X
+	lightDepthViewport.TopLeftY = 0;//出力先の左上座標Y
+	lightDepthViewport.MaxDepth = 1.0f;//深度最大値
+	lightDepthViewport.MinDepth = 0.0f;//深度最小値
 	
-	
+	D3D12_RECT lightDepthScissorRect{};
+	lightDepthScissorRect.top = 0;//切り抜き上座標
+	lightDepthScissorRect.left = 0;//切り抜き左座標
+	lightDepthScissorRect.right = lightDepthScissorRect.left + shadow_difinition;//切り抜き右座標
+	lightDepthScissorRect.bottom = lightDepthScissorRect.top + shadow_difinition;//切り抜き下座標
 
 	while (ichi::update_window()) {
 		
@@ -155,6 +180,15 @@ int main()
 		//
 		//光のディプス描写
 		//
+
+		depthBuffer->clear(commList.get(), 1);
+
+		commList->get()->RSSetViewports(1, &lightDepthViewport);
+		commList->get()->RSSetScissorRects(1, &lightDepthScissorRect);
+
+		auto lightDepthHandle = depthBuffer->get_cpu_handle(1);
+		commList->get()->OMSetRenderTargets(0, nullptr, false, &lightDepthHandle);
+
 		mmdModel->draw_light_depth(commList.get());
 
 		//
@@ -168,10 +202,10 @@ int main()
 		perapolygon->clear(commList.get());
 
 		auto [renderNum, perapolygonHandle] = perapolygon->get_render_target_info();
-		auto mmdCpuHandle = mmdModel->get_depth_resource_cpu_handle();
-		commList->get()->OMSetRenderTargets(renderNum, perapolygonHandle, false, &mmdCpuHandle);
+		auto depthCpuHandle = depthBuffer->get_cpu_handle(0);
+		commList->get()->OMSetRenderTargets(renderNum, perapolygonHandle, false, &depthCpuHandle);
 
-		commList->get()->ClearDepthStencilView(mmdModel->get_depth_resource_cpu_handle(),D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+		depthBuffer->clear(commList.get(), 0);
 
 		mmdModel->draw(commList.get());
 
@@ -189,7 +223,7 @@ int main()
 		commList->get()->RSSetViewports(1, &viewport);
 		commList->get()->RSSetScissorRects(1, &scissorrect);
 
-		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), mmdModel->get_depth_resource_cpu_handle());
+		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer->get_cpu_handle(0));
 		doubleBuffer->clear_back_buffer(commList.get());
 
 		perapolygon->draw(commList.get());

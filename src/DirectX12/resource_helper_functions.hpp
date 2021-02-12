@@ -30,9 +30,9 @@ namespace ichi
 	resource* create_simple_resource(device*, unsigned int width, unsigned int height, 
 		DXGI_FORMAT format,D3D12_RESOURCE_FLAGS flag,D3D12_RESOURCE_STATES state, D3D12_CLEAR_VALUE clearValue);
 
-
-	//レンダーターゲット用のリソースの作製
-	//resource* create_rtv_resource(device*, D3D12_CLEAR_VALUE);
+	//深度バッファの生成
+	resource* crate_depth_resource(device*, unsigned int width, unsigned int height);
+	
 
 	//リソースへのマップ
 	//行列用
