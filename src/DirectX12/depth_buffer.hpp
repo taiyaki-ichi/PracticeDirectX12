@@ -5,7 +5,6 @@
 #include"device.hpp"
 #include"descriptor_heap.hpp"
 #include<array>
-#include<memory>
 #include<vector>
 #include<d3d12.h>
 #include<dxgi1_6.h>
@@ -30,10 +29,10 @@ namespace ichi
 	class depth_buffer
 	{
 		//深度用のディスクリプタヒープ
-		std::unique_ptr<descriptor_heap<descriptor_heap_type::DSV>> m_descriptor_heap{};
+		descriptor_heap<descriptor_heap_type::DSV> m_descriptor_heap{};
 
 		//実際のリソース
-		std::array<std::unique_ptr<resource>, Size> m_depth_resource{};
+		std::array<resource, Size> m_depth_resource{};
 
 		//初期化の実装部分
 		template<typename Head, typename ...Tail>
@@ -61,16 +60,14 @@ namespace ichi
 	template<typename Head, typename ...Tail>
 	inline bool depth_buffer<Size>::depth_buffer_init_impl(device* device, unsigned int cnt, Head&& head, Tail&&... tail)
 	{
-		m_depth_resource[cnt].reset(
-			crate_depth_resource(device, head.first, head.second)
-		);
+		m_depth_resource[cnt] = create_depth_resource(device, head.first, head.second);
 
-		if (m_depth_resource[cnt]->is_empty()) {
+		if (m_depth_resource[cnt].is_empty()) {
 			std::cout << "depth buffer init " << cnt << " is failed\n";
 			return false;
 		}
 
-		m_descriptor_heap->create_view<create_view_type::DSV>(device, m_depth_resource[cnt]->get());
+		m_descriptor_heap.create_view<create_view_type::DSV>(device, m_depth_resource[cnt].get());
 
 		if constexpr (sizeof...(tail) <= 0)
 			return true;
@@ -85,8 +82,7 @@ namespace ichi
 	{
 		static_assert(sizeof...(pairs) == Size);
 
-		m_descriptor_heap = std::make_unique<descriptor_heap<descriptor_heap_type::DSV>>();
-		if (!m_descriptor_heap->initialize(device, Size)) {
+		if (!m_descriptor_heap.initialize(device, Size)) {
 			std::cout << "depth descriptor heap init is failed\n";
 			return false;
 		}
@@ -100,26 +96,26 @@ namespace ichi
 	template<unsigned int Size>
 	inline void depth_buffer<Size>::clear(command_list* cl,unsigned int index)
 	{
-		cl->get()->ClearDepthStencilView(m_descriptor_heap->get_cpu_handle(index),
+		cl->get()->ClearDepthStencilView(m_descriptor_heap.get_cpu_handle(index),
 			D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	}
 
 	template<unsigned int Size>
 	inline D3D12_GPU_DESCRIPTOR_HANDLE depth_buffer<Size>::get_gpu_handle(unsigned int index)
 	{
-		return m_descriptor_heap->get_gpu_handle(index);
+		return m_descriptor_heap.get_gpu_handle(index);
 	}
 
 	template<unsigned int Size>
 	inline D3D12_CPU_DESCRIPTOR_HANDLE depth_buffer<Size>::get_cpu_handle(unsigned int index)
 	{
-		return m_descriptor_heap->get_cpu_handle(index);
+		return m_descriptor_heap.get_cpu_handle(index);
 	}
 
 	template<unsigned int Size>
 	inline resource* depth_buffer<Size>::get_resource(unsigned int index)
 	{
-		return m_depth_resource[index].get();
+		return &m_depth_resource[index];
 	}
 
 

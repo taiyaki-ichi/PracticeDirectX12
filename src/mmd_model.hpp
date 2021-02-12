@@ -5,7 +5,8 @@
 #include"scene_data.hpp"
 #include"DirectX12/resource.hpp"
 #include"DirectX12/color_texture.hpp"
-#include<memory>
+#include"DirectX12/vertex_buffer.hpp"
+#include"DirectX12/index_buffer.hpp"
 #include<vector>
 #include<string>
 
@@ -27,20 +28,20 @@ namespace ichi
 		ID3D12RootSignature* m_root_signature = nullptr;
 
 		//頂点
-		std::unique_ptr<vertex_buffer> m_vertex_buffer{};
+		vertex_buffer m_vertex_buffer{};
 		//インデックス
-		std::unique_ptr<index_buffer> m_index_buffer{};
+		index_buffer m_index_buffer{};
 
 		//テクスチャ
 		//マテリアルによって添え字で指定される
-		std::vector<std::unique_ptr<resource>> m_texture{};
+		std::vector<resource> m_texture{};
 
 		//シーンのデータの定数バッファ
-		std::unique_ptr<resource> m_scene_constant_resource{};
+		resource m_scene_constant_resource{};
 
 		//今のところfloat4,float3,float,float3のmaterial
 		//マテリアルの描写毎に定数バッファをリセットしビューを作製
-		std::vector<std::unique_ptr<resource>> m_material_constant_resource{};
+		std::vector<resource> m_material_constant_resource{};
 
 		//マテリアルの情報保持用
 		struct material_info {
@@ -59,16 +60,16 @@ namespace ichi
 
 		//ディスクリプタヒープ
 		//SetDescriptorHeapsを複数回呼び出すとうまくいかなかったのであきらめて1つにまとめた
-		std::unique_ptr<descriptor_heap<descriptor_heap_type::CBV_SRV_UAV>> m_descriptor_heap{};
+		descriptor_heap<descriptor_heap_type::CBV_SRV_UAV> m_descriptor_heap{};
 
 		//マテリアルごとのgpuハンドルの先頭
 		std::vector<D3D12_GPU_DESCRIPTOR_HANDLE> m_matarial_root_gpu_handle{};
 
 		//とりあえず白と黒のテクスチャもメンバとして持たせる
-		std::unique_ptr<white_texture_resource> m_white_texture_resource{};
-		std::unique_ptr<black_texture_resource> m_black_texture_resource{};
+		white_texture_resource m_white_texture_resource{};
+		black_texture_resource m_black_texture_resource{};
 		//グラデーションも
-		std::unique_ptr<gray_gradation_texture_resource> m_gray_gradation_texture_resource{};
+		gray_gradation_texture_resource m_gray_gradation_texture_resource{};
 
 		//lightDepthのビューのハンドルのメモ
 		D3D12_GPU_DESCRIPTOR_HANDLE m_light_depth_gpu_handle{};

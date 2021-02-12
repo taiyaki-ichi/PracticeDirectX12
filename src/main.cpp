@@ -198,7 +198,7 @@ int main()
 		commList->get()->RSSetViewports(1, &viewport);
 		commList->get()->RSSetScissorRects(1, &scissorrect);
 
-		perapolygon->begin_drawing_resource_barrier(commList.get());
+		perapolygon->all_resource_barrior(commList.get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
 		perapolygon->clear(commList.get());
 
 		auto [renderNum, perapolygonHandle] = perapolygon->get_render_target_info();
@@ -212,7 +212,7 @@ int main()
 
 		perapolygon->draw_shrink_texture_for_blur(commList.get());
 
-		perapolygon->end_drawing_resource_barrier(commList.get());
+		perapolygon->all_resource_barrior(commList.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 
 		

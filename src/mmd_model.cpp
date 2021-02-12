@@ -130,40 +130,36 @@ namespace ichi
 
 		//頂点
 		auto vertex = generate_map_vertex(pmxModel.m_vertex);
-		m_vertex_buffer = std::unique_ptr<vertex_buffer>{
-			device->create<vertex_buffer>(vertex.size() * sizeof(vertex[0]), sizeof(vertex[0]))
-		};
-		if (!m_vertex_buffer) {
+		m_vertex_buffer.initialize(device, vertex.size() * sizeof(vertex[0]), sizeof(vertex[0]));
+		if (m_vertex_buffer.is_empty()) {
 			std::cout << "mmd　model v is failed\n";
 			return false;
 		}
-		map_to_resource(m_vertex_buffer.get(), std::move(vertex));
+		map_to_resource(&m_vertex_buffer, std::move(vertex));
 
 
 		//インデックス
 		m_all_index_num = pmxModel.m_surface.size();
 		auto index = generate_map_index(pmxModel.m_surface);
-		m_index_buffer = std::unique_ptr<index_buffer>{
-			device->create<index_buffer>(index.size() * sizeof(index[0]))
-		};
-		if (!m_index_buffer) {
+		m_index_buffer.initialize(device, index.size() * sizeof(index[0]));
+		if (m_index_buffer.is_empty()) {
 			std::cout << "mmd model i is failed\n";
 			return false;
 		}
-		map_to_resource(m_index_buffer.get(), std::move(index));
+		map_to_resource(&m_index_buffer, std::move(index));
 
 
 		//マテリアル
 		auto material = generate_map_material(pmxModel.m_material);
 		for (auto& m : material) {
-			auto ptr = create_constant_resource(device, sizeof(m));
-			if (ptr->is_empty()) {
+			auto resource = create_constant_resource(device, sizeof(m));
+			if (resource.is_empty()) {
 				std::cout << "mmd material is failed\n";
 				return false;
 			}
 			map_material tmp[] = { m };
-			map_to_resource(ptr, tmp);
-			m_material_constant_resource.emplace_back(std::unique_ptr<resource>(ptr));
+			map_to_resource(&resource, tmp);
+			m_material_constant_resource.emplace_back(std::move(resource));
 		}
 		
 		//マテリアルインフォ
@@ -183,43 +179,35 @@ namespace ichi
 			}
 			auto& [metaData, scratchImage] = imageResult.value();
 
-			auto ptr = create_texture_resource(device, cl, &metaData, &scratchImage);
-			if (ptr->is_empty()) {
+			auto resource = create_texture_resource(device, cl, &metaData, &scratchImage);
+			if (resource.is_empty()) {
 				std::cout << "mmd texture init is failed\n";
 				return false;
 			}
-			m_texture.emplace_back(std::unique_ptr<resource>{ptr});
+			m_texture.emplace_back(std::move(resource));
 		}
 
 		//シーンデータ
-		m_scene_constant_resource = std::unique_ptr<resource>{
-			create_constant_resource(device,sizeof(scene_data))
-		};
-		if (m_scene_constant_resource->is_empty()) {
+		m_scene_constant_resource = create_constant_resource(device, sizeof(scene_data));
+		if (m_scene_constant_resource.is_empty()) {
 			std::cout << "scene data constant init is failed\n";
 			return false;
 		}
 
-		m_white_texture_resource = std::unique_ptr<white_texture_resource>{
-			device->create<white_texture_resource>()
-		};
-		if (m_white_texture_resource->is_empty()) {
+		m_white_texture_resource.initialize(device);
+		if (m_white_texture_resource.is_empty()) {
 			std::cout << "mmd whire tex is falied\n";
 			return false;
 		}
 
-		m_black_texture_resource = std::unique_ptr<black_texture_resource>{
-			device->create<black_texture_resource>()
-		};
-		if (m_black_texture_resource->is_empty()) {
+		m_black_texture_resource.initialize(device);
+		if (m_black_texture_resource.is_empty()) {
 			std::cout << "mmd black tex is failed\n";
 			return false;
 		}
 
-		m_gray_gradation_texture_resource = std::unique_ptr<gray_gradation_texture_resource>{
-			device->create<gray_gradation_texture_resource>()
-		};
-		if (m_gray_gradation_texture_resource->is_empty()) {
+		m_gray_gradation_texture_resource.initialize(device);
+		if (m_gray_gradation_texture_resource.is_empty()) {
 			std::cout << "mmd gray grade is failed\n";
 			return false;
 		}
@@ -227,20 +215,17 @@ namespace ichi
 	
 		//今のところ個数は行列1つとマテリアル分
 		//ライト深度ようにもう1つ
-		m_descriptor_heap = std::unique_ptr<descriptor_heap<descriptor_heap_type::CBV_SRV_UAV>>{
-			device->create<descriptor_heap<descriptor_heap_type::CBV_SRV_UAV>>(1 + m_material_info.size() * 5 + 1)
-		};
-		if (!m_descriptor_heap) {
+		if (!m_descriptor_heap.initialize(device, 1 + m_material_info.size() * 5 + 1)) {
 			std::cout << "mmd desc heap is failed\n";
 			return false;
 		}
 
-		m_descriptor_heap->create_view<create_view_type::CBV>(device, m_scene_constant_resource->get());
+		m_descriptor_heap.create_view<create_view_type::CBV>(device, m_scene_constant_resource.get());
 
-		for (int i = 0; i < m_material_info.size(); i++)
+		for (size_t i = 0; i < m_material_info.size(); i++)
 		{
 			//先頭のハンドルはメモしておく
-			auto handle = m_descriptor_heap->create_view<create_view_type::CBV>(device, m_material_constant_resource[i]->get());
+			auto handle = m_descriptor_heap.create_view<create_view_type::CBV>(device, m_material_constant_resource[i].get());
 			if (handle)
 				m_matarial_root_gpu_handle.emplace_back(handle.value().first);
 			else {
@@ -250,37 +235,37 @@ namespace ichi
 
 			//有効なテクスチャがある場合
 			if (0 <= m_material_info[i].m_texture_index && m_material_info[i].m_texture_index < m_texture.size())
-				m_descriptor_heap->create_view<create_view_type::SRV>(device, m_texture[m_material_info[i].m_texture_index]->get());
+				m_descriptor_heap.create_view<create_view_type::SRV>(device, m_texture[m_material_info[i].m_texture_index].get());
 			//ない場合は白テクスチャ
 			else
-				m_descriptor_heap->create_view(device, m_white_texture_resource.get());
+				m_descriptor_heap.create_view(device, m_white_texture_resource.get());
 
 
 			//加算スフィア
 			if (pmxModel.m_material[i].m_sphere_mode == 2)
-				m_descriptor_heap->create_view<create_view_type::SRV>(device, m_texture[m_material_info[i].m_toon_index]->get());
+				m_descriptor_heap.create_view<create_view_type::SRV>(device, m_texture[m_material_info[i].m_toon_index].get());
 			else
-				m_descriptor_heap->create_view(device, m_black_texture_resource.get());
+				m_descriptor_heap.create_view(device, &m_black_texture_resource);
 
 			//乗算スフィア
 			if (pmxModel.m_material[i].m_sphere_mode == 1)
-				m_descriptor_heap->create_view<create_view_type::SRV>(device, m_texture[m_material_info[i].m_toon_index]->get());
+				m_descriptor_heap.create_view<create_view_type::SRV>(device, m_texture[m_material_info[i].m_toon_index].get());
 			else
-				m_descriptor_heap->create_view(device, m_white_texture_resource.get());
+				m_descriptor_heap.create_view(device, &m_white_texture_resource);
 
 			//toon
 			//個別toonなら対応
 			const unsigned int* ptr = std::get_if<0>(&pmxModel.m_material[i].m_toon);
 			if (ptr && *ptr < m_texture.size())
-				m_descriptor_heap->create_view<create_view_type::SRV>(device, m_texture[*ptr]->get());
+				m_descriptor_heap.create_view<create_view_type::SRV>(device, m_texture[*ptr].get());
 			else 
-				m_descriptor_heap->create_view(device, m_gray_gradation_texture_resource.get());
+				m_descriptor_heap.create_view(device, &m_gray_gradation_texture_resource);
 		}
 		
 		//ライト深度のリソースの描写用のViewを生成
 		//ハンドルはメモしておく（おっふせっとからアクセスできるけど。。）
 		{
-			auto result = m_descriptor_heap->create_view<create_view_type::DSV>(device, lightDepthResource->get());
+			auto result = m_descriptor_heap.create_view<create_view_type::DSV>(device, lightDepthResource->get());
 			if (result)
 				m_light_depth_gpu_handle = result.value().first;
 			else {
@@ -301,18 +286,18 @@ namespace ichi
 
 		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		cl->get()->IASetVertexBuffers(0, 1, &m_vertex_buffer->get_view());
-		cl->get()->IASetIndexBuffer(&m_index_buffer->get_view());
+		cl->get()->IASetVertexBuffers(0, 1, &m_vertex_buffer.get_view());
+		cl->get()->IASetIndexBuffer(&m_index_buffer.get_view());
 
-		cl->get()->SetDescriptorHeaps(1, &m_descriptor_heap->get());
+		cl->get()->SetDescriptorHeaps(1, &m_descriptor_heap.get());
 
-		cl->get()->SetGraphicsRootDescriptorTable(0, m_descriptor_heap->get_gpu_handle());
+		cl->get()->SetGraphicsRootDescriptorTable(0, m_descriptor_heap.get_gpu_handle());
 
 		
 		cl->get()->SetGraphicsRootDescriptorTable(2, m_light_depth_gpu_handle);
 
 	
-		for (int i = 0; i < m_material_info.size(); i++)
+		for (size_t i = 0; i < m_material_info.size(); i++)
 		{
 
 			cl->get()->SetGraphicsRootDescriptorTable(1, m_matarial_root_gpu_handle[i]);
@@ -328,11 +313,11 @@ namespace ichi
 	void mmd_model::map_scene_data(const scene_data& sd)
 	{
 		scene_data* ptr = nullptr;
-		m_scene_constant_resource->get()->Map(0, nullptr, (void**)&ptr);
+		m_scene_constant_resource.get()->Map(0, nullptr, (void**)&ptr);
 
 		*ptr = sd;
 
-		m_scene_constant_resource->get()->Unmap(0, nullptr);
+		m_scene_constant_resource.get()->Unmap(0, nullptr);
 	}
 
 	void mmd_model::draw_light_depth(command_list* cl)
@@ -343,11 +328,11 @@ namespace ichi
 
 		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		cl->get()->IASetVertexBuffers(0, 1, &m_vertex_buffer->get_view());
-		cl->get()->IASetIndexBuffer(&m_index_buffer->get_view());
+		cl->get()->IASetVertexBuffers(0, 1, &m_vertex_buffer.get_view());
+		cl->get()->IASetIndexBuffer(&m_index_buffer.get_view());
 
-		cl->get()->SetDescriptorHeaps(1, &m_descriptor_heap->get());
-		cl->get()->SetGraphicsRootDescriptorTable(0, m_descriptor_heap->get_gpu_handle());
+		cl->get()->SetDescriptorHeaps(1, &m_descriptor_heap.get());
+		cl->get()->SetGraphicsRootDescriptorTable(0, m_descriptor_heap.get_gpu_handle());
 
 		cl->get()->DrawIndexedInstanced(m_all_index_num, 1, 0, 0, 0);
 	}

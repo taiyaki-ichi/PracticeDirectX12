@@ -45,6 +45,13 @@ namespace ichi
 				m_descriptor_heap->Release();
 		}
 
+		//コピー禁止
+		descriptor_heap<DescriptorHeapType>(const descriptor_heap<DescriptorHeapType>&) = delete;
+		descriptor_heap<DescriptorHeapType>& operator=(const descriptor_heap<DescriptorHeapType>&) = delete;
+		//ムーブ可能
+		descriptor_heap<DescriptorHeapType>(descriptor_heap<DescriptorHeapType>&&) noexcept;
+		descriptor_heap<DescriptorHeapType>& operator=(descriptor_heap<DescriptorHeapType>&&) noexcept;
+
 		bool initialize(device * d,unsigned int size);
 
 		//CreateTypeにはcreate(device,handle)の静的な関数
@@ -334,5 +341,29 @@ namespace ichi
 		return true;
 	}
 
+
+	//
+	//ムーブ
+	//
+	template<class DescriptorHeapType>
+	inline ichi::descriptor_heap<DescriptorHeapType>::descriptor_heap(descriptor_heap<DescriptorHeapType>&& r) noexcept
+	{
+		m_descriptor_heap = r.m_descriptor_heap;;
+		m_size = r.m_size;
+		m_offset = r.m_offset;
+		m_increment_size = r.m_increment_size;
+		r.m_descriptor_heap = nullptr;
+	}
+
+	template<class DescriptorHeapType>
+	inline descriptor_heap<DescriptorHeapType>& descriptor_heap<DescriptorHeapType>::operator=(descriptor_heap<DescriptorHeapType>&& r) noexcept
+	{
+		m_descriptor_heap = r.m_descriptor_heap;;
+		m_size = r.m_size;
+		m_offset = r.m_offset;
+		m_increment_size = r.m_increment_size;
+		r.m_descriptor_heap = nullptr;
+		return *this;
+	}
 
 }

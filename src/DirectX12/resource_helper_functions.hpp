@@ -20,18 +20,18 @@ namespace ichi
 
 	
 	//リソースを定数バッファとして作製
-	resource* create_constant_resource(device*, unsigned int size);
+	resource create_constant_resource(device*, unsigned int size);
 
 	//テクスチャのシェーダリソースの取得
-	resource* create_texture_resource(device*, command_list*, const DirectX::TexMetadata*, const DirectX::ScratchImage*);
+	resource create_texture_resource(device*, command_list*, const DirectX::TexMetadata*, const DirectX::ScratchImage*);
 
 	//フォーマットなどを指定することでrtv用のリソースやぺらポリゴンのリソースなどに使用できる
 	//命名とかとりあえずって感じ
-	resource* create_simple_resource(device*, unsigned int width, unsigned int height, 
+	resource create_simple_resource(device*, unsigned int width, unsigned int height, 
 		DXGI_FORMAT format,D3D12_RESOURCE_FLAGS flag,D3D12_RESOURCE_STATES state, D3D12_CLEAR_VALUE clearValue);
 
 	//深度バッファの生成
-	resource* crate_depth_resource(device*, unsigned int width, unsigned int height);
+	resource create_depth_resource(device*, unsigned int width, unsigned int height);
 	
 
 	//リソースへのマップ

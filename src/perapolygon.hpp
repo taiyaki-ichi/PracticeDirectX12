@@ -1,6 +1,8 @@
 #pragma once
+#include"DirectX12/resource.hpp"
+#include"DirectX12/descriptor_heap.hpp"
+#include"DirectX12/vertex_buffer.hpp"
 #include<utility>
-#include<memory>
 #include<array>
 #include<d3d12.h>
 #include<dxgi1_6.h>
@@ -28,30 +30,30 @@ namespace ichi
 		ID3D12RootSignature* m_root_signature = nullptr;
 		ID3D12PipelineState* m_pipeline_state = nullptr;
 		ID3D12PipelineState* m_blur_pipeline_state = nullptr;
-
-		//実際のリソース、色用
-		std::unique_ptr<resource>  m_color_resource{};
-		//法線用
-		std::unique_ptr<resource> m_normal_resource{};
-		//ブルーム用
-		std::unique_ptr<resource> m_bloom_resource{};
-		//ブルームの際使用する縮小されたバッファ
-		std::unique_ptr<resource> m_shrink_bloom_resource{};
-		//非写界深度用ぼかしフィルタ用
-		std::unique_ptr<resource> m_DOF_resource{};
-
+	
+		//リソースたち
+		constexpr static unsigned int RESOURCE_NUM = 5;
+		resource m_resource[RESOURCE_NUM]{};
+		enum ResourceIndex {
+			COLOR,//色
+			NORMAL,//法線
+			BLOOM,//ブルーム用
+			SHRINK_BLOOM,//ブルーム用の縮小されたリソース
+			DOF//被写界深度ぼかしフィルタ用
+		};
 
 		//ぺらポリゴンのリソースにデータを書き込む用
-		std::unique_ptr<descriptor_heap<descriptor_heap_type::RTV>> m_rtv_descriptor_heap{};
+		descriptor_heap<descriptor_heap_type::RTV> m_rtv_descriptor_heap{};
 
 		//ぺらポリゴンのリソースをテクスチャとして解釈させるための
-		std::unique_ptr<descriptor_heap<descriptor_heap_type::CBV_SRV_UAV>> m_cbv_srv_usv_descriptor_heap{};
+		descriptor_heap<descriptor_heap_type::CBV_SRV_UAV> m_cbv_srv_usv_descriptor_heap{};
 
 		//ぺらポリゴンをバックバッファに描写する際セットする用
-		std::unique_ptr<vertex_buffer> m_vertex_buffer{};
+		vertex_buffer m_vertex_buffer{};
 
 		//レンダーターゲットに指定する時に使う
-		D3D12_CPU_DESCRIPTOR_HANDLE m_render_target_view_cpu_handle_array[3]{};
+		static constexpr unsigned int RENDER_TARGET_HANDLE_NUM = 3;
+		D3D12_CPU_DESCRIPTOR_HANDLE m_render_target_view_cpu_handle_array[RENDER_TARGET_HANDLE_NUM]{};
 
 	public:
 		perapolygon() = default;
@@ -64,10 +66,8 @@ namespace ichi
 		//ぺらポリゴンをレンダーターゲットとする際に使用することを想定
 		std::pair<int, D3D12_CPU_DESCRIPTOR_HANDLE*> get_render_target_info();
 
-		//ぺらポリゴンへ書き込む際のリソースバリア
-		void begin_drawing_resource_barrier(command_list*);
-		//ぺらポリゴンへの書き込みが終わった時に呼び出すリソースバリア
-		void end_drawing_resource_barrier(command_list*);
+		//すべてのリソースのリソースバリア
+		void all_resource_barrior(command_list*, D3D12_RESOURCE_STATES);
 
 		//リソースたちの初期化
 		void clear(command_list*);

@@ -23,6 +23,13 @@ namespace ichi
 		resource() = default;
 		virtual ~resource();
 
+		//コピー禁止
+		resource(const resource&) = delete;
+		resource& operator=(const resource&) = delete;
+		//ムーブ可能
+		resource(resource&&) noexcept;
+		resource& operator=(resource&&) noexcept;
+
 		//初期化
 		bool initialize(device*, const D3D12_HEAP_PROPERTIES*, D3D12_HEAP_FLAGS,
 			const D3D12_RESOURCE_DESC*, D3D12_RESOURCE_STATES, const D3D12_CLEAR_VALUE*);

@@ -6,9 +6,9 @@
 namespace ichi
 {
 
-	resource* create_constant_resource(device* device, unsigned int size)
+	resource create_constant_resource(device* device, unsigned int size)
 	{
-		auto result = new resource{};
+		resource result{};
 
 		//サイズは16の倍数じゃあないといけないのでアライメント
 		size = (size + 0xff) & ~0xff;
@@ -29,7 +29,7 @@ namespace ichi
 		resdesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 		resdesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
-		if (!result->initialize(device,
+		if (!result.initialize(device,
 			&heapprop, 
 			D3D12_HEAP_FLAG_NONE,
 			&resdesc,
@@ -43,12 +43,12 @@ namespace ichi
 	}
 
 
-	resource* create_texture_resource(device* device, command_list* cl, const DirectX::TexMetadata* metaData, const DirectX::ScratchImage* scratchImage)
+	resource create_texture_resource(device* device, command_list* cl, const DirectX::TexMetadata* metaData, const DirectX::ScratchImage* scratchImage)
 	{
 		//中間バッファ用
 		resource src{};
 		//実際のデータ
-		auto dst = new resource{};
+		resource dst{};
 
 		//画像のポインタ
 		auto image = scratchImage->GetImage(0, 0, 0);
@@ -110,7 +110,7 @@ namespace ichi
 		resdesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
 		//初期状態はDEST
-		dst->initialize(device, &heapprop, D3D12_HEAP_FLAG_NONE, &resdesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr);
+		dst.initialize(device, &heapprop, D3D12_HEAP_FLAG_NONE, &resdesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr);
 
 
 		//
@@ -131,7 +131,7 @@ namespace ichi
 			D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
 			UINT nrow;
 			UINT64 rowsize, size;
-			auto desc = dst->get()->GetDesc();
+			auto desc = dst.get()->GetDesc();
 			device->get()->GetCopyableFootprints(&desc, 0, 1, 0, &footprint, &nrow, &rowsize, &size);
 			srcLocation.PlacedFootprint = footprint;
 		}
@@ -142,7 +142,7 @@ namespace ichi
 		srcLocation.PlacedFootprint.Footprint.RowPitch = static_cast<UINT>(alignment_size(image->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT));
 		srcLocation.PlacedFootprint.Footprint.Format = image->format;
 
-		dstLocation.pResource = dst->get();
+		dstLocation.pResource = dst.get();
 		dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
 		dstLocation.SubresourceIndex = 0;
 
@@ -159,10 +159,10 @@ namespace ichi
 	}
 	
 
-	resource* create_simple_resource(device* device, unsigned int width, unsigned int height,
+	resource create_simple_resource(device* device, unsigned int width, unsigned int height,
 		DXGI_FORMAT format, D3D12_RESOURCE_FLAGS flag, D3D12_RESOURCE_STATES state, D3D12_CLEAR_VALUE clearValue)
 	{
-		auto result = new resource{};
+		resource result{};
 
 		D3D12_RESOURCE_DESC resdesc{};
 		resdesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;//2次元のテクスチャデータとして
@@ -182,7 +182,7 @@ namespace ichi
 		heapprop.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 
 
-		if (!result->initialize(device,
+		if (!result.initialize(device,
 			&heapprop,
 			D3D12_HEAP_FLAG_NONE,
 			&resdesc,
@@ -195,9 +195,9 @@ namespace ichi
 		return result;
 	}
 
-	resource* crate_depth_resource(device* device, unsigned int width, unsigned int height)
+	resource create_depth_resource(device* device, unsigned int width, unsigned int height)
 	{
-		auto result = new resource{};
+		resource result{};
 
 		D3D12_RESOURCE_DESC depthResDesc{};
 		depthResDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;//2次元のテクスチャデータとして
@@ -222,7 +222,7 @@ namespace ichi
 		depthClearValue.DepthStencil.Depth = 1.0f;//深さ１(最大値)でクリア
 		depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;//32bit深度値としてクリア
 
-		if (!result->initialize(
+		if (!result.initialize(
 			device,
 			&depthHeapProp,
 			D3D12_HEAP_FLAG_NONE,
