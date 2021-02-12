@@ -159,6 +159,41 @@ namespace ichi
 	}
 	
 
+	resource* create_simple_resource(device* device, unsigned int width, unsigned int height,
+		DXGI_FORMAT format, D3D12_RESOURCE_FLAGS flag, D3D12_RESOURCE_STATES state, D3D12_CLEAR_VALUE clearValue)
+	{
+		auto result = new resource{};
+
+		D3D12_RESOURCE_DESC resdesc{};
+		resdesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;//2次元のテクスチャデータとして
+		resdesc.Width = width;//幅と高さはレンダーターゲットと同じ
+		resdesc.Height = height;//上に同じ
+		resdesc.DepthOrArraySize = 1;//テクスチャ配列でもないし3Dテクスチャでもない
+		resdesc.Format = format;
+		resdesc.SampleDesc.Count = 1;//サンプルは1ピクセル当たり1つ
+		resdesc.Flags = flag;
+		resdesc.MipLevels = 1;
+		resdesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		resdesc.Alignment = 0;
+
+		D3D12_HEAP_PROPERTIES heapprop{};
+		heapprop.Type = D3D12_HEAP_TYPE_DEFAULT;//DEFAULTだから後はUNKNOWNでよし
+		heapprop.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+		heapprop.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+
+		if (!result->initialize(device,
+			&heapprop,
+			D3D12_HEAP_FLAG_NONE,
+			&resdesc,
+			state,
+			&clearValue))
+		{
+			std::cout << __func__ << " is failed\n";
+		}
+
+		return result;
+	}
 
 
 	bool map_to_resource(resource* resource, const DirectX::Image& image)

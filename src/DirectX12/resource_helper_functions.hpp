@@ -25,6 +25,10 @@ namespace ichi
 	//テクスチャのシェーダリソースの取得
 	resource* create_texture_resource(device*, command_list*, const DirectX::TexMetadata*, const DirectX::ScratchImage*);
 
+	//フォーマットなどを指定することでrtv用のリソースやぺらポリゴンのリソースなどに使用できる
+	//命名とかとりあえずって感じ
+	resource* create_simple_resource(device*, unsigned int width, unsigned int height, 
+		DXGI_FORMAT format,D3D12_RESOURCE_FLAGS flag,D3D12_RESOURCE_STATES state, D3D12_CLEAR_VALUE clearValue);
 
 
 	//レンダーターゲット用のリソースの作製

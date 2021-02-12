@@ -14,6 +14,8 @@ namespace ichi
 	bool resource::initialize(device* device, const D3D12_HEAP_PROPERTIES* heapProp, D3D12_HEAP_FLAGS flag,
 		const D3D12_RESOURCE_DESC* resoDesc, D3D12_RESOURCE_STATES state, const D3D12_CLEAR_VALUE* clearValue)
 	{
+		m_state = state;
+
 		if (SUCCEEDED(device->get()->CreateCommittedResource(
 			heapProp,
 			flag,

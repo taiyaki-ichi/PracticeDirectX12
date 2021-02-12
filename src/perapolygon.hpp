@@ -21,7 +21,7 @@ namespace ichi
 	}
 	class vertex_buffer;
 	class command_list;
-
+	class resource;
 
 	class perapolygon
 	{
@@ -30,15 +30,15 @@ namespace ichi
 		ID3D12PipelineState* m_blur_pipeline_state = nullptr;
 
 		//実際のリソース、色用
-		ID3D12Resource* m_color_resource = nullptr;
+		std::unique_ptr<resource>  m_color_resource{};
 		//法線用
-		ID3D12Resource* m_normal_resource = nullptr;
+		std::unique_ptr<resource> m_normal_resource{};
 		//ブルーム用
-		ID3D12Resource* m_bloom_resource = nullptr;
+		std::unique_ptr<resource> m_bloom_resource{};
 		//ブルームの際使用する縮小されたバッファ
-		ID3D12Resource* m_shrink_bloom_resource = nullptr;
+		std::unique_ptr<resource> m_shrink_bloom_resource{};
 		//非写界深度用ぼかしフィルタ用
-		ID3D12Resource* m_DOF_resource = nullptr;
+		std::unique_ptr<resource> m_DOF_resource{};
 
 
 		//ぺらポリゴンのリソースにデータを書き込む用
