@@ -26,7 +26,7 @@ namespace DX12
 	class simple_color_texture_resource : public color_texture_resource_base
 	{
 	public:
-		using create_view_type = typename create_view_type::SRV;
+		using resource_type = typename resource_type::SRV;
 
 		bool initialize(device* device);
 	};
@@ -38,7 +38,7 @@ namespace DX12
 	class gray_gradation_texture_resource : public color_texture_resource_base
 	{
 	public:
-		using create_view_type = typename create_view_type::SRV;
+		using resource_type = typename resource_type::SRV;
 
 		bool initialize(device*);
 	};

@@ -3,7 +3,7 @@
 
 namespace DX12
 {
-	//‚µ‚¥‚¾[‚É“n‚·—p
+	//mmdmodel‚É“n‚·—p
 	struct scene_data
 	{
 		DirectX::XMMATRIX m_world{};

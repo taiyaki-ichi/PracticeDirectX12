@@ -11,21 +11,6 @@ namespace DX12
 			m_resource->Release();
 	}
 
-	resource::resource(resource&& r) noexcept
-	{
-		m_resource = r.m_resource;
-		m_state = r.m_state;
-		r.m_resource = nullptr;
-	}
-
-	resource& resource::operator=(resource&& r) noexcept
-	{
-		m_resource = r.m_resource;
-		m_state = r.m_state;
-		r.m_resource = nullptr;
-		return *this;
-	}
-
 	bool resource::initialize(device* device, const D3D12_HEAP_PROPERTIES* heapProp, D3D12_HEAP_FLAGS flag,
 		const D3D12_RESOURCE_DESC* resoDesc, D3D12_RESOURCE_STATES state, const D3D12_CLEAR_VALUE* clearValue)
 	{
@@ -80,5 +65,21 @@ namespace DX12
 	bool resource::is_empty() const noexcept
 	{
 		return m_resource == nullptr;
+	}
+
+
+	resource::resource(resource&& r) noexcept
+	{
+		m_resource = r.m_resource;
+		m_state = r.m_state;
+		r.m_resource = nullptr;
+	}
+
+	resource& resource::operator=(resource&& r) noexcept
+	{
+		m_resource = r.m_resource;
+		m_state = r.m_state;
+		r.m_resource = nullptr;
+		return *this;
 	}
 }

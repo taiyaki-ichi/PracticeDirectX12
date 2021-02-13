@@ -87,6 +87,51 @@ namespace DX12
 		m_list->Reset(m_allocator, nullptr);
 	}
 
+	void command_list::set_render_target(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle)
+	{
+		m_list->OMSetRenderTargets(1, &renderTargetHandle, false, nullptr);
+	}
+
+	void command_list::set_render_target(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle, D3D12_CPU_DESCRIPTOR_HANDLE depthStencilHandle)
+	{
+		m_list->OMSetRenderTargets(1, &renderTargetHandle, false, &depthStencilHandle);
+	}
+
+	void command_list::set_render_target(unsigned int renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget)
+	{
+		m_list->OMSetRenderTargets(renderTagetHandleNum, renderTarget, false, nullptr);
+	}
+
+	void command_list::set_render_target(unsigned int renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget, D3D12_CPU_DESCRIPTOR_HANDLE depthStencilHandle)
+	{
+		m_list->OMSetRenderTargets(renderTagetHandleNum, renderTarget, false, &depthStencilHandle);
+	}
+
+	void command_list::set_viewport(const D3D12_VIEWPORT& viewport)
+	{
+		m_list->RSSetViewports(1, &viewport);
+	}
+
+	void command_list::set_viewport(unsigned int num, D3D12_VIEWPORT* viewportPtr)
+	{
+		m_list->RSSetViewports(num, viewportPtr);
+	}
+
+	void command_list::set_scissor_rect(const D3D12_RECT& rect)
+	{
+		m_list->RSSetScissorRects(1, &rect);
+	}
+
+	void command_list::set_scissor_rect(unsigned int num, D3D12_RECT* rectPtr)
+	{
+		m_list->RSSetScissorRects(num, rectPtr);
+	}
+
+	void command_list::close()
+	{
+		m_list->Close();
+	}
+
 
 
 

@@ -67,7 +67,7 @@ namespace DX12
 			return false;
 		}
 
-		m_descriptor_heap.create_view<create_view_type::DSV>(device, m_depth_resource[cnt].get());
+		m_descriptor_heap.create_view<resource_type::DSV>(device, m_depth_resource[cnt].get());
 
 		if constexpr (sizeof...(tail) <= 0)
 			return true;

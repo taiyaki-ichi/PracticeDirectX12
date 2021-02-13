@@ -36,11 +36,25 @@ namespace DX12
 		
 		//コマンドのクリア
 		//引数は初期設定したいパイプラインステート
-		//nullptrでもよい
-		//pipelinestateクラスをなくす鴨
 		void clear();
 
+		//レンダーターゲットの設定
+		//どのターゲットのViewもおなじディスクリプタヒープ連続して生成されていないとみなしている
+		void set_render_target(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle);
+		void set_render_target(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle, D3D12_CPU_DESCRIPTOR_HANDLE depthStencilHandle);
+		void set_render_target(unsigned int renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget);
+		void set_render_target(unsigned int renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget, D3D12_CPU_DESCRIPTOR_HANDLE depthStencilHandle);
 
+		//ビューポートの設定
+		void set_viewport(const D3D12_VIEWPORT& viewport);
+		void set_viewport(unsigned int num, D3D12_VIEWPORT* viewportPtr);
+
+		//シザー矩形の設定
+		void set_scissor_rect(const D3D12_RECT& rect);
+		void set_scissor_rect(unsigned int num, D3D12_RECT* rectPtr);
+
+		//Closeを呼び出す
+		void close();
 	};
 
 }

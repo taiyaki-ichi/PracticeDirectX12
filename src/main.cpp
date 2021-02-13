@@ -24,35 +24,32 @@
 #include<iostream>
 
 
-//糖衣用
-template<typename T,typename... Args>
-std::shared_ptr<T> create_shared_ptr(DX12::device* device,Args&&... args) {
-	return std::shared_ptr<T>{ device->create<T>(std::forward<Args>(args)...)};
-}
-
 //シャドウマップ用の深度バッファ生成時に使用
 constexpr uint32_t shadow_difinition = 1024;
 
 int main()
 {
+	//usingしないと演算子が使えない
+	using namespace DirectX;
 
-	auto hwnd = DX12::create_window(L"aaaaa", window_width, window_height);
+	auto hwnd = DX12::create_window(L"directx", window_width, window_height);
 
 	//とりあえずスマートポインタ使っておく
-	auto device = std::make_shared<DX12::device>();
-	if (!device->initialize()) {
+	DX12::device device{};
+	if (!device.initialize()) {
 		std::cout << "device is failed\n";
 		return 0;
 	}
 
-	auto commList = create_shared_ptr<DX12::command_list>(device.get());
-	if (!commList) {
+	//auto commList = create_shared_ptr<DX12::command_list>(&device);
+	DX12::command_list commList{};
+	if (!commList.initialize(&device)) {
 		std::cout << "comList is failed\n";
 		return 0;
 	}
 
-	auto doubleBuffer = create_shared_ptr<DX12::double_buffer>(device.get(), hwnd, commList.get());
-	if (!doubleBuffer) {
+	DX12::double_buffer doubleBuffer{};
+	if (!doubleBuffer.initialize(&device, hwnd, &commList)) {
 		std::cout << "douebl is failed\n";
 		return 0;
 	}
@@ -60,8 +57,8 @@ int main()
 	//
 	//普通の深度とライトの深度用
 	//
-	auto depthBuffer = std::make_unique<DX12::depth_buffer<2>>();
-	if (!depthBuffer->initialize(device.get(), std::make_pair(window_width, window_height), std::make_pair(1024u, 1024u))) {
+	DX12::depth_buffer<2> depthBuffer{};
+	if (!depthBuffer.initialize(&device, std::make_pair(window_width, window_height), std::make_pair(1024u, 1024u))) {
 		std::cout << "depth is failed\n";
 		return false;
 	}
@@ -114,8 +111,6 @@ int main()
 		DirectX::XMLoadFloat4(&planeVec), DirectX::XMLoadFloat3(&parallelLightVec));
 
 	//ライトのポジション
-	//usingしないと演算子が使えない
-	using namespace DirectX;
 	auto lightPos = XMLoadFloat3(&target) + XMVector3Normalize(XMLoadFloat3(&parallelLightVec))
 		* XMVector3Length(XMVectorSubtract(XMLoadFloat3(&target), XMLoadFloat3(&eye))).m128_f32[0];
 
@@ -128,54 +123,63 @@ int main()
 	//
 	//3体のモデルの読み込み
 	//
-	std::shared_ptr<DX12::mmd_model> mmdModel{};
+	DX12::mmd_model mmdModel1{};
 	{
 		auto result = MMDL::load_pmx("../../mmd/Paimon/派蒙.pmx");
 		if (result)
 		{
-			//とりあえず
+			//多分ワイドでしょう
 			auto& model = std::get<MMDL::pmx_model<std::wstring>>(result.value());
 
-			mmdModel = create_shared_ptr<DX12::mmd_model>(device.get(), model, commList.get(), depthBuffer->get_resource(1));
+			if (!mmdModel1.initialize(&device, model, &commList, depthBuffer.get_resource(1))) {
+				std::cout << "mmd model1 init is failed\n";
+				return 0;
+			}
 		}
 		else {
-			std::cout << "model load failed\n";
+			std::cout << "mmd model1 load failed\n";
 			return 0;
 		}
 	}
 
-	std::shared_ptr<DX12::mmd_model> mmdModel2{};
+	DX12::mmd_model mmdModel2{};
 	{
 		auto result = MMDL::load_pmx("../../mmd/Qiqi/七七.pmx");
 		if (result)
 		{
-			//とりあえず
 			auto& model = std::get<MMDL::pmx_model<std::wstring>>(result.value());
 
-			mmdModel2 = create_shared_ptr<DX12::mmd_model>(device.get(), model, commList.get(), depthBuffer->get_resource(1));
+			if (!mmdModel2.initialize(&device, model, &commList, depthBuffer.get_resource(1))) {
+				std::cout << "mmd model2 init is failed\n";
+				return 0;
+			}
 		}
 		else {
-			std::cout << "model2 load failed\n";
+			std::cout << "mmd model2 load failed\n";
 			return 0;
 		}
 	}
 
-	std::shared_ptr<DX12::mmd_model> mmdModel3{};
+	DX12::mmd_model mmdModel3{};
 	{
 		auto result = MMDL::load_pmx("../../mmd/Mona/莫娜1.0.pmx");
 		if (result)
 		{
 			auto& model = std::get<MMDL::pmx_model<std::wstring>>(result.value());
-			mmdModel3 = create_shared_ptr<DX12::mmd_model>(device.get(), model, commList.get(), depthBuffer->get_resource(1));
+
+			if (!mmdModel3.initialize(&device, model, &commList, depthBuffer.get_resource(1))) {
+				std::cout << "mmd model3 init is failed\n";
+				return 0;
+			}
 		}
 		else {
-			std::cout << "model3 load is failed\n";
+			std::cout << "mmd model3 load is failed\n";
 			return 0;
 		}
 	}
 
 	DX12::mmd_model_renderer mmdModelRenderer{};
-	if (!mmdModelRenderer.initialize(device.get())) {
+	if (!mmdModelRenderer.initialize(&device)) {
 		std::cout << "mmd model renderer init is failed\n";
 		return 0;
 	}
@@ -184,13 +188,13 @@ int main()
 	//
 	//ぺらポリゴン
 	//
-	auto perapolygon = std::make_unique<DX12::perapolygon>();
-	if (!perapolygon->initialize(device.get(),depthBuffer->get_resource(0)->get())) {
+	DX12::perapolygon perapolygon{};
+	if (!perapolygon.initialize(&device,depthBuffer.get_resource(0)->get())) {
 		std::cout << "pera false";
 		return 0;
 	}
 	DX12::perapolygon_renderer perapolygonRenderer{};
-	if (!perapolygonRenderer.initialize(device.get())) {
+	if (!perapolygonRenderer.initialize(&device)) {
 		std::cout << "pera renderer init is failed\n";
 		return 0;
 	}
@@ -219,78 +223,77 @@ int main()
 		//回転の計算
 		worldMat *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
 	
-		mmdModel->map_scene_data({ worldMat,view,proj,lightCamera, shadow, eye });
-		mmdModel2->map_scene_data({ worldMat * DirectX::XMMatrixTranslation(5.f,0,5.f),view,proj,lightCamera, shadow, eye });
-		mmdModel3->map_scene_data({ worldMat * DirectX::XMMatrixTranslation(-5.f,0,10.f),view,proj,lightCamera, shadow, eye });
+		mmdModel1.map_scene_data({ worldMat,view,proj,lightCamera, shadow, eye });
+		mmdModel2.map_scene_data({ worldMat * DirectX::XMMatrixTranslation(5.f,0,5.f),view,proj,lightCamera, shadow, eye });
+		mmdModel3.map_scene_data({ worldMat * DirectX::XMMatrixTranslation(-5.f,0,10.f),view,proj,lightCamera, shadow, eye });
 
 		//
 		//光のディプス描写
 		//
 
-		depthBuffer->clear(commList.get(), 1);
+		depthBuffer.clear(&commList, 1);
 
-		commList->get()->RSSetViewports(1, &lightDepthViewport);
-		commList->get()->RSSetScissorRects(1, &lightDepthScissorRect);
+		commList.set_viewport(lightDepthViewport);
+		commList.set_scissor_rect(lightDepthScissorRect);
 
-		auto lightDepthHandle = depthBuffer->get_cpu_handle(1);
-		commList->get()->OMSetRenderTargets(0, nullptr, false, &lightDepthHandle);
+		commList.set_render_target(0, nullptr, depthBuffer.get_cpu_handle(1));
 
-		mmdModelRenderer.preparation_for_drawing_light_depth(commList.get());
-		mmdModel->draw_light_depth(commList.get());
-		mmdModel2->draw_light_depth(commList.get());
-		mmdModel3->draw_light_depth(commList.get());
+		mmdModelRenderer.preparation_for_drawing_light_depth(&commList);
+		mmdModel1.draw_light_depth(&commList);
+		mmdModel2.draw_light_depth(&commList);
+		mmdModel3.draw_light_depth(&commList);
 
 		//
 		//mmdをぺらポリゴンへ描写
 		//
 		
-		commList->get()->RSSetViewports(1, &viewport);
-		commList->get()->RSSetScissorRects(1, &scissorrect);
+		commList.set_viewport(viewport);
+		commList.set_scissor_rect(scissorrect);
 
-		perapolygon->all_resource_barrior(commList.get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
-		perapolygon->clear(commList.get());
+		perapolygon.all_resource_barrior(&commList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		perapolygon.clear(&commList);
 
-		auto [renderNum, perapolygonHandle] = perapolygon->get_render_target_info();
-		auto depthCpuHandle = depthBuffer->get_cpu_handle(0);
-		commList->get()->OMSetRenderTargets(renderNum, perapolygonHandle, false, &depthCpuHandle);
+		auto [renderNum, perapolygonHandle] = perapolygon.get_render_target_info();
+		commList.set_render_target(renderNum, perapolygonHandle, depthBuffer.get_cpu_handle(0));
 
-		depthBuffer->clear(commList.get(), 0);
+		depthBuffer.clear(&commList, 0);
 
-		mmdModelRenderer.preparation_for_drawing(commList.get());
-		mmdModel->draw(commList.get());
-		mmdModel2->draw(commList.get());
-		mmdModel3->draw(commList.get());
+		mmdModelRenderer.preparation_for_drawing(&commList);
+		mmdModel1.draw(&commList);
+		mmdModel2.draw(&commList);
+		mmdModel3.draw(&commList);
 
-		perapolygonRenderer.preparation_for_drawing_for_blur(commList.get());
-		perapolygon->draw_shrink_texture_for_blur(commList.get());
+		perapolygonRenderer.preparation_for_drawing_for_blur(&commList);
+		perapolygon.draw_shrink_texture_for_blur(&commList);
 
-		perapolygon->all_resource_barrior(commList.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
+		perapolygon.all_resource_barrior(&commList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 		
 		//
 		//ぺらポリゴンをバックバッファに描写
 		//
 
-		commList->get()->RSSetViewports(1, &viewport);
-		commList->get()->RSSetScissorRects(1, &scissorrect);
+		commList.set_viewport(viewport);
+		commList.set_scissor_rect(scissorrect);
 
 		//ぺらポリゴンの描写なので深度バッファはいらない
-		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), nullptr);
-		doubleBuffer->clear_back_buffer(commList.get());
+		doubleBuffer.barrior_to_backbuffer(&commList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-		perapolygonRenderer.preparation_for_drawing(commList.get());
-		perapolygon->draw(commList.get());
+		commList.set_render_target(doubleBuffer.get_backbuffer_cpu_handle());
 
-		doubleBuffer->end_drawing_to_backbuffer(commList.get());
+		doubleBuffer.clear_back_buffer(&commList);
 
-		commList->get()->Close();
-		commList->execute();
+		perapolygonRenderer.preparation_for_drawing(&commList);
+		perapolygon.draw(&commList);
 
-		commList->clear();
+		doubleBuffer.barrior_to_backbuffer(&commList, D3D12_RESOURCE_STATE_PRESENT);
 
-		doubleBuffer->flip();
+		commList.close();
+		commList.execute();
 
+		commList.clear();
+
+		doubleBuffer.flip();
 	}
 	
 	return 0;

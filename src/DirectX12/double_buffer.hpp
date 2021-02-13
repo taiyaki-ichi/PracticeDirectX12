@@ -36,14 +36,11 @@ namespace DX12
 		//queueはdeviceに持たせるか？？
 		bool initialize(device*,HWND,command_list*);
 
-		//バックバッファへの描写を開始する
-		//バックバッファをリソースバリアし、レンダーターゲットに指定
-		//あと、バッファのクリア
-		void begin_drawing_to_backbuffer(command_list*, D3D12_CPU_DESCRIPTOR_HANDLE*);
+		//バックバッファのCPUハンドルの取得
+		D3D12_CPU_DESCRIPTOR_HANDLE get_backbuffer_cpu_handle();
 
-		//バックバッファへの描写を終了する
-		//描写が完了するまでバリアする
-		void end_drawing_to_backbuffer(command_list*);
+		//バックバッファへのリソースバリア
+		void barrior_to_backbuffer(command_list*, D3D12_RESOURCE_STATES);
 
 		//バックバッファのクリア
 		void clear_back_buffer(command_list*);

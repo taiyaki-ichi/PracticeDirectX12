@@ -70,26 +70,22 @@ namespace DX12
 			}
 			
 			m_buffer[i].initialize(resourcePtr);
-			m_descriptor_heap->create_view<create_view_type::RTV>(device, m_buffer[i].get());
+			m_descriptor_heap->create_view<resource_type::RTV>(device, m_buffer[i].get());
 		}
 
 		return true;
 	}
 
-	void double_buffer::begin_drawing_to_backbuffer(command_list* cl, D3D12_CPU_DESCRIPTOR_HANDLE* handle)
+	D3D12_CPU_DESCRIPTOR_HANDLE double_buffer::get_backbuffer_cpu_handle()
 	{
 		auto bbIdx = m_swap_chain->GetCurrentBackBufferIndex();
-		m_buffer[bbIdx].barrior(cl, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
-		//レンダーターゲットの作製
-		auto rtvH = m_descriptor_heap->get_cpu_handle(bbIdx);
-		cl->get()->OMSetRenderTargets(1, &rtvH, false, handle);
+		return m_descriptor_heap->get_cpu_handle(bbIdx);
 	}
 
-	void double_buffer::end_drawing_to_backbuffer(command_list* cl)
+	void double_buffer::barrior_to_backbuffer(command_list* cl, D3D12_RESOURCE_STATES state)
 	{
 		auto bbIdx = m_swap_chain->GetCurrentBackBufferIndex();
-		m_buffer[bbIdx].barrior(cl, D3D12_RESOURCE_STATE_PRESENT);
+		m_buffer[bbIdx].barrior(cl, state);
 	}
 
 	void double_buffer::clear_back_buffer(command_list* cl)

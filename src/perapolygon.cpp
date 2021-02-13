@@ -73,7 +73,7 @@ namespace DX12
 		//レンダーターゲット用のディスクリプタヒープにViewを作製
 		for (int i = 0; i < RESOURCE_NUM; i++)
 		{
-			auto result = m_rtv_descriptor_heap.create_view<create_view_type::RTV>(device, m_resource[i].get());
+			auto result = m_rtv_descriptor_heap.create_view<resource_type::RTV>(device, m_resource[i].get());
 			if (!result) {
 				std::cout << "pera rtv create view " << i << " is failed\n";
 				return false;
@@ -87,7 +87,7 @@ namespace DX12
 		//シェーダリソース用のディスクリプタヒープにViewを作製
 		for (int i = 0; i < RESOURCE_NUM; i++)
 		{
-			auto result = m_cbv_srv_usv_descriptor_heap.create_view<create_view_type::SRV>(device, m_resource[i].get());
+			auto result = m_cbv_srv_usv_descriptor_heap.create_view<resource_type::SRV>(device, m_resource[i].get());
 			if (!result) {
 				std::cout << "pera srv create view " << i << " is failed\n";
 				return false;
@@ -97,7 +97,7 @@ namespace DX12
 		//最後に深度バッファのViewを生成
 		//つまり添え字はRESOURCE_NUM
 		{
-			auto result = m_cbv_srv_usv_descriptor_heap.create_view<create_view_type::DSV>(device, depthResource);
+			auto result = m_cbv_srv_usv_descriptor_heap.create_view<resource_type::DSV>(device, depthResource);
 			if (!result) {
 				std::cout << "pera srv depth resource create view is failed\n";
 				return false;
