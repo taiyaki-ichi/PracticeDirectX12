@@ -14,6 +14,7 @@
 #include<array>
 
 #include"mmd_model.hpp"
+#include"mmd_model_renderer.hpp"
 #include"scene_data.hpp"
 
 #include"perapolygon.hpp"
@@ -172,6 +173,12 @@ int main()
 		}
 	}
 
+	DX12::mmd_model_renderer mmdModelRenderer{};
+	if (!mmdModelRenderer.initialize(device.get())) {
+		std::cout << "mmd model renderer init is failed\n";
+		return 0;
+	}
+
 
 	//
 	//‚Ø‚çƒ|ƒŠƒSƒ“
@@ -222,6 +229,7 @@ int main()
 		auto lightDepthHandle = depthBuffer->get_cpu_handle(1);
 		commList->get()->OMSetRenderTargets(0, nullptr, false, &lightDepthHandle);
 
+		mmdModelRenderer.preparation_for_drawing_light_depth(commList.get());
 		mmdModel->draw_light_depth(commList.get());
 		mmdModel2->draw_light_depth(commList.get());
 		mmdModel3->draw_light_depth(commList.get());
@@ -242,6 +250,7 @@ int main()
 
 		depthBuffer->clear(commList.get(), 0);
 
+		mmdModelRenderer.preparation_for_drawing(commList.get());
 		mmdModel->draw(commList.get());
 		mmdModel2->draw(commList.get());
 		mmdModel3->draw(commList.get());

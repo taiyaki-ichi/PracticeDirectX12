@@ -1,13 +1,27 @@
-#include"mmd_model_helper_functions.hpp"
-#include"DirectX12/device.hpp"
+#include"mmd_model_renderer.hpp"
 #include"DirectX12/shader.hpp"
+#include"DirectX12/device.hpp"
+#include"DirectX12/command_list.hpp"
 
 namespace DX12
 {
 
-	std::optional<ID3D12RootSignature*> create_mmd_rootsignature(device* device)
+	mmd_model_renderer::~mmd_model_renderer()
 	{
-		ID3D12RootSignature* rootSignature = nullptr;
+		if (m_pipeline_state)
+			m_pipeline_state->Release();
+		if (m_root_signature)
+			m_root_signature->Release();
+		if (m_light_depth_pipeline_state)
+			m_light_depth_pipeline_state->Release();
+	}
+
+	bool mmd_model_renderer::initialize(device* device)
+	{
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//ルートシグネチャの作製
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 		rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
@@ -57,9 +71,7 @@ namespace DX12
 
 		//まとめる
 		rootSignatureDesc.pParameters = rootparam;//ルートパラメータの先頭アドレス
-		//
 		rootSignatureDesc.NumParameters = 3;//ルートパラメータ数
-		//
 
 		//通常のと、トゥーン用
 		D3D12_STATIC_SAMPLER_DESC samplerDesc[]{ {},{} ,{} };
@@ -103,41 +115,26 @@ namespace DX12
 			std::copy_n((char*)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize(), errstr.begin());
 			std::cout << " : " << errstr << "\n";
 
-			return std::nullopt;
+			return false;
 		}
 
-		result = device->get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+		result = device->get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&m_root_signature));
 		if (FAILED(result)) {
 			std::cout << "CreateRootSignature is falied : CreateRootSignature\n";
-			return std::nullopt;
 		}
 
 		rootSigBlob->Release();
 
-		return rootSignature;
-	}
 
-	std::optional<std::pair<ID3D12PipelineState*, ID3D12PipelineState*>> create_mmd_pipline_state(device* device, ID3D12RootSignature* rootSignature)
-	{
-		if (!rootSignature)
-			return std::nullopt;
 
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//グラフィックスパイプラインの作製
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		auto vertShaderBlob = create_shader_blob(L"shader/VertexShader.hlsl", "main", "vs_5_0");
 		auto pixcShaderBlob = create_shader_blob(L"shader/PixelShader.hlsl", "main", "ps_5_0");
-		auto shadowVertShaderBolb = create_shader_blob(L"shader/VertexShader.hlsl", "shadowVS", "vs_5_0");
+		auto shadowVertShaderBlob = create_shader_blob(L"shader/VertexShader.hlsl", "shadowVS", "vs_5_0");
 
-		auto releaseShaders = [&vertShaderBlob, &pixcShaderBlob, &shadowVertShaderBolb]() {
-			if (vertShaderBlob)
-				vertShaderBlob->Release();
-			if (pixcShaderBlob)
-				pixcShaderBlob->Release();
-			if (shadowVertShaderBolb)
-				shadowVertShaderBolb->Release();
-		};
-
-		//まずは普通のを作る
-		ID3D12PipelineState* pipelineState = nullptr;
 
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineDesc{};
 
@@ -216,21 +213,19 @@ namespace DX12
 		graphicsPipelineDesc.SampleDesc.Quality = 0;//クオリティは最低
 
 		//ルートシグネチャ
-		graphicsPipelineDesc.pRootSignature = rootSignature;
+		graphicsPipelineDesc.pRootSignature = m_root_signature;
 
-		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&pipelineState))))
+		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&m_pipeline_state))))
 		{
 			std::cout << "mmd CreateGraphicsPipelineState is failed\n";
-			releaseShaders();
-			return std::nullopt;
 		}
 
 
 		//ライト深度用のパイプラインステート
 		ID3D12PipelineState* shadowPipelineState = nullptr;
 
-		graphicsPipelineDesc.VS.pShaderBytecode = shadowVertShaderBolb->GetBufferPointer();
-		graphicsPipelineDesc.VS.BytecodeLength = shadowVertShaderBolb->GetBufferSize();
+		graphicsPipelineDesc.VS.pShaderBytecode = shadowVertShaderBlob->GetBufferPointer();
+		graphicsPipelineDesc.VS.BytecodeLength = shadowVertShaderBlob->GetBufferSize();
 		graphicsPipelineDesc.PS.pShaderBytecode = nullptr;
 		graphicsPipelineDesc.PS.BytecodeLength = 0;
 
@@ -241,18 +236,62 @@ namespace DX12
 		graphicsPipelineDesc.RTVFormats[1] = DXGI_FORMAT_UNKNOWN;
 		graphicsPipelineDesc.RTVFormats[2] = DXGI_FORMAT_UNKNOWN;
 
-		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&shadowPipelineState))))
+		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&m_light_depth_pipeline_state))))
 		{
 			std::cout << "mmd shadow CreateGraphicsPipelineState is failed\n";
-			releaseShaders();
-			if (pipelineState)
-				pipelineState->Release();
-			return std::nullopt;
 		}
 
-		releaseShaders();
-		return std::make_pair(pipelineState, shadowPipelineState);
+
+
+		vertShaderBlob->Release();
+		pixcShaderBlob->Release();
+		shadowVertShaderBlob->Release();
+
+
+		if (m_root_signature && m_pipeline_state && m_light_depth_pipeline_state)
+			return true;
+		else
+			return false;
 	}
+
+	void mmd_model_renderer::preparation_for_drawing(command_list* cl)
+	{
+		cl->get()->SetPipelineState(m_pipeline_state);
+		cl->get()->SetGraphicsRootSignature(m_root_signature);
+
+		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	}
+
+	void mmd_model_renderer::preparation_for_drawing_light_depth(command_list* cl)
+	{
+		cl->get()->SetPipelineState(m_light_depth_pipeline_state);
+		cl->get()->SetGraphicsRootSignature(m_root_signature);
+
+		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	}
+
+	mmd_model_renderer::mmd_model_renderer(mmd_model_renderer&& r) noexcept
+	{
+		m_root_signature = r.m_root_signature;
+		m_pipeline_state = r.m_pipeline_state;
+		m_light_depth_pipeline_state = r.m_light_depth_pipeline_state;
+		r.m_root_signature = nullptr;
+		r.m_pipeline_state = nullptr;
+		r.m_light_depth_pipeline_state = nullptr;
+	}
+
+	mmd_model_renderer& mmd_model_renderer::operator=(mmd_model_renderer&& r) noexcept
+	{
+		m_root_signature = r.m_root_signature;
+		m_pipeline_state = r.m_pipeline_state;
+		m_light_depth_pipeline_state = r.m_light_depth_pipeline_state;
+		r.m_root_signature = nullptr;
+		r.m_pipeline_state = nullptr;
+		r.m_light_depth_pipeline_state = nullptr;
+		return *this;
+	}
+
+
 
 
 }

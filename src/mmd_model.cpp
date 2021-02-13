@@ -5,12 +5,11 @@
 #include"DirectX12/descriptor_heap.hpp"
 #include"DirectX12/color_texture.hpp"
 #include"DirectX12/shader.hpp"
-#include"mmd_model_helper_functions.hpp"
 #include"window_size.hpp"
 #include"DirectX12/resource.hpp"
-#include"DirectX12/resource_helper_functions.hpp"
 #include"DirectX12/command_list.hpp"
 #include"DirectX12/utility.hpp"
+#include"DirectX12/resource_helper_functions.hpp"
 #include<algorithm>
 #include<iterator>
 #include<utility>
@@ -91,42 +90,8 @@ namespace DX12
 	}
 
 
-
-	mmd_model::~mmd_model()
-	{
-		if (m_pipeline_state)
-			m_pipeline_state->Release();
-		if (m_shadow_pipeline_state)
-			m_shadow_pipeline_state->Release();
-		if (m_root_signature)
-			m_root_signature->Release();
-	}
-
 	bool mmd_model::initialize(device* device,const MMDL::pmx_model<std::wstring>& pmxModel,command_list* cl, resource* lightDepthResource)
 	{
-
-		{
-			auto result = create_mmd_rootsignature(device);
-			if (result)
-				m_root_signature = result.value();
-			else {
-				std::cout << "mmd init root sig is failed\n";
-				return false;
-			}
-		}
-
-		{
-			auto result = create_mmd_pipline_state(device, m_root_signature);
-			if (result) {
-				m_pipeline_state = result.value().first;
-				m_shadow_pipeline_state = result.value().second;
-			}
-			else {
-				std::cout << "mmd init pipe is failed \n";
-				return false;
-			}
-		}
-
 
 		//’¸“_
 		auto vertex = generate_map_vertex(pmxModel.m_vertex);
@@ -280,11 +245,6 @@ namespace DX12
 	{
 		
 		unsigned int indexOffset = 0;
-	
-		cl->get()->SetPipelineState(m_pipeline_state);
-		cl->get()->SetGraphicsRootSignature(m_root_signature);
-
-		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		cl->get()->IASetVertexBuffers(0, 1, &m_vertex_buffer.get_view());
 		cl->get()->IASetIndexBuffer(&m_index_buffer.get_view());
@@ -322,11 +282,6 @@ namespace DX12
 
 	void mmd_model::draw_light_depth(command_list* cl)
 	{
-
-		cl->get()->SetPipelineState(m_shadow_pipeline_state);
-		cl->get()->SetGraphicsRootSignature(m_root_signature);
-
-		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		cl->get()->IASetVertexBuffers(0, 1, &m_vertex_buffer.get_view());
 		cl->get()->IASetIndexBuffer(&m_index_buffer.get_view());

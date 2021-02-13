@@ -16,7 +16,7 @@ cbuffer Material : register(b1) {
 	float3 ambient;//アンビエント
 };
 
-//float main(BasicType input) : SV_TARGET
+
 PixcelOutput main(BasicType input)
 {
 	
@@ -71,8 +71,6 @@ PixcelOutput main(BasicType input)
 	output.normal.rgb = float3((input.normal.xyz + 1.0f) / 2.0f);
 	output.normal.a = 1;
 
-	
-	//output.highLum = (result > 1.f);
 	float y = dot(float3(0.299f, 0.587f, 0.114f), output.col);
 	output.highLum = y > 0.995f ? output.col : 0.0f;
 	output.highLum.a = 1.0;

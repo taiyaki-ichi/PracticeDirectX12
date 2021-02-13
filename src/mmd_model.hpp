@@ -20,12 +20,6 @@ namespace DX12
 
 	class mmd_model
 	{
-		//通常のパイプラインステート
-		ID3D12PipelineState* m_pipeline_state = nullptr;
-		//シャドウ用のパイプラインステート
-		ID3D12PipelineState* m_shadow_pipeline_state = nullptr;
-		//ルートシグネチャ
-		ID3D12RootSignature* m_root_signature = nullptr;
 
 		//頂点
 		vertex_buffer m_vertex_buffer{};
@@ -75,9 +69,6 @@ namespace DX12
 		D3D12_GPU_DESCRIPTOR_HANDLE m_light_depth_gpu_handle{};
 
 	public:
-		mmd_model() = default;
-		~mmd_model();
-
 		//コマンドリストはテクスチャのコピー用
 		bool initialize(device*, const MMDL::pmx_model<std::wstring>&, command_list*, resource* lightDepthResource);
 
