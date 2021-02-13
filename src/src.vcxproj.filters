@@ -9,11 +9,11 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="DirectX12\color_texture.cpp" />
     <ClCompile Include="mmd_model.cpp" />
-    <ClCompile Include="perapolygon_helper_functions.cpp" />
     <ClCompile Include="perapolygon.cpp" />
     <ClCompile Include="DirectX12\resource.cpp" />
     <ClCompile Include="DirectX12\resource_helper_functions.cpp" />
     <ClCompile Include="mmd_model_renderer.cpp" />
+    <ClCompile Include="perapolygon_renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectX12\command_list.hpp" />
@@ -31,11 +31,11 @@
     <ClInclude Include="scene_data.hpp" />
     <ClInclude Include="window_size.hpp" />
     <ClInclude Include="perapolygon.hpp" />
-    <ClInclude Include="perapolygon_helper_functions.hpp" />
     <ClInclude Include="DirectX12\resource.hpp" />
     <ClInclude Include="DirectX12\resource_helper_functions.hpp" />
     <ClInclude Include="DirectX12\depth_buffer.hpp" />
     <ClInclude Include="mmd_model_renderer.hpp" />
+    <ClInclude Include="perapolygon_renderer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\BasicType.hlsli" />

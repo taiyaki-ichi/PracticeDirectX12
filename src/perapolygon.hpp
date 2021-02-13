@@ -27,10 +27,6 @@ namespace DX12
 
 	class perapolygon
 	{
-		ID3D12RootSignature* m_root_signature = nullptr;
-		ID3D12PipelineState* m_pipeline_state = nullptr;
-		ID3D12PipelineState* m_blur_pipeline_state = nullptr;
-	
 		//リソースたち
 		constexpr static unsigned int RESOURCE_NUM = 5;
 		resource m_resource[RESOURCE_NUM]{};
@@ -56,8 +52,6 @@ namespace DX12
 		D3D12_CPU_DESCRIPTOR_HANDLE m_render_target_view_cpu_handle_array[RENDER_TARGET_HANDLE_NUM]{};
 
 	public:
-		perapolygon() = default;
-		~perapolygon();
 
 		//深度バッファのViewを作りたいので引数に深度バッファ
 		bool initialize(device*, ID3D12Resource* depthResource);

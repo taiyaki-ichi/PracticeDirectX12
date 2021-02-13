@@ -1,15 +1,27 @@
-#include"perapolygon_helper_functions.hpp"
+#include"perapolygon_renderer.hpp"
 #include"DirectX12/device.hpp"
+#include"DirectX12/command_list.hpp"
 #include"DirectX12/shader.hpp"
-#include"DirectX12/vertex_buffer.hpp"
-#include"window_size.hpp"
-#include"DirectX12/resource_helper_functions.hpp"
+
+#include<iostream>
 
 namespace DX12
 {
-	std::optional<ID3D12RootSignature*> create_perapolygon_root_signature(device* device)
+	perapolygon_renderer::~perapolygon_renderer()
 	{
-		ID3D12RootSignature* resultPtr = nullptr;
+		if (m_blur_pipeline_state)
+			m_blur_pipeline_state->Release();
+		if (m_pipeline_state)
+			m_pipeline_state->Release();
+		if (m_root_signature)
+			m_root_signature->Release();
+	}
+
+	bool perapolygon_renderer::initialize(device* device)
+	{
+		////////////////////////////////////////////////////////////////////////////////////////
+		//ルートシグネチャの作製
+		////////////////////////////////////////////////////////////////////////////////////////
 
 		D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 		rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
@@ -57,27 +69,21 @@ namespace DX12
 			errstr.resize(errorBlob->GetBufferSize());
 			std::copy_n((char*)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize(), errstr.begin());
 			std::cout << " : " << errstr << "\n";
-
-			return std::nullopt;
 		}
 
-		result = device->get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&resultPtr));
+		result = device->get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&m_root_signature));
 		if (FAILED(result)) {
 			std::cout << "perapolygon CreateRootSignature is falied : CreateRootSignature\n";
-			return std::nullopt;
 		}
 
 		rootSigBlob->Release();
 
-		return resultPtr;
-	}
 
 
-	std::optional<std::pair<ID3D12PipelineState*, ID3D12PipelineState*>> create_perapolygon_pipline_state(device* device, ID3D12RootSignature* rootSignature)
-	{
-		ID3D12PipelineState* result = nullptr;
-		ID3D12PipelineState* result2 = nullptr;
-
+		////////////////////////////////////////////////////////////////////////////////////////
+		//パイプラインステートたちの作製
+		////////////////////////////////////////////////////////////////////////////////////////
+		
 		auto vertexShader = create_shader_blob(L"shader/peraVertexShader.hlsl", "main", "vs_5_0");
 		auto pixelShader = create_shader_blob(L"shader/peraPixelShader.hlsl", "main", "ps_5_0");
 		auto blurPixelShader = create_shader_blob(L"shader/peraPixelShader.hlsl", "BlurPS", "ps_5_0");
@@ -157,15 +163,10 @@ namespace DX12
 		graphicsPipelineDesc.SampleDesc.Quality = 0;//クオリティは最低
 
 		//ルートシグネチャ
-		graphicsPipelineDesc.pRootSignature = rootSignature;
+		graphicsPipelineDesc.pRootSignature = m_root_signature;
 
-		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&result))))
-		{
+		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&m_pipeline_state)))){
 			std::cout << "pera CreateGraphicsPipelineState is failed\n";
-			vertexShader->Release();
-			pixelShader->Release();
-			blurPixelShader->Release();
-			return std::nullopt;
 		}
 
 		//ピクセルシェーダの設定
@@ -173,28 +174,65 @@ namespace DX12
 		graphicsPipelineDesc.PS.BytecodeLength = blurPixelShader->GetBufferSize();
 
 		graphicsPipelineDesc.DepthStencilState.DepthEnable = false;
-		
+
 		graphicsPipelineDesc.NumRenderTargets = 2;
 		graphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 		graphicsPipelineDesc.RTVFormats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 
-		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&result2))))
-		{
+		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&m_blur_pipeline_state)))){
 			std::cout << "pera CreateGraphicsPipelineState 2 is failed\n";
-			vertexShader->Release();
-			pixelShader->Release();
-			blurPixelShader->Release();
-			result->Release();
-			return std::nullopt;
 		}
 
 		vertexShader->Release();
 		pixelShader->Release();
 		blurPixelShader->Release();
 
-		return std::make_pair(result, result2);
+
+		if (m_blur_pipeline_state && m_pipeline_state && m_root_signature)
+			return true;
+		else
+			return false;
+
 	}
+
+	void perapolygon_renderer::preparation_for_drawing(command_list* cl)
+	{
+		cl->get()->SetPipelineState(m_pipeline_state);
+		cl->get()->SetGraphicsRootSignature(m_root_signature);
+
+		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	}
+
+	void perapolygon_renderer::preparation_for_drawing_for_blur(command_list* cl)
+	{
+		cl->get()->SetPipelineState(m_blur_pipeline_state);
+		cl->get()->SetGraphicsRootSignature(m_root_signature);
+
+		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	}
+
+	perapolygon_renderer::perapolygon_renderer(perapolygon_renderer&& r) noexcept
+	{
+		m_blur_pipeline_state = r.m_blur_pipeline_state;
+		m_pipeline_state = r.m_pipeline_state;
+		m_root_signature = r.m_root_signature;
+		r.m_blur_pipeline_state = nullptr;
+		r.m_pipeline_state = nullptr;
+		r.m_root_signature = nullptr;
+	}
+
+	perapolygon_renderer& perapolygon_renderer::operator=(perapolygon_renderer&& r) noexcept
+	{
+		m_blur_pipeline_state = r.m_blur_pipeline_state;
+		m_pipeline_state = r.m_pipeline_state;
+		m_root_signature = r.m_root_signature;
+		r.m_blur_pipeline_state = nullptr;
+		r.m_pipeline_state = nullptr;
+		r.m_root_signature = nullptr;
+		return *this;
+	}
+
 
 
 }

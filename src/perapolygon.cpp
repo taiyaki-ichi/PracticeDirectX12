@@ -1,6 +1,5 @@
 #include"perapolygon.hpp"
 #include"DirectX12/device.hpp"
-#include"perapolygon_helper_functions.hpp"
 #include"DirectX12/vertex_buffer.hpp"
 #include"DirectX12/resource_type_tag.hpp"
 #include"DirectX12/descriptor_heap.hpp"
@@ -11,41 +10,9 @@
 namespace DX12
 {
 
-	perapolygon::~perapolygon()
-	{
-		if (m_pipeline_state)
-			m_pipeline_state->Release();
-		if (m_blur_pipeline_state)
-			m_blur_pipeline_state->Release();
-		if (m_root_signature)
-			m_root_signature->Release();
-	}
 
 	bool perapolygon::initialize(device* device, ID3D12Resource* depthResource)
 	{
-		//ルートシグネチャ
-		{
-			auto result = create_perapolygon_root_signature(device);
-			if (result)
-				m_root_signature = result.value();
-			else {
-				std::cout << "pera root sig is failed\n";
-				return false;
-			}
-		}
-
-		//パイプインステート
-		{
-			auto result = create_perapolygon_pipline_state(device, m_root_signature);
-			if (result) {
-				m_pipeline_state = result.value().first;
-				m_blur_pipeline_state = result.value().second;
-			}
-			else {
-				std::cout << "pera pipe line is failed\n";
-				return false;
-			}
-		}
 
 		//レンダーターゲット用のディスクリプタヒープ
 		if (!m_rtv_descriptor_heap.initialize(device, 5)) {
@@ -168,11 +135,6 @@ namespace DX12
 
 	void perapolygon::draw(command_list* cl)
 	{
-
-		cl->get()->SetPipelineState(m_pipeline_state);
-		cl->get()->SetGraphicsRootSignature(m_root_signature);
-
-		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		cl->get()->IASetVertexBuffers(0, 1, &m_vertex_buffer.get_view());
 		cl->get()->SetDescriptorHeaps(1, &m_cbv_srv_usv_descriptor_heap.get());
 		cl->get()->SetGraphicsRootDescriptorTable(0, m_cbv_srv_usv_descriptor_heap.get_gpu_handle());
@@ -182,11 +144,6 @@ namespace DX12
 
 	void perapolygon::draw_shrink_texture_for_blur(command_list* cl)
 	{
-
-		cl->get()->SetPipelineState(m_blur_pipeline_state);
-		cl->get()->SetGraphicsRootSignature(m_root_signature);
-
-		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		cl->get()->IASetVertexBuffers(0, 1, &m_vertex_buffer.get_view());
 
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle[] = {

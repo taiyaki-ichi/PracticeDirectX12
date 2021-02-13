@@ -18,6 +18,7 @@
 #include"scene_data.hpp"
 
 #include"perapolygon.hpp"
+#include"perapolygon_renderer.hpp"
 
 
 #include<iostream>
@@ -188,6 +189,11 @@ int main()
 		std::cout << "pera false";
 		return 0;
 	}
+	DX12::perapolygon_renderer perapolygonRenderer{};
+	if (!perapolygonRenderer.initialize(device.get())) {
+		std::cout << "pera renderer init is failed\n";
+		return 0;
+	}
 
 
 
@@ -255,7 +261,7 @@ int main()
 		mmdModel2->draw(commList.get());
 		mmdModel3->draw(commList.get());
 
-
+		perapolygonRenderer.preparation_for_drawing_for_blur(commList.get());
 		perapolygon->draw_shrink_texture_for_blur(commList.get());
 
 		perapolygon->all_resource_barrior(commList.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -273,6 +279,7 @@ int main()
 		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), nullptr);
 		doubleBuffer->clear_back_buffer(commList.get());
 
+		perapolygonRenderer.preparation_for_drawing(commList.get());
 		perapolygon->draw(commList.get());
 
 		doubleBuffer->end_drawing_to_backbuffer(commList.get());
