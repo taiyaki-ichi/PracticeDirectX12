@@ -12,7 +12,7 @@
 #include<iostream>
 
 
-namespace ichi
+namespace DX12
 {
 	class resource;
 	class device;

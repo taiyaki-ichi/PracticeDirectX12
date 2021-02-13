@@ -3,7 +3,7 @@
 #include"device.hpp"
 #include"command_list.hpp"
 
-namespace ichi
+namespace DX12
 {
 
 	resource create_constant_resource(device* device, unsigned int size)

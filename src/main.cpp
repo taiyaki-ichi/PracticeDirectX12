@@ -24,7 +24,7 @@
 
 //糖衣用
 template<typename T,typename... Args>
-std::shared_ptr<T> create_shared_ptr(ichi::device* device,Args&&... args) {
+std::shared_ptr<T> create_shared_ptr(DX12::device* device,Args&&... args) {
 	return std::shared_ptr<T>{ device->create<T>(std::forward<Args>(args)...)};
 }
 
@@ -34,29 +34,29 @@ constexpr uint32_t shadow_difinition = 1024;
 int main()
 {
 
-	auto hwnd = ichi::create_window(L"aaaaa", window_width, window_height);
+	auto hwnd = DX12::create_window(L"aaaaa", window_width, window_height);
 
 	//とりあえずスマートポインタ使っておく
-	auto device = std::make_shared<ichi::device>();
+	auto device = std::make_shared<DX12::device>();
 	if (!device->initialize()) {
 		std::cout << "device is failed\n";
 		return 0;
 	}
 
-	auto commList = create_shared_ptr<ichi::command_list>(device.get());
+	auto commList = create_shared_ptr<DX12::command_list>(device.get());
 	if (!commList) {
 		std::cout << "comList is failed\n";
 		return 0;
 	}
 
-	auto doubleBuffer = create_shared_ptr<ichi::double_buffer>(device.get(), hwnd, commList.get());
+	auto doubleBuffer = create_shared_ptr<DX12::double_buffer>(device.get(), hwnd, commList.get());
 	if (!doubleBuffer) {
 		std::cout << "douebl is failed\n";
 		return 0;
 	}
 
 	//普通の深度とライトの深度用
-	auto depthBuffer = std::make_unique<ichi::depth_buffer<2>>();
+	auto depthBuffer = std::make_unique<DX12::depth_buffer<2>>();
 	if (!depthBuffer->initialize(device.get(), std::make_pair(window_width, window_height), std::make_pair(1024u, 1024u))) {
 		std::cout << "depth is failed\n";
 		return false;
@@ -124,7 +124,7 @@ int main()
 	//
 	//モデルの読み込み
 	//
-	auto mmdModel = std::shared_ptr<ichi::mmd_model>{};
+	auto mmdModel = std::shared_ptr<DX12::mmd_model>{};
 
 	auto modelIf = MMDL::load_pmx("../../mmd/Paimon/派蒙.pmx");
 	//auto modelIf = MMDL::load_pmx("../../mmd/Diona/迪奥娜.pmx");
@@ -133,7 +133,7 @@ int main()
 		//とりあえず
 		auto& model = std::get<MMDL::pmx_model<std::wstring>>(modelIf.value());
 
-		mmdModel = create_shared_ptr<ichi::mmd_model>(device.get(), model, commList.get(), depthBuffer->get_resource(1));
+		mmdModel = create_shared_ptr<DX12::mmd_model>(device.get(), model, commList.get(), depthBuffer->get_resource(1));
 	}
 	else {
 		std::cout << "model loaf failed\n";
@@ -144,7 +144,7 @@ int main()
 	//
 	//ぺらポリゴン
 	//
-	auto perapolygon = std::make_unique<ichi::perapolygon>();
+	auto perapolygon = std::make_unique<DX12::perapolygon>();
 	if (!perapolygon->initialize(device.get(),depthBuffer->get_resource(0)->get())) {
 		std::cout << "pera false";
 		return 0;
@@ -169,7 +169,7 @@ int main()
 	lightDepthScissorRect.right = lightDepthScissorRect.left + shadow_difinition;//切り抜き右座標
 	lightDepthScissorRect.bottom = lightDepthScissorRect.top + shadow_difinition;//切り抜き下座標
 
-	while (ichi::update_window()) {
+	while (DX12::update_window()) {
 		
 		//回転の計算
 		worldMat *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);

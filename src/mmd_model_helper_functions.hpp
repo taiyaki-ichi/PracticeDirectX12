@@ -7,7 +7,7 @@
 #pragma comment(lib,"dxgi.lib")
 
 
-namespace ichi
+namespace DX12
 {
 	class device;
 
@@ -17,9 +17,5 @@ namespace ichi
 	//mmd用のパイプラインステートの作製
 	//前者は普通の、後者はシャドウ用の
 	std::optional<std::pair<ID3D12PipelineState*, ID3D12PipelineState*>> create_mmd_pipline_state(device*, ID3D12RootSignature*);
-
-	//mmdの描写に使用する深度バッファとライト深度バッファの作製
-	std::optional<std::pair<ID3D12Resource*, ID3D12Resource*>>
-		create_mmd_depth_buffers(device*, unsigned int windowWidth, unsigned int windowHeight, unsigned int shadowDifinition);
 
 }

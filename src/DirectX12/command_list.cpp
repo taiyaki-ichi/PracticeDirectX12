@@ -3,7 +3,7 @@
 
 #include<iostream>
 
-namespace ichi
+namespace DX12
 {
 	command_list::~command_list()
 	{

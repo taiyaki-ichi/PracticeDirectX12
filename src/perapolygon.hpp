@@ -12,7 +12,7 @@
 
 #include"DirectX12/color_texture.hpp"
 
-namespace ichi
+namespace DX12
 {
 	class device;
 	template<typename>

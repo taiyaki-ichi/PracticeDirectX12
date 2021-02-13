@@ -5,7 +5,7 @@
 #include"window_size.hpp"
 #include"DirectX12/resource_helper_functions.hpp"
 
-namespace ichi
+namespace DX12
 {
 	std::optional<ID3D12RootSignature*> create_perapolygon_root_signature(device* device)
 	{
@@ -199,27 +199,5 @@ namespace ichi
 		return std::make_pair(result, result2);
 	}
 
-	std::optional<std::unique_ptr<vertex_buffer>> create_perapolygon_vertex_buffer(device* device)
-	{
-		auto peraVertexBuff = std::make_unique<ichi::vertex_buffer>();
-		struct PeraVert {
-			DirectX::XMFLOAT3 pos;
-			DirectX::XMFLOAT2 uv;
-		};
-		PeraVert pv[4] = {
-			{{-1.f,-1.f,0.1f},{0,1.f}},
-			{{-1.f,1.f,0.1f},{0,0}},
-			{{1.f,-1.f,0.1f},{1.f,1.f}},
-			{{1.f,1.f,0.1f},{1.f,0}},
-		};
-
-		if (!peraVertexBuff->initialize(device, sizeof(pv), sizeof(pv[0]))) 
-			return std::nullopt;
-	
-		map_to_resource(peraVertexBuff.get(), pv);
-	
-
-		return peraVertexBuff;
-	}
 
 }

@@ -7,7 +7,7 @@
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
 
-namespace ichi
+namespace DX12
 {
 	class command_list;
 	class vertex_buffer;
@@ -38,7 +38,7 @@ namespace ichi
 			//デフォルト構築が可能
 			static_assert(std::is_default_constructible_v<T>);
 			//メンバ関数にinitializeを持っておりその第一引数はdevice
-			static_assert(std::is_invocable_v<decltype(&T::initialize), T, ichi::device*, Args...>);
+			static_assert(std::is_invocable_v<decltype(&T::initialize), T, DX12::device*, Args...>);
 
 			auto t = new T{};
 			if (t->initialize(this, std::forward<Args>(args)...)) {

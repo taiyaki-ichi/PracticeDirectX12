@@ -8,7 +8,7 @@
 #include"DirectX12/resource_helper_functions.hpp"
 #include"window_size.hpp"
 
-namespace ichi
+namespace DX12
 {
 
 	perapolygon::~perapolygon()

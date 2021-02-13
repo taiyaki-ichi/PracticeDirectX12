@@ -3,7 +3,7 @@
 
 #include<iostream>
 
-namespace ichi
+namespace DX12
 {
 
 	bool vertex_buffer::initialize(device* device, unsigned int size, unsigned int stride)

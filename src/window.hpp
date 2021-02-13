@@ -2,7 +2,7 @@
 #include<Windows.h>
 #include<optional>
 
-namespace ichi
+namespace DX12
 {
 	namespace {
 

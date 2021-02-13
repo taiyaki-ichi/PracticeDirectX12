@@ -8,7 +8,7 @@
 #pragma comment(lib,"dxgi.lib")
 
 
-namespace ichi
+namespace DX12
 {
 	class device;
 	class vertex_buffer;
@@ -21,6 +21,4 @@ namespace ichi
 	//２つ目はぼかし用
 	std::optional<std::pair<ID3D12PipelineState*, ID3D12PipelineState*>> create_perapolygon_pipline_state(device*, ID3D12RootSignature*);
 
-	//ぺらポリゴンをバックバッファに描写するのバーテックスバッファ
-	std::optional<std::unique_ptr<vertex_buffer>> create_perapolygon_vertex_buffer(device*);
 }

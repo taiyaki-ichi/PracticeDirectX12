@@ -12,7 +12,7 @@
 #pragma comment(lib,"dxgi.lib")
 #pragma comment(lib,"DirectXTex.lib")
 
-namespace ichi
+namespace DX12
 {
 	//ƒAƒŒƒ“ƒWƒƒ“ƒg
 	inline constexpr size_t alignment_size(size_t size, size_t alignment) {

@@ -10,7 +10,7 @@
 #pragma comment(lib,"dxgi.lib")
 #pragma comment(lib,"d3dcompiler.lib")
 
-namespace ichi
+namespace DX12
 {
 	//ファイルネームとエントリポイントからシェーダをコンパイルしblobを返す
 	inline ID3DBlob* create_shader_blob(const wchar_t* fileName, const char* funcName, const char* include)

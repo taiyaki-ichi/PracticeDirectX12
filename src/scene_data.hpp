@@ -1,7 +1,7 @@
 #pragma once
 #include<DirectXMath.h>
 
-namespace ichi
+namespace DX12
 {
 	//‚µ‚¥‚¾[‚É“n‚·—p
 	struct scene_data

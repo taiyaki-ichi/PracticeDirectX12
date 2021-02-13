@@ -1,6 +1,6 @@
 #pragma once
 
-namespace ichi
+namespace DX12
 {
 
 	//viewê∂ê¨óp

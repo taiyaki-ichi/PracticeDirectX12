@@ -2,7 +2,7 @@
 #include"device.hpp"
 #include"command_list.hpp"
 
-namespace ichi
+namespace DX12
 {
 
 	resource::~resource()

@@ -2,7 +2,7 @@
 #include"device.hpp"
 #include<vector>
 
-namespace ichi
+namespace DX12
 {
 	
 	bool color_texture_resource_base::initialize(device* device, unsigned int width, unsigned int height)

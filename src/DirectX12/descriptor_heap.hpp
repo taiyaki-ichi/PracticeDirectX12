@@ -10,7 +10,7 @@
 #pragma comment(lib,"dxgi.lib")
 
 
-namespace ichi
+namespace DX12
 {
 	class device;
 
@@ -137,13 +137,13 @@ namespace ichi
 
 	template<class DescriptorHeapType>
 	template<typename T, typename CreateType>
-	inline std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> ichi::descriptor_heap<DescriptorHeapType>::create_view(device* device, T* resourcePtr)
+	inline std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> DX12::descriptor_heap<DescriptorHeapType>::create_view(device* device, T* resourcePtr)
 	{
 		return create_view<CreateType>(device, resourcePtr->get());
 	}
 
 	template<class DescriptorHeapType>
-	inline std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> ichi::descriptor_heap<DescriptorHeapType>::create_view(...)
+	inline std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> DX12::descriptor_heap<DescriptorHeapType>::create_view(...)
 	{
 		std::cout << "descriptor heap create view failed type\n";
 		return std::nullopt;
@@ -346,7 +346,7 @@ namespace ichi
 	//ƒ€[ƒu
 	//
 	template<class DescriptorHeapType>
-	inline ichi::descriptor_heap<DescriptorHeapType>::descriptor_heap(descriptor_heap<DescriptorHeapType>&& r) noexcept
+	inline DX12::descriptor_heap<DescriptorHeapType>::descriptor_heap(descriptor_heap<DescriptorHeapType>&& r) noexcept
 	{
 		m_descriptor_heap = r.m_descriptor_heap;;
 		m_size = r.m_size;

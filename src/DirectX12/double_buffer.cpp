@@ -6,7 +6,7 @@
 
 #include<iostream>
 
-namespace ichi
+namespace DX12
 {
 	double_buffer::~double_buffer()
 	{

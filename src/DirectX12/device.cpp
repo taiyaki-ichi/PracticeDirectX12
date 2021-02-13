@@ -7,7 +7,7 @@
 
 #include<iostream>
 
-namespace ichi
+namespace DX12
 {
 
 	device::~device() {

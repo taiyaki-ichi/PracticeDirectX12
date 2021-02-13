@@ -10,7 +10,7 @@
 #include<vector>
 #include<string>
 
-namespace ichi
+namespace DX12
 {
 	class device;
 	class vertex_buffer;

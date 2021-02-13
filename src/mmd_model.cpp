@@ -16,7 +16,7 @@
 #include<utility>
 #include<cassert>
 
-namespace ichi
+namespace DX12
 {
 	namespace
 	{
