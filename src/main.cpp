@@ -79,7 +79,7 @@ int main()
 	//
 	//viewproj
 	//
-	DirectX::XMFLOAT3 eye{ 0,5,-6 };
+	DirectX::XMFLOAT3 eye{ 0,7,-6 };
 	DirectX::XMFLOAT3 target{ 0,5,0 };
 	DirectX::XMFLOAT3 up{ 0,1,0 };
 	auto view = DirectX::XMMatrixLookAtLH(
@@ -122,22 +122,52 @@ int main()
 	//mmdモデルの頂点情報
 	//頂点レイアウトとシェーダを変更するので注意
 	//
-	//モデルの読み込み
+	//3体のモデルの読み込み
 	//
-	auto mmdModel = std::shared_ptr<DX12::mmd_model>{};
-
-	auto modelIf = MMDL::load_pmx("../../mmd/Paimon/派蒙.pmx");
-	//auto modelIf = MMDL::load_pmx("../../mmd/Diona/迪奥娜.pmx");
-	if (modelIf)
+	std::shared_ptr<DX12::mmd_model> mmdModel{};
 	{
-		//とりあえず
-		auto& model = std::get<MMDL::pmx_model<std::wstring>>(modelIf.value());
+		auto result = MMDL::load_pmx("../../mmd/Paimon/派蒙.pmx");
+		if (result)
+		{
+			//とりあえず
+			auto& model = std::get<MMDL::pmx_model<std::wstring>>(result.value());
 
-		mmdModel = create_shared_ptr<DX12::mmd_model>(device.get(), model, commList.get(), depthBuffer->get_resource(1));
+			mmdModel = create_shared_ptr<DX12::mmd_model>(device.get(), model, commList.get(), depthBuffer->get_resource(1));
+		}
+		else {
+			std::cout << "model load failed\n";
+			return 0;
+		}
 	}
-	else {
-		std::cout << "model loaf failed\n";
-		return 0;
+
+	std::shared_ptr<DX12::mmd_model> mmdModel2{};
+	{
+		auto result = MMDL::load_pmx("../../mmd/Qiqi/七七.pmx");
+		if (result)
+		{
+			//とりあえず
+			auto& model = std::get<MMDL::pmx_model<std::wstring>>(result.value());
+
+			mmdModel2 = create_shared_ptr<DX12::mmd_model>(device.get(), model, commList.get(), depthBuffer->get_resource(1));
+		}
+		else {
+			std::cout << "model2 load failed\n";
+			return 0;
+		}
+	}
+
+	std::shared_ptr<DX12::mmd_model> mmdModel3{};
+	{
+		auto result = MMDL::load_pmx("../../mmd/Mona/莫娜1.0.pmx");
+		if (result)
+		{
+			auto& model = std::get<MMDL::pmx_model<std::wstring>>(result.value());
+			mmdModel3 = create_shared_ptr<DX12::mmd_model>(device.get(), model, commList.get(), depthBuffer->get_resource(1));
+		}
+		else {
+			std::cout << "model3 load is failed\n";
+			return 0;
+		}
 	}
 
 
@@ -176,6 +206,8 @@ int main()
 	
 
 		mmdModel->map_scene_data({ worldMat,view,proj,lightCamera, shadow, eye });
+		mmdModel2->map_scene_data({ worldMat * DirectX::XMMatrixTranslation(5.f,0,5.f),view,proj,lightCamera, shadow, eye });
+		mmdModel3->map_scene_data({ worldMat * DirectX::XMMatrixTranslation(-5.f,0,10.f),view,proj,lightCamera, shadow, eye });
 
 		//
 		//光のディプス描写
@@ -190,6 +222,8 @@ int main()
 		commList->get()->OMSetRenderTargets(0, nullptr, false, &lightDepthHandle);
 
 		mmdModel->draw_light_depth(commList.get());
+		mmdModel2->draw_light_depth(commList.get());
+		mmdModel3->draw_light_depth(commList.get());
 
 		//
 		//mmdをぺらポリゴンへ描写
@@ -208,6 +242,8 @@ int main()
 		depthBuffer->clear(commList.get(), 0);
 
 		mmdModel->draw(commList.get());
+		mmdModel2->draw(commList.get());
+		mmdModel3->draw(commList.get());
 
 
 		perapolygon->draw_shrink_texture_for_blur(commList.get());
