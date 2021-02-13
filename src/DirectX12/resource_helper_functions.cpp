@@ -219,7 +219,7 @@ namespace DX12
 
 		//このクリアバリューが重要な意味を持つ
 		D3D12_CLEAR_VALUE depthClearValue{};
-		depthClearValue.DepthStencil.Depth = 1.0f;//深さ１(最大値)でクリア
+		depthClearValue.DepthStencil.Depth = 1.f;//深さ１(最大値)でクリア
 		depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;//32bit深度値としてクリア
 
 		if (!result.initialize(

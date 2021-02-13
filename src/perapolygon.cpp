@@ -128,7 +128,7 @@ namespace DX12
 		}
 
 		//最後に深度バッファのViewを生成
-		//つまり添え字はRESOURCE_NUM+1
+		//つまり添え字はRESOURCE_NUM
 		{
 			auto result = m_cbv_srv_usv_descriptor_heap.create_view<create_view_type::DSV>(device, depthResource);
 			if (!result) {
@@ -168,6 +168,7 @@ namespace DX12
 
 	void perapolygon::draw(command_list* cl)
 	{
+
 		cl->get()->SetPipelineState(m_pipeline_state);
 		cl->get()->SetGraphicsRootSignature(m_root_signature);
 

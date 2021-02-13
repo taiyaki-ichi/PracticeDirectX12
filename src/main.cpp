@@ -55,7 +55,9 @@ int main()
 		return 0;
 	}
 
+	//
 	//•’Ê‚Ì[“x‚Æƒ‰ƒCƒg‚Ì[“x—p
+	//
 	auto depthBuffer = std::make_unique<DX12::depth_buffer<2>>();
 	if (!depthBuffer->initialize(device.get(), std::make_pair(window_width, window_height), std::make_pair(1024u, 1024u))) {
 		std::cout << "depth is failed\n";
@@ -204,7 +206,6 @@ int main()
 		//‰ñ“]‚ÌŒvZ
 		worldMat *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
 	
-
 		mmdModel->map_scene_data({ worldMat,view,proj,lightCamera, shadow, eye });
 		mmdModel2->map_scene_data({ worldMat * DirectX::XMMatrixTranslation(5.f,0,5.f),view,proj,lightCamera, shadow, eye });
 		mmdModel3->map_scene_data({ worldMat * DirectX::XMMatrixTranslation(-5.f,0,10.f),view,proj,lightCamera, shadow, eye });
@@ -259,7 +260,8 @@ int main()
 		commList->get()->RSSetViewports(1, &viewport);
 		commList->get()->RSSetScissorRects(1, &scissorrect);
 
-		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), depthBuffer->get_cpu_handle(0));
+		//‚Ø‚çƒ|ƒŠƒSƒ“‚Ì•`Ê‚È‚Ì‚Å[“xƒoƒbƒtƒ@‚Í‚¢‚ç‚È‚¢
+		doubleBuffer->begin_drawing_to_backbuffer(commList.get(), nullptr);
 		doubleBuffer->clear_back_buffer(commList.get());
 
 		perapolygon->draw(commList.get());

@@ -97,7 +97,7 @@ namespace DX12
 	inline void depth_buffer<Size>::clear(command_list* cl,unsigned int index)
 	{
 		cl->get()->ClearDepthStencilView(m_descriptor_heap.get_cpu_handle(index),
-			D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+			D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 	}
 
 	template<unsigned int Size>

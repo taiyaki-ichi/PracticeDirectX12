@@ -76,14 +76,14 @@ namespace DX12
 		return true;
 	}
 
-	void double_buffer::begin_drawing_to_backbuffer(command_list* cl, const D3D12_CPU_DESCRIPTOR_HANDLE& handle)
+	void double_buffer::begin_drawing_to_backbuffer(command_list* cl, D3D12_CPU_DESCRIPTOR_HANDLE* handle)
 	{
 		auto bbIdx = m_swap_chain->GetCurrentBackBufferIndex();
 		m_buffer[bbIdx].barrior(cl, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 		//レンダーターゲットの作製
 		auto rtvH = m_descriptor_heap->get_cpu_handle(bbIdx);
-		cl->get()->OMSetRenderTargets(1, &rtvH, false, &handle);
+		cl->get()->OMSetRenderTargets(1, &rtvH, false, handle);
 	}
 
 	void double_buffer::end_drawing_to_backbuffer(command_list* cl)

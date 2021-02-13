@@ -154,11 +154,11 @@ namespace DX12
 
 		//ラスタライザーステート設定用構造体の設定
 		D3D12_RENDER_TARGET_BLEND_DESC renderBlend{};
-		renderBlend.BlendEnable = FALSE;
+		renderBlend.BlendEnable = TRUE;// FALSE;
 		renderBlend.BlendOp = D3D12_BLEND_OP_ADD;
 		renderBlend.BlendOpAlpha = D3D12_BLEND_OP_ADD;
 		renderBlend.DestBlend = D3D12_BLEND_ZERO;
-		renderBlend.DestBlendAlpha = D3D12_BLEND_ZERO;
+		renderBlend.DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA; //D3D12_BLEND_ZERO;
 		renderBlend.LogicOp = D3D12_LOGIC_OP_NOOP;
 		renderBlend.LogicOpEnable = FALSE;
 		renderBlend.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
@@ -181,9 +181,9 @@ namespace DX12
 
 		//残り
 		graphicsPipelineDesc.RasterizerState.FrontCounterClockwise = false;
-		graphicsPipelineDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
+		graphicsPipelineDesc.RasterizerState.DepthBias = 0.1f;// D3D12_DEFAULT_DEPTH_BIAS;
 		graphicsPipelineDesc.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
-		graphicsPipelineDesc.RasterizerState.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+		graphicsPipelineDesc.RasterizerState.SlopeScaledDepthBias = 0.01f;// D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
 		graphicsPipelineDesc.RasterizerState.AntialiasedLineEnable = false;
 		graphicsPipelineDesc.RasterizerState.ForcedSampleCount = 0;
 		graphicsPipelineDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;

@@ -131,10 +131,7 @@ namespace DX12
 		graphicsPipelineDesc.RasterizerState.AntialiasedLineEnable = false;
 		graphicsPipelineDesc.RasterizerState.ForcedSampleCount = 0;
 		graphicsPipelineDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
-		graphicsPipelineDesc.DepthStencilState.DepthEnable = true;
-		graphicsPipelineDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-		graphicsPipelineDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
-		graphicsPipelineDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+		graphicsPipelineDesc.DepthStencilState.DepthEnable = false;
 		graphicsPipelineDesc.DepthStencilState.StencilEnable = false;
 
 		//
