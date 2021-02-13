@@ -71,61 +71,22 @@ float4 main(Output input) : SV_TARGET
 	}
 	*/
 
-	/*
-	float d = depthTex.Sample(smp, input.uv);
-	if (0.1f<d&&d<=1.f)
-		return float4(d, d, d, 1.f);
-	else
-		return float4(1.f, 1.f, 1.f, 1.f);
-	*/
-	//return depthTex.Sample(smp, input.uv) > 0.1f ? depthTex.Sample(smp, input.uv) : 1.f;
-	return depthTex.Sample(smp, input.uv);
-
-	/*
-	if (input.uv.x < 0.3 && input.uv.y < 0.3)
-	{
-		float d = depthTex.Sample(smp, input.uv / 0.3);
-		return float4(d, d, d, 1.f);
-	}
-	*/
-
-
-
-	float2 inputuv = input.uv - float2(0.1, 0);
 
 	float w, h, miplevels;
 	tex.GetDimensions(0, w, h, miplevels);
 	float dx = 1.0 / w;
 	float dy = 1.0 / h;
-	
-	float4 bloomAccum = float4(0, 0, 0, 0);
-	float2 uvSize = float2(1, 0.5);
-	float2 uvOfst = float2(0, 0);
-
-	
-	/*
-	for (int i = 0; i < 3; ++i) {
-		bloomAccum += Get5x5GaussianBlur(texShrinkHighLum, smp, inputuv * uvSize + uvOfst, dx, dy, float4(uvOfst, uvOfst + uvSize));
-		uvOfst.y += uvSize.y;
-		uvSize *= 0.5f;
-	}
-	
-	return tex.Sample(smp, inputuv) + Get5x5GaussianBlur(texHighLum, smp, inputuv, dx, dy, float4(0, 0, 1, 1)) +saturate(bloomAccum);
-	*/
-	
-	//あってんのか分からぬ
-	
-	//画面真ん中からの深度の差を測る
-	//オブジェクトが描写されていないピクセルが黒くなってしまったから
-	//限りなく黒に近いと判定されたピクセルを白みなす
-	//とりあえずの処理
 
 	float depthDiff = abs(depthTex.Sample(smp, float2(0.5, 0.5)) - depthTex.Sample(smp, input.uv));
 	depthDiff = pow(depthDiff, 0.5f);
-	uvSize = float2(1, 0.5);
-	uvOfst = float2(0, 0);
-	//8->3
-	float t = depthDiff * 8;
+	float2 uvSize = float2(1, 0.5);
+	float2 uvOfst = float2(0, 0);
+
+	//numが2より大きくなると青がかかってしまう。
+	//なぜだろう
+	int num = 2;
+
+	float t = depthDiff * num;
 	float no;
 	t = modf(t, no);
 	float4 retColor[2];
@@ -134,8 +95,7 @@ float4 main(Output input) : SV_TARGET
 		retColor[1] = Get5x5GaussianBlur(texShrink, smp, input.uv * uvSize + uvOfst, dx, dy, float4(uvOfst, uvOfst + uvSize));
 	}
 	else {
-		//8->3
-		for (int i = 1; i <= 8; ++i) {
+		for (int i = 1; i <= num; ++i) {
 			if (i - no < 0)continue;
 			retColor[i - no] = Get5x5GaussianBlur(texShrink, smp, input.uv * uvSize + uvOfst, dx, dy, float4(uvOfst, uvOfst + uvSize));
 			uvOfst.y += uvSize.y;
@@ -145,7 +105,7 @@ float4 main(Output input) : SV_TARGET
 			}
 		}
 	}
-	return lerp(retColor[0],retColor[1],t);
+	return lerp(retColor[0], retColor[1], t);
 	
 	
 }
@@ -159,7 +119,7 @@ BlurOutput BlurPS(Output input)
 	float dy = 1.0 / h;
 	BlurOutput ret;
 	ret.highLum = Get5x5GaussianBlur(texHighLum, smp, input.uv, dx, dy, float4(0, 0, 1, 1));
-	ret.col = /*Get5x5GaussianBlur(tex, smp, input.uv, dx, dy, float4(0, 0, 1, 1));*/ tex.Sample(smp, input.uv);
+	ret.col = tex.Sample(smp, input.uv);
 
 	return ret;
 }
