@@ -2,6 +2,7 @@
 #include"DirectX12/resource.hpp"
 #include"DirectX12/descriptor_heap.hpp"
 #include"DirectX12/vertex_buffer.hpp"
+#include"scene_data.hpp"
 #include<utility>
 #include<array>
 #include<d3d12.h>
@@ -28,15 +29,18 @@ namespace DX12
 	class perapolygon
 	{
 		//リソースたち
-		constexpr static unsigned int RESOURCE_NUM = 5;
+		constexpr static unsigned int RESOURCE_NUM = 7;
 		resource m_resource[RESOURCE_NUM]{};
 		enum ResourceIndex {
 			COLOR,//色
 			NORMAL,//法線
 			BLOOM,//ブルーム用
 			SHRINK_BLOOM,//ブルーム用の縮小されたリソース
-			DOF//被写界深度ぼかしフィルタ用
+			DOF,//被写界深度ぼかしフィルタ用
+			SSAO,//スクリーンスペースアンビエントオクルージョン用
+			CBV,//シーンのデータなどを格納
 		};
+
 
 		//ぺらポリゴンのリソースにデータを書き込む用
 		descriptor_heap<descriptor_heap_type::RTV> m_rtv_descriptor_heap{};
@@ -62,6 +66,16 @@ namespace DX12
 
 		//すべてのリソースのリソースバリア
 		void all_resource_barrior(command_list*, D3D12_RESOURCE_STATES);
+
+		//SSAOのバリア
+		//仮かも
+		void ssao_resource_barrior(command_list*, D3D12_RESOURCE_STATES);
+
+		//こいつも仮かも
+		D3D12_CPU_DESCRIPTOR_HANDLE get_ssao_cpu_handle();
+
+		//CBVにシーンのデータを渡す
+		void map_scene_data(const scene_data_for_perapolygon&);
 
 		//リソースたちの初期化
 		void clear(command_list*);

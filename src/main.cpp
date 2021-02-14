@@ -41,7 +41,6 @@ int main()
 		return 0;
 	}
 
-	//auto commList = create_shared_ptr<DX12::command_list>(&device);
 	DX12::command_list commList{};
 	if (!commList.initialize(&device)) {
 		std::cout << "comList is failed\n";
@@ -221,11 +220,15 @@ int main()
 	while (DX12::update_window()) {
 		
 		//回転の計算
-		worldMat *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
-	
+		worldMat *= XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
+
 		mmdModel1.map_scene_data({ worldMat,view,proj,lightCamera, shadow, eye });
 		mmdModel2.map_scene_data({ worldMat * DirectX::XMMatrixTranslation(5.f,0,5.f),view,proj,lightCamera, shadow, eye });
 		mmdModel3.map_scene_data({ worldMat * DirectX::XMMatrixTranslation(-5.f,0,10.f),view,proj,lightCamera, shadow, eye });
+
+		XMVECTOR det;
+		auto invProj = XMMatrixInverse(&det, proj);
+		perapolygon.map_scene_data({ view,proj,invProj,lightCamera,shadow,eye });
 
 		//
 		//光のディプス描写
@@ -268,7 +271,22 @@ int main()
 
 		perapolygon.all_resource_barrior(&commList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
+		//
+		//SSAO用のデータを描写
+		//
+		commList.set_viewport(viewport);
+		commList.set_scissor_rect(scissorrect);
+
+		perapolygon.ssao_resource_barrior(&commList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		
+		commList.set_render_target(perapolygon.get_ssao_cpu_handle());
+
+		perapolygonRenderer.preparation_for_drawing_for_SSAO(&commList);
+
+		perapolygon.draw(&commList);
+
+		perapolygon.ssao_resource_barrior(&commList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
 		//
 		//ぺらポリゴンをバックバッファに描写
 		//

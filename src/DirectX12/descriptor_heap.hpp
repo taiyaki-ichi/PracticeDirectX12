@@ -342,6 +342,39 @@ namespace DX12
 	}
 
 
+	template<>
+	inline bool create_view_func<descriptor_heap_type::RTV, resource_type::R32>
+		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
+	{
+		//SRGBレンダーターゲットビュー設定
+		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+		rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+
+		device->get()->CreateRenderTargetView(resource, &rtvDesc, cpuHandle);
+
+		return true;
+	}
+
+	template<>
+	inline bool create_view_func<descriptor_heap_type::CBV_SRV_UAV, resource_type::R32>
+		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
+	{
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+		srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;//2Dテクスチャ
+		srvDesc.Texture2D.MipLevels = 1;//ミップマップは使用しないので1
+
+		device->get()->CreateShaderResourceView(resource, //ビューと関連付けるバッファ
+			&srvDesc, //先ほど設定したテクスチャ設定情報
+			cpuHandle//ヒープのどこに割り当てるか
+		);
+
+		return true;
+	}
+
+
 	//
 	//ムーブ
 	//

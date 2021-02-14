@@ -56,7 +56,7 @@ PixcelOutput main(BasicType input)
 		, float4(texColor * ambient, 1));//アンビエント
 
 
-
+	
 	float shadowWeight = 1.0f;
 	float3 posFromLightVP = input.tpos.xyz / input.tpos.w;
 	float2 shadowUV = (posFromLightVP + float2(1, -1)) * float2(0.5, -0.5);
@@ -70,6 +70,7 @@ PixcelOutput main(BasicType input)
 	output.col = float4(result.rgb * shadowWeight, result.a);
 	output.normal.rgb = float3((input.normal.xyz + 1.0f) / 2.0f);
 	output.normal.a = 1;
+
 
 	float y = dot(float3(0.299f, 0.587f, 0.114f), output.col);
 	output.highLum = y > 0.995f ? output.col : 0.0f;

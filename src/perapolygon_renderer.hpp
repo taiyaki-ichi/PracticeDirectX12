@@ -18,6 +18,8 @@ namespace DX12
 		ID3D12PipelineState* m_pipeline_state = nullptr;
 		//ぼかし用のパイプライン
 		ID3D12PipelineState* m_blur_pipeline_state = nullptr;
+		//SSAO用のパイプライン
+		ID3D12PipelineState* m_SSAO_pipeline_state = nullptr;
 
 	public:
 		perapolygon_renderer() = default;
@@ -31,6 +33,8 @@ namespace DX12
 		//ぺらポリゴンをぼかすための縮小されたバッファに描写する前に使用
 		void preparation_for_drawing_for_blur(command_list*);
 		
+		//SSAOするための
+		void preparation_for_drawing_for_SSAO(command_list*);
 
 		//コピー禁止
 		perapolygon_renderer(const perapolygon_renderer&) = delete;

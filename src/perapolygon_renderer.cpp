@@ -15,6 +15,8 @@ namespace DX12
 			m_pipeline_state->Release();
 		if (m_root_signature)
 			m_root_signature->Release();
+		if (m_SSAO_pipeline_state)
+			m_SSAO_pipeline_state->Release();
 	}
 
 	bool perapolygon_renderer::initialize(device* device)
@@ -27,18 +29,30 @@ namespace DX12
 		rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
 		//テクスチャ
-		D3D12_DESCRIPTOR_RANGE range{};
-		range.NumDescriptors = 6;
-		range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		range.BaseShaderRegister = 0;
-		range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+		D3D12_DESCRIPTOR_RANGE range[3]{};
+		range[0].NumDescriptors = 6;
+		range[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+		range[0].BaseShaderRegister = 0;
+		range[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+		//定数
+		range[1].NumDescriptors = 1;
+		range[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+		range[1].BaseShaderRegister = 0;
+		range[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+		//ディプス
+		range[2].NumDescriptors = 1;
+		range[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+		range[2].BaseShaderRegister = 6;
+		range[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 
 		D3D12_ROOT_PARAMETER rootparam{};
 		rootparam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		rootparam.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-		rootparam.DescriptorTable.pDescriptorRanges = &range;
-		rootparam.DescriptorTable.NumDescriptorRanges = 1;
+		rootparam.DescriptorTable.pDescriptorRanges = range;
+		rootparam.DescriptorTable.NumDescriptorRanges = 3;
 
 		rootSignatureDesc.NumParameters = 1;
 		rootSignatureDesc.pParameters = &rootparam;
@@ -87,6 +101,7 @@ namespace DX12
 		auto vertexShader = create_shader_blob(L"shader/peraVertexShader.hlsl", "main", "vs_5_0");
 		auto pixelShader = create_shader_blob(L"shader/peraPixelShader.hlsl", "main", "ps_5_0");
 		auto blurPixelShader = create_shader_blob(L"shader/peraPixelShader.hlsl", "BlurPS", "ps_5_0");
+		auto ssaoPixelShader = create_shader_blob(L"shader/peraPixelShader.hlsl", "SsaoPS", "ps_5_0");
 
 
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineDesc{};
@@ -184,10 +199,22 @@ namespace DX12
 			std::cout << "pera CreateGraphicsPipelineState 2 is failed\n";
 		}
 
+		graphicsPipelineDesc.NumRenderTargets = 1;
+		graphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R32_FLOAT;
+		graphicsPipelineDesc.RTVFormats[1] = DXGI_FORMAT_UNKNOWN;
+		graphicsPipelineDesc.BlendState.RenderTarget[0].BlendEnable = false;
+
+		graphicsPipelineDesc.PS.pShaderBytecode = ssaoPixelShader->GetBufferPointer();
+		graphicsPipelineDesc.PS.BytecodeLength = ssaoPixelShader->GetBufferSize();
+
+		if (FAILED(device->get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&m_SSAO_pipeline_state)))) {
+			std::cout << "pera CreateGraphicsPipelineState 3 is failed\n";
+		}
+
 		vertexShader->Release();
 		pixelShader->Release();
 		blurPixelShader->Release();
-
+		ssaoPixelShader->Release();
 
 		if (m_blur_pipeline_state && m_pipeline_state && m_root_signature)
 			return true;
@@ -207,6 +234,14 @@ namespace DX12
 	void perapolygon_renderer::preparation_for_drawing_for_blur(command_list* cl)
 	{
 		cl->get()->SetPipelineState(m_blur_pipeline_state);
+		cl->get()->SetGraphicsRootSignature(m_root_signature);
+
+		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	}
+
+	void perapolygon_renderer::preparation_for_drawing_for_SSAO(command_list* cl)
+	{
+		cl->get()->SetPipelineState(m_SSAO_pipeline_state);
 		cl->get()->SetGraphicsRootSignature(m_root_signature);
 
 		cl->get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);

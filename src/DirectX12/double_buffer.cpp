@@ -76,6 +76,7 @@ namespace DX12
 		return true;
 	}
 
+
 	D3D12_CPU_DESCRIPTOR_HANDLE double_buffer::get_backbuffer_cpu_handle()
 	{
 		auto bbIdx = m_swap_chain->GetCurrentBackBufferIndex();

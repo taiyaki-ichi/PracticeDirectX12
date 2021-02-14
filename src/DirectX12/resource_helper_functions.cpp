@@ -221,6 +221,10 @@ namespace DX12
 		D3D12_CLEAR_VALUE depthClearValue{};
 		depthClearValue.DepthStencil.Depth = 1.f;//深さ１(最大値)でクリア
 		depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;//32bit深度値としてクリア
+		depthClearValue.Color[0] = 1.f;
+		depthClearValue.Color[1] = 1.f;
+		depthClearValue.Color[2] = 1.f;
+		depthClearValue.Color[3] = 1.f;
 
 		if (!result.initialize(
 			device,

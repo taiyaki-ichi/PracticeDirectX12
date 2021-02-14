@@ -11,5 +11,8 @@ namespace DX12
 		struct SRV {};
 		struct DSV {};
 		struct RTV {};
+
+		//‰¼
+		struct R32 {};
 	};
 }

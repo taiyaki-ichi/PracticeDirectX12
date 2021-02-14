@@ -56,20 +56,13 @@ float4 Get5x5GaussianBlur(Texture2D<float4> tex, SamplerState smp, float2 uv, fl
 float4 main(Output input) : SV_TARGET
 {
 
-	/*
 	if (input.uv.x < 0.3 && input.uv.y < 0.3)
 	{
-		return texNormal.Sample(smp, input.uv / 0.3);
+		float s = texSSAO.Sample(smp, input.uv / 0.3);
+		return float4(s, s, s, 1.f);
+
 	}
-	else if (input.uv.x < 0.3 && input.uv.y < 0.6)
-	{
-		return texHighLum.Sample(smp, (input.uv - float2(0, 0.3)) / 0.3);
-	}
-	else if (input.uv.x < 0.3 && input.uv.y < 0.9)
-	{
-		return texShrinkHighLum.Sample(smp, (input.uv - float2(0, 0.6)) / 0.3);
-	}
-	*/
+
 
 
 	float w, h, miplevels;
@@ -105,12 +98,20 @@ float4 main(Output input) : SV_TARGET
 			}
 		}
 	}
-	return lerp(retColor[0], retColor[1], t);
+	//return lerp(retColor[0], retColor[1], t);
 	
-	
+	//float4 col = tex.Sample(smp, input.uv);
+	float4 col = lerp(retColor[0], retColor[1], t);
+
+	return float4(col.rgb * texSSAO.Sample(smp, input.uv), col.a);
+}
+
+float random(float2 uv) {
+	return frac(sin(dot(uv, float2(12.9898f, 78.233f))) * 43758.5453f);
 }
 
 
+//ぼかし用
 BlurOutput BlurPS(Output input) 
 {
 	float w,h,miplevels;
@@ -122,4 +123,47 @@ BlurOutput BlurPS(Output input)
 	ret.col = tex.Sample(smp, input.uv);
 
 	return ret;
+}
+
+//SSAO用
+float SsaoPS(Output input) : SV_TARGET
+{
+
+
+	float dp = depthTex.Sample(smp, input.uv);//現在のUVの深度
+
+	float w, h, miplevels;
+	depthTex.GetDimensions(0, w, h, miplevels);
+	float dx = 1.0f / w;
+	float dy = 1.0f / h;
+
+	//元の座標を復元する
+	float4 respos = mul(invProj, float4(input.uv * float2(2, -2) + float2(-1, 1), dp, 1));
+	respos.xyz = respos.xyz / respos.w;
+	float div = 0.0f;
+	float ao = 0.0f;
+	float3 norm = normalize((texNormal.Sample(smp, input.uv).xyz * 2) - 1);
+	const int trycnt = 32;
+	const float radius = 0.5f;
+
+	if (dp < 1.0f) {
+		for (int i = 0; i < trycnt; ++i) {
+
+			float rnd1 = random(float2(i * dx, i * dy)) * 2 - 1;
+			float rnd2 = random(float2(rnd1, i * dy)) * 2 - 1;
+			float rnd3 = random(float2(rnd2, rnd1)) * 2 - 1;
+			float3 omega = normalize(float3(rnd1, rnd2, rnd3));
+
+			omega = normalize(omega);
+			float dt = dot(norm, omega);
+			float sgn = sign(dt);
+			omega *= sgn;
+			float4 rpos = mul(proj,float4(respos.xyz + omega * radius, 1));
+			rpos.xyz /= rpos.w;
+			ao += step(depthTex.Sample(smp, (rpos.xy + float2(1, -1)) * float2(0.5, -0.5)), rpos.z) * dt * sgn;
+		}
+		ao /= (float)trycnt;
+	}
+	return 1.0f - ao;
+
 }
