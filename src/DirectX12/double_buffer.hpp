@@ -1,6 +1,6 @@
 #pragma once
 #include"resource.hpp"
-#include<memory>
+#include"descriptor_heap.hpp"
 #include<array>
 #include<d3d12.h>
 #include<dxgi1_6.h>
@@ -24,7 +24,7 @@ namespace DX12
 	{
 		IDXGIFactory5* m_factory = nullptr;
 		IDXGISwapChain4* m_swap_chain = nullptr;
-		std::unique_ptr<descriptor_heap<descriptor_heap_type::RTV>> m_descriptor_heap{};
+		descriptor_heap<descriptor_heap_type::RTV> m_descriptor_heap{};
 
 		std::array<resource, 2> m_buffer{};
 	public:

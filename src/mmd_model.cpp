@@ -95,7 +95,7 @@ namespace DX12
 
 		//頂点
 		auto vertex = generate_map_vertex(pmxModel.m_vertex);
-		m_vertex_buffer.initialize(device, vertex.size() * sizeof(vertex[0]), sizeof(vertex[0]));
+		m_vertex_buffer.initialize(device, static_cast<unsigned int>(vertex.size() * sizeof(vertex[0])),static_cast<unsigned int>(sizeof(vertex[0])));
 		if (m_vertex_buffer.is_empty()) {
 			std::cout << "mmd　model v is failed\n";
 			return false;
@@ -104,9 +104,9 @@ namespace DX12
 
 
 		//インデックス
-		m_all_index_num = pmxModel.m_surface.size();
+		m_all_index_num = static_cast<unsigned int>(pmxModel.m_surface.size());
 		auto index = generate_map_index(pmxModel.m_surface);
-		m_index_buffer.initialize(device, index.size() * sizeof(index[0]));
+		m_index_buffer.initialize(device, static_cast<unsigned int>(index.size() * sizeof(index[0])));
 		if (m_index_buffer.is_empty()) {
 			std::cout << "mmd model i is failed\n";
 			return false;
@@ -180,7 +180,7 @@ namespace DX12
 	
 		//今のところ個数は行列1つとマテリアル分
 		//ライト深度ようにもう1つ
-		if (!m_descriptor_heap.initialize(device, 1 + m_material_info.size() * 5 + 1)) {
+		if (!m_descriptor_heap.initialize(device, static_cast<unsigned int>(1 + m_material_info.size() * 5 + 1))) {
 			std::cout << "mmd desc heap is failed\n";
 			return false;
 		}

@@ -50,7 +50,7 @@ namespace DX12
 		std::vector<material_info> m_material_info{};
 
 		//mmdのすべてのインデックスの数
-		size_t m_all_index_num{};
+		unsigned int m_all_index_num{};
 
 		//ディスクリプタヒープ
 		//SetDescriptorHeapsを複数回呼び出すとうまくいかなかったのであきらめて1つにまとめた

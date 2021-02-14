@@ -60,7 +60,7 @@ namespace DX12
 		std::vector<unsigned char> data(4 * 4 * 4);
 		std::fill(data.begin(), data.end(), static_cast<unsigned char>(Color));
 
-		if (FAILED(get()->WriteToSubresource(0, nullptr, data.data(), 4 * 4, data.size()))) {
+		if (FAILED(get()->WriteToSubresource(0, nullptr, data.data(), 4 * 4, static_cast<unsigned int>(data.size())))) {
 			std::cout << "color write is failed\n";
 			return false;
 		}

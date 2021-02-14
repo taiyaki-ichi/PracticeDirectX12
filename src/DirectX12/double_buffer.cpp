@@ -50,10 +50,7 @@ namespace DX12
 		}
 			
 		//ディスクリプタヒープ
-		m_descriptor_heap = std::unique_ptr<descriptor_heap<descriptor_heap_type::RTV>>{
-			device->create<descriptor_heap<descriptor_heap_type::RTV>>(2)
-		};
-		if (!m_descriptor_heap) {
+		if (!m_descriptor_heap.initialize(device, 2)) {
 			std::cout << "double buufer DescriptorHeap is failed\n";
 			return false;
 		}
@@ -70,7 +67,7 @@ namespace DX12
 			}
 			
 			m_buffer[i].initialize(resourcePtr);
-			m_descriptor_heap->create_view<resource_type::RTV>(device, m_buffer[i].get());
+			m_descriptor_heap.create_view<resource_type::RTV>(device, m_buffer[i].get());
 		}
 
 		return true;
@@ -80,7 +77,7 @@ namespace DX12
 	D3D12_CPU_DESCRIPTOR_HANDLE double_buffer::get_backbuffer_cpu_handle()
 	{
 		auto bbIdx = m_swap_chain->GetCurrentBackBufferIndex();
-		return m_descriptor_heap->get_cpu_handle(bbIdx);
+		return m_descriptor_heap.get_cpu_handle(bbIdx);
 	}
 
 	void double_buffer::barrior_to_backbuffer(command_list* cl, D3D12_RESOURCE_STATES state)
@@ -92,7 +89,7 @@ namespace DX12
 	void double_buffer::clear_back_buffer(command_list* cl)
 	{
 		auto bbIdx = m_swap_chain->GetCurrentBackBufferIndex();
-		auto rtvH = m_descriptor_heap->get_cpu_handle(bbIdx);
+		auto rtvH = m_descriptor_heap.get_cpu_handle(bbIdx);
 		//バックバッファのクリア
 		float clearColor[] = { 0.5f,0.5f,0.5f,1.0f };
 		cl->get()->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);

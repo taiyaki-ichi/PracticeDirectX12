@@ -178,7 +178,7 @@ namespace DX12
 
 		//Žc‚è
 		graphicsPipelineDesc.RasterizerState.FrontCounterClockwise = false;
-		graphicsPipelineDesc.RasterizerState.DepthBias = 0.1f;// D3D12_DEFAULT_DEPTH_BIAS;
+		graphicsPipelineDesc.RasterizerState.DepthBias = 0;// D3D12_DEFAULT_DEPTH_BIAS;
 		graphicsPipelineDesc.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
 		graphicsPipelineDesc.RasterizerState.SlopeScaledDepthBias = 0.01f;// D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
 		graphicsPipelineDesc.RasterizerState.AntialiasedLineEnable = false;
