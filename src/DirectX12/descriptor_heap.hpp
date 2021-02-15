@@ -1,6 +1,7 @@
 #pragma once
 #include"device.hpp"
-#include"resource_type_tag.hpp"
+#include"descriptor_heap_type.hpp"
+#include"descriptor_heap_hepler_func.hpp"
 #include<optional>
 #include<type_traits>
 #include<d3d12.h>
@@ -14,19 +15,6 @@ namespace DX12
 {
 	class device;
 
-
-	//タイプ指定用
-	//初期化用の関数の定義
-	//インクリメントの幅の取得用関数とか
-	namespace descriptor_heap_type {
-		struct CBV_SRV_UAV;
-		struct DSV;
-		struct RTV;
-	};
-
-
-	template<typename,typename>
-	bool create_view_func(device*, ID3D12Resource*, const D3D12_CPU_DESCRIPTOR_HANDLE&);
 
 	//タイプはテンプレートで指定
 	template<class DescriptorHeapType>
@@ -52,29 +40,27 @@ namespace DX12
 		descriptor_heap<DescriptorHeapType>(descriptor_heap<DescriptorHeapType>&&) noexcept;
 		descriptor_heap<DescriptorHeapType>& operator=(descriptor_heap<DescriptorHeapType>&&) noexcept;
 
+
 		bool initialize(device * d,unsigned int size);
 
-		//CreateTypeにはcreate(device,handle)の静的な関数
-		template<typename CreateType>
-		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>>
-			create_view(device*, ID3D12Resource*);
 
-		//タイプを持っている場合のインターフェース関数
-		//getで実際のリソースを取得できるように
-		template<typename T, typename CreateType = typename T::view_type>
-		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> create_view(device* device, T* resourcePtr);
-		//持っていない場合
-		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> create_view(...);
+		//Viewの生成
+		template<typename T,typename ViewType=typename ViewTypeTraits<T>::view_type,typename GetResourcePtr=GetResourcePtrPolicy<T>>
+		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>>
+			create_view(device* device, T* resource);
+
 
 		//offsetを0にする
 		void reset() noexcept {
 			m_offset = 0;
 		}
 
-		//ポインタの取得
+
+		//ディスクリプタヒープのポインタの取得
 		ID3D12DescriptorHeap*& get() noexcept {
 			return m_descriptor_heap;
 		}
+
 
 		//先頭からstride×num分進んだハンドルの位置
 		//0スタート
@@ -95,6 +81,7 @@ namespace DX12
 	//クラステンプレートの実装
 	//
 
+	//初期化
 	template<typename DescriptorHeapType>
 	inline bool descriptor_heap<DescriptorHeapType>::initialize(device* d, unsigned int size)
 	{
@@ -109,11 +96,10 @@ namespace DX12
 		return true;
 	}
 
-
-	template<typename DescriptorHeapType>
-	template<typename CreateType>
-	inline std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> 
-		descriptor_heap<DescriptorHeapType>::create_view(device* device, ID3D12Resource* resource)
+	//Viewの生成
+	template<class DescriptorHeapType>
+	template<typename T, typename ViewType,typename GetResourcePtr>
+	inline std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> DX12::descriptor_heap<DescriptorHeapType>::create_view(device* device, T* resource)
 	{
 		//空いてるスペースがない場合
 		if (m_offset >= m_size)
@@ -122,8 +108,11 @@ namespace DX12
 		//cpuハンドルの取得
 		auto cpuHandle = get_cpu_handle(m_offset);
 
+		//Viewを作製したいリソースのポインタを取得
+		auto resourcePtr = GetResourcePtr::get_resource_ptr(resource);
+
 		//viewの生成
-		if (!create_view_func<DescriptorHeapType,CreateType>(device, resource, cpuHandle))
+		if (!create_view_func<DescriptorHeapType, ViewType>(device, resourcePtr, cpuHandle))
 			return std::nullopt;
 
 		//戻り値用にgpuハンドルの取得
@@ -135,19 +124,33 @@ namespace DX12
 		return std::make_pair(gpuHandle, cpuHandle);
 	}
 
+
+	//
+	//ムーブ
+	//
 	template<class DescriptorHeapType>
-	template<typename T, typename CreateType>
-	inline std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> DX12::descriptor_heap<DescriptorHeapType>::create_view(device* device, T* resourcePtr)
+	inline DX12::descriptor_heap<DescriptorHeapType>::descriptor_heap(descriptor_heap<DescriptorHeapType>&& r) noexcept
 	{
-		return create_view<CreateType>(device, resourcePtr->get());
+		m_descriptor_heap = r.m_descriptor_heap;;
+		m_size = r.m_size;
+		m_offset = r.m_offset;
+		m_increment_size = r.m_increment_size;
+		r.m_descriptor_heap = nullptr;
 	}
 
 	template<class DescriptorHeapType>
-	inline std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> DX12::descriptor_heap<DescriptorHeapType>::create_view(...)
+	inline descriptor_heap<DescriptorHeapType>& descriptor_heap<DescriptorHeapType>::operator=(descriptor_heap<DescriptorHeapType>&& r) noexcept
 	{
-		std::cout << "descriptor heap create view failed type\n";
-		return std::nullopt;
+		m_descriptor_heap = r.m_descriptor_heap;;
+		m_size = r.m_size;
+		m_offset = r.m_offset;
+		m_increment_size = r.m_increment_size;
+		r.m_descriptor_heap = nullptr;
+		return *this;
 	}
+
+
+
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//ディスクリプターのタイプ用のパラメータのクラスの定義
@@ -233,170 +236,5 @@ namespace DX12
 	};
 
 
-
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//Viewを作る関数の定義
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//デフォ
-	template<typename DescriptorHeapType,typename CreateType>
-	inline bool create_view_func(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
-	{
-		return false;
-	}
-
-
-	//ディスクリプタヒープのタイプがCBV_SRV_UAVの時にCBVのビューを作る
-	template<>
-	inline bool create_view_func<descriptor_heap_type::CBV_SRV_UAV, view_type::constant_buffer>
-		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
-	{
-		//定数バッファ
-		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
-		cbvDesc.BufferLocation = resource->GetGPUVirtualAddress();
-		cbvDesc.SizeInBytes = static_cast<UINT>(resource->GetDesc().Width);
-
-		//定数バッファビューの作成
-		device->get()->CreateConstantBufferView(&cbvDesc, cpuHandle);
-
-		return true;
-	}
-
-
-	//ディスクリプタヒープのタイプがCBV_SRV_UAVの時にSRVのビューを作る
-	template<>
-	inline bool  create_view_func<descriptor_heap_type::CBV_SRV_UAV, view_type::float4_shader_resource>
-		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
-	{
-		//テクスチャ
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-		srvDesc.Format = resource->GetDesc().Format;//RGBA(0.0f～1.0fに正規化)
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;//2Dテクスチャ
-		srvDesc.Texture2D.MipLevels = 1;//ミップマップは使用しないので1
-
-		device->get()->CreateShaderResourceView(resource, //ビューと関連付けるバッファ
-			&srvDesc, //先ほど設定したテクスチャ設定情報
-			cpuHandle//ヒープのどこに割り当てるか
-		);
-
-		return true;
-	}
-
-
-	//ディスクリプタヒープのタイプがCBV_SRV_UAVの時に深度バッファをシェーダリソースとして
-	//扱うためのViewの作製
-	template<>
-	inline bool  create_view_func<descriptor_heap_type::CBV_SRV_UAV, view_type::depth_stencil_buffer>
-		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
-	{
-		D3D12_SHADER_RESOURCE_VIEW_DESC resDesc{};
-		resDesc.Format = DXGI_FORMAT_R32_FLOAT;
-		resDesc.Texture2D.MipLevels = 1;
-		resDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		resDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-
-		device->get()->CreateShaderResourceView(resource, //ビューと関連付けるバッファ
-			&resDesc, //先ほど設定したテクスチャ設定情報
-			cpuHandle//ヒープのどこに割り当てるか
-		);
-
-		return true;
-	}
-
-	//深度バッファを深度バッファとして使うため
-	//深度バッファ用のディスクリプタヒープにViewを作る用
-	template<>
-	inline bool  create_view_func<descriptor_heap_type::DSV, view_type::depth_stencil_buffer>
-		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
-	{
-		D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
-		dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;//デプス値に32bit使用
-		dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;//2Dテクスチャ
-		dsvDesc.Flags = D3D12_DSV_FLAG_NONE;//フラグは特になし
-
-		device->get()->CreateDepthStencilView(resource, //ビューと関連付けるバッファ
-			&dsvDesc, //先ほど設定したテクスチャ設定情報
-			cpuHandle//ヒープのどこに割り当てるか
-		);
-
-		return true;
-	}
-
-
-	//レンダーターゲット用のディスクリプタヒープに
-	//レンダーターゲットのViewを作る
-	template<>
-	inline bool create_view_func<descriptor_heap_type::RTV, view_type::float4_shader_resource>
-		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
-	{
-		//SRGBレンダーターゲットビュー設定
-		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
-		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-
-		device->get()->CreateRenderTargetView(resource, &rtvDesc, cpuHandle);
-
-		return true;
-	}
-
-
-	template<>
-	inline bool create_view_func<descriptor_heap_type::RTV, view_type::float_shader_resource>
-		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
-	{
-		//SRGBレンダーターゲットビュー設定
-		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
-		rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-
-		device->get()->CreateRenderTargetView(resource, &rtvDesc, cpuHandle);
-
-		return true;
-	}
-
-	template<>
-	inline bool create_view_func<descriptor_heap_type::CBV_SRV_UAV, view_type::float_shader_resource>
-		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
-	{
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-		srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;//2Dテクスチャ
-		srvDesc.Texture2D.MipLevels = 1;//ミップマップは使用しないので1
-
-		device->get()->CreateShaderResourceView(resource, //ビューと関連付けるバッファ
-			&srvDesc, //先ほど設定したテクスチャ設定情報
-			cpuHandle//ヒープのどこに割り当てるか
-		);
-
-		return true;
-	}
-
-
-	//
-	//ムーブ
-	//
-	template<class DescriptorHeapType>
-	inline DX12::descriptor_heap<DescriptorHeapType>::descriptor_heap(descriptor_heap<DescriptorHeapType>&& r) noexcept
-	{
-		m_descriptor_heap = r.m_descriptor_heap;;
-		m_size = r.m_size;
-		m_offset = r.m_offset;
-		m_increment_size = r.m_increment_size;
-		r.m_descriptor_heap = nullptr;
-	}
-
-	template<class DescriptorHeapType>
-	inline descriptor_heap<DescriptorHeapType>& descriptor_heap<DescriptorHeapType>::operator=(descriptor_heap<DescriptorHeapType>&& r) noexcept
-	{
-		m_descriptor_heap = r.m_descriptor_heap;;
-		m_size = r.m_size;
-		m_offset = r.m_offset;
-		m_increment_size = r.m_increment_size;
-		r.m_descriptor_heap = nullptr;
-		return *this;
-	}
 
 }

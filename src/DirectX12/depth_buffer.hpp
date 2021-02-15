@@ -64,7 +64,7 @@ namespace DX12
 			return false;
 		}
 
-		m_descriptor_heap.create_view<view_type::depth_stencil_buffer>(device, m_depth_resource[cnt].get());
+		m_descriptor_heap.create_view(device, &m_depth_resource[cnt]);
 
 		if constexpr (sizeof...(tail) <= 0)
 			return true;

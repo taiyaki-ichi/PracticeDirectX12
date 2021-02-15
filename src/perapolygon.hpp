@@ -24,6 +24,7 @@ namespace DX12
 		struct CBV_SRV_UAV;
 	}
 	class command_list;
+	class depth_stencil_buffer;
 
 	class perapolygon
 	{
@@ -61,7 +62,7 @@ namespace DX12
 	public:
 
 		//深度バッファのViewを作りたいので引数に深度バッファ
-		bool initialize(device*, ID3D12Resource* depthResource);
+		bool initialize(device*, depth_stencil_buffer* depthResource);
 
 		//レンダーターゲットの数とその先頭のハンドルの取得
 		//ぺらポリゴンをレンダーターゲットとする際に使用することを想定

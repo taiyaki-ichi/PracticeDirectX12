@@ -1,16 +1,16 @@
 #include"perapolygon.hpp"
 #include"DirectX12/device.hpp"
-#include"DirectX12/resource_type_tag.hpp"
 #include"DirectX12/descriptor_heap.hpp"
 #include"DirectX12/command_list.hpp"
 #include"window_size.hpp"
 #include"scene_data.hpp"
+#include"DirectX12/resource/depth_stencil_buffer.hpp"
 
 namespace DX12
 {
 
 
-	bool perapolygon::initialize(device* device, ID3D12Resource* depthResource)
+	bool perapolygon::initialize(device* device, depth_stencil_buffer* depthResource)
 	{
 
 		//レンダーターゲット用のディスクリプタヒープ
@@ -72,7 +72,7 @@ namespace DX12
 		//レンダーターゲット用のディスクリプタヒープにViewを作製
 		for (int i = 0; i < RESOURCE_NUM - 2; i++)
 		{
-			auto result = m_rtv_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_float4_resource[i].get());
+			auto result = m_rtv_descriptor_heap.create_view(device, &m_float4_resource[i]);
 			if (!result) {
 				std::cout << "pera rtv create view " << i << " is failed\n";
 				return false;
@@ -80,7 +80,7 @@ namespace DX12
 		}
 		//深度用としてSSAO用のViewを生成
 		{
-			auto result = m_rtv_descriptor_heap.create_view<view_type::float_shader_resource>(device, m_SSAO_resource.get());
+			auto result = m_rtv_descriptor_heap.create_view(device, &m_SSAO_resource);
 			if (!result) {
 				std::cout << "pera rtv crate view dsv is failed\n";
 				return false;
@@ -96,14 +96,14 @@ namespace DX12
 		//シェーダリソース用のディスクリプタヒープにViewを作製
 		for (int i = 0; i < RESOURCE_NUM - 2; i++)
 		{
-			auto result = m_cbv_srv_usv_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_float4_resource[i].get());
+			auto result = m_cbv_srv_usv_descriptor_heap.create_view(device, &m_float4_resource[i]);
 			if (!result) {
 				std::cout << "pera srv create view " << i << " is failed\n";
 				return false;
 			}
 		}
 		{
-			auto result = m_cbv_srv_usv_descriptor_heap.create_view<view_type::float_shader_resource>(device, m_SSAO_resource.get());
+			auto result = m_cbv_srv_usv_descriptor_heap.create_view(device, &m_SSAO_resource);
 			if (!result) {
 				std::cout << "pera srv create view dsv is failed\n";
 				return false;
@@ -111,7 +111,7 @@ namespace DX12
 		}
 	
 		{
-			auto result = m_cbv_srv_usv_descriptor_heap.create_view<view_type::constant_buffer>(device, m_constant_buffer.get());
+			auto result = m_cbv_srv_usv_descriptor_heap.create_view(device, &m_constant_buffer);
 			if (!result) {
 				std::cout << "pera srv create view cbv is failed\n";
 				return false;
@@ -121,7 +121,7 @@ namespace DX12
 		//最後に深度バッファのViewを生成
 		//つまり添え字はRESOURCE_NUM
 		{
-			auto result = m_cbv_srv_usv_descriptor_heap.create_view<view_type::depth_stencil_buffer>(device, depthResource);
+			auto result = m_cbv_srv_usv_descriptor_heap.create_view(device, depthResource);
 			if (!result) {
 				std::cout << "pera srv depth resource create view is failed\n";
 				return false;

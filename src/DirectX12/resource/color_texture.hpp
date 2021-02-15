@@ -1,5 +1,6 @@
 #pragma once
 #include"resource_base.hpp"
+#include"../descriptor_heap_type.hpp"
 #include<vector>
 
 #include<iostream>
@@ -24,15 +25,36 @@ namespace DX12
 		bool initialize(device* device);
 	};
 
+	//白いテクスチャ
 	using white_texture_resource = simple_color_texture_resource<0xff>;
+	template<>
+	struct ViewTypeTraits<white_texture_resource> {
+		using view_type = view_type::float4_shader_resource;
+	};
+	DefineGetResourcePtr(white_texture_resource)
+
+
+	//黒いテクスチャ
 	using black_texture_resource = simple_color_texture_resource<0x00>;
+	template<>
+	struct ViewTypeTraits<black_texture_resource> {
+		using view_type = view_type::float4_shader_resource;
+	};
+	DefineGetResourcePtr(black_texture_resource)
 
 
+	//グラーでーしょん
 	class gray_gradation_texture_resource : public color_texture_resource_base
 	{
 	public:
 		bool initialize(device*);
 	};
+
+	template<>
+	struct ViewTypeTraits<gray_gradation_texture_resource> {
+		using view_type = view_type::float4_shader_resource;
+	};
+	DefineGetResourcePtr(gray_gradation_texture_resource)
 
 
 

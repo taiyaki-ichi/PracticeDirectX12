@@ -2,7 +2,6 @@
 #include"command_list.hpp"
 #include"device.hpp"
 #include"descriptor_heap.hpp"
-#include"resource_type_tag.hpp"
 
 #include<iostream>
 
@@ -67,7 +66,8 @@ namespace DX12
 			}
 			
 			m_buffer[i].initialize(resourcePtr);
-			m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_buffer[i].get());
+			auto result = m_descriptor_heap.create_view<resource_base, view_type::float4_shader_resource>(device, &m_buffer[i]);
+
 		}
 
 

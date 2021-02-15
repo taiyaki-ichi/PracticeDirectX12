@@ -182,12 +182,12 @@ namespace DX12
 			return false;
 		}
 
-		m_descriptor_heap.create_view<view_type::constant_buffer>(device, m_scene_constant_resource.get());
+		m_descriptor_heap.create_view(device, &m_scene_constant_resource);
 
 		for (size_t i = 0; i < m_material_info.size(); i++)
 		{
 			//先頭のハンドルはメモしておく
-			auto handle = m_descriptor_heap.create_view<view_type::constant_buffer>(device, m_material_constant_resource[i].get());
+			auto handle = m_descriptor_heap.create_view(device, &m_material_constant_resource[i]);
 			if (handle)
 				m_matarial_root_gpu_handle.emplace_back(handle.value().first);
 			else {
@@ -197,37 +197,37 @@ namespace DX12
 
 			//有効なテクスチャがある場合
 			if (0 <= m_material_info[i].m_texture_index && m_material_info[i].m_texture_index < m_texture.size())
-				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_texture[m_material_info[i].m_texture_index].get());
+				m_descriptor_heap.create_view(device, &m_texture[m_material_info[i].m_texture_index]);
 			//ない場合は白テクスチャ
 			else
-				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_white_texture_resource.get());
+				m_descriptor_heap.create_view(device, &m_white_texture_resource);
 
 
 			//加算スフィア
 			if (pmxModel.m_material[i].m_sphere_mode == 2)
-				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_texture[m_material_info[i].m_toon_index].get());
+				m_descriptor_heap.create_view(device, &m_texture[m_material_info[i].m_toon_index]);
 			else
-				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_black_texture_resource.get());
+				m_descriptor_heap.create_view(device, &m_black_texture_resource);
 
 			//乗算スフィア
 			if (pmxModel.m_material[i].m_sphere_mode == 1)
-				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_texture[m_material_info[i].m_toon_index].get());
+				m_descriptor_heap.create_view(device, &m_texture[m_material_info[i].m_toon_index]);
 			else
-				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_white_texture_resource.get());
+				m_descriptor_heap.create_view(device, &m_white_texture_resource);
 
 			//toon
 			//個別toonなら対応
 			const unsigned int* ptr = std::get_if<0>(&pmxModel.m_material[i].m_toon);
 			if (ptr && *ptr < m_texture.size())
-				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_texture[*ptr].get());
+				m_descriptor_heap.create_view(device, &m_texture[*ptr]);
 			else 
-				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_gray_gradation_texture_resource.get());
+				m_descriptor_heap.create_view(device, &m_gray_gradation_texture_resource);
 		}
 		
 		//ライト深度のリソースの描写用のViewを生成
 		//ハンドルはメモしておく（おっふせっとからアクセスできるけど。。）
 		{
-			auto result = m_descriptor_heap.create_view<view_type::depth_stencil_buffer>(device, lightDepthResource->get());
+			auto result = m_descriptor_heap.create_view(device, lightDepthResource);
 			if (result)
 				m_light_depth_gpu_handle = result.value().first;
 			else {

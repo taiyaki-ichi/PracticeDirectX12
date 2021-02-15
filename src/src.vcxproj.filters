@@ -29,7 +29,6 @@
     <ClInclude Include="DirectX12\utility.hpp" />
     <ClInclude Include="window.hpp" />
     <ClInclude Include="mmd_model.hpp" />
-    <ClInclude Include="DirectX12\resource_type_tag.hpp" />
     <ClInclude Include="scene_data.hpp" />
     <ClInclude Include="window_size.hpp" />
     <ClInclude Include="perapolygon.hpp" />
@@ -47,6 +46,8 @@
     <ClInclude Include="DirectX12\resource\texture_resource.hpp" />
     <ClInclude Include="DirectX12\resource\upload_resource.hpp" />
     <ClInclude Include="DirectX12\resource\vertex_buffer.hpp" />
+    <ClInclude Include="DirectX12\descriptor_heap_type.hpp" />
+    <ClInclude Include="DirectX12\descriptor_heap_hepler_func.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\BasicType.hlsli" />

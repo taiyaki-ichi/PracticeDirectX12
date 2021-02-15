@@ -1,4 +1,6 @@
 #pragma once
+#include"../descriptor_heap_type.hpp"
+#include<type_traits>
 #include<optional>
 #include<d3d12.h>
 #include<dxgi1_6.h>
@@ -17,8 +19,6 @@ using namespace DX12;
 namespace DX12
 {
 	
-
-
 	//リソースのベースのクラス
 	class resource_base
 	{
@@ -59,5 +59,23 @@ namespace DX12
 		bool is_empty() const noexcept;
 	};
 
-
 }
+
+
+
+
+
+#define DefineGetResourcePtr(ClassName) \
+template<> \
+struct GetResourcePtrPolicy<##ClassName##> { \
+	static ID3D12Resource* get_resource_ptr(##ClassName##* t) { \
+		return t->get(); \
+	} \
+};
+
+
+namespace DX12
+{
+	DefineGetResourcePtr(resource_base)
+}
+

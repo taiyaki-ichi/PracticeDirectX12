@@ -186,7 +186,7 @@ int main()
 	//‚Ø‚çƒ|ƒŠƒSƒ“
 	//
 	DX12::perapolygon perapolygon{};
-	if (!perapolygon.initialize(&device,depthBuffer.get_resource(0)->get())) {
+	if (!perapolygon.initialize(&device,depthBuffer.get_resource(0))) {
 		std::cout << "pera false";
 		return 0;
 	}

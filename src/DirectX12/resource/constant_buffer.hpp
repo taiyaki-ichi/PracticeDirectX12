@@ -1,5 +1,6 @@
 #pragma once
 #include"upload_resource.hpp"
+#include"../descriptor_heap_type.hpp"
 
 namespace DX12
 {
@@ -10,4 +11,11 @@ namespace DX12
 		bool initialize(device*, unsigned int size);
 	};
 
+
+	//ディスクリプタ用
+	template<>
+	struct ViewTypeTraits<constant_buffer> {
+		using view_type = view_type::constant_buffer;
+	};
+	DefineGetResourcePtr(constant_buffer)
 }

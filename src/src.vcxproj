@@ -42,6 +42,7 @@
     <ClInclude Include="DirectX12\command_list.hpp" />
     <ClInclude Include="DirectX12\depth_buffer.hpp" />
     <ClInclude Include="DirectX12\descriptor_heap.hpp" />
+    <ClInclude Include="DirectX12\descriptor_heap_hepler_func.hpp" />
     <ClInclude Include="DirectX12\device.hpp" />
     <ClInclude Include="DirectX12\double_buffer.hpp" />
     <ClInclude Include="DirectX12\resource\color_texture.hpp" />
@@ -55,7 +56,7 @@
     <ClInclude Include="DirectX12\resource\texture_resource.hpp" />
     <ClInclude Include="DirectX12\resource\upload_resource.hpp" />
     <ClInclude Include="DirectX12\resource\vertex_buffer.hpp" />
-    <ClInclude Include="DirectX12\resource_type_tag.hpp" />
+    <ClInclude Include="DirectX12\descriptor_heap_type.hpp" />
     <ClInclude Include="DirectX12\shader.hpp" />
     <ClInclude Include="DirectX12\utility.hpp" />
     <ClInclude Include="mmd_model.hpp" />
