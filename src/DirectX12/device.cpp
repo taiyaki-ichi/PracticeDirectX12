@@ -1,8 +1,6 @@
 #include"device.hpp"
 #include"command_list.hpp"
 #include"double_buffer.hpp"
-#include"vertex_buffer.hpp"
-#include"index_buffer.hpp"
 #include<array>
 
 #include<iostream>

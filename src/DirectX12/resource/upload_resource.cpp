@@ -1,12 +1,10 @@
-#include"vertex_buffer.hpp"
-#include"device.hpp"
-
-#include<iostream>
+#include"upload_resource.hpp"
+#include"../device.hpp"
 
 namespace DX12
 {
 
-	bool vertex_buffer::initialize(device* device, unsigned int size, unsigned int stride)
+	bool upload_resource::initialize(device* device, unsigned int size)
 	{
 		D3D12_HEAP_PROPERTIES heapprop{};
 		heapprop.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -24,26 +22,13 @@ namespace DX12
 		resdesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 		resdesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
-		if (!resource::initialize(
-			device,
-			&heapprop,
+		return resource_base::initialize(device,
+			&heapprop, 
 			D3D12_HEAP_FLAG_NONE,
 			&resdesc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr)) {
-
-			std::cout << "vert_index_buufer init is failed\n";
-			return false;
-		}
-
-		m_buffer_view.BufferLocation = get()->GetGPUVirtualAddress();//バッファの仮想アドレス
-		m_buffer_view.SizeInBytes = size;//全バイト数
-		m_buffer_view.StrideInBytes = stride;//1頂点あたりのバイト数
-
-		return true;
+			nullptr
+		);
 	}
-	const D3D12_VERTEX_BUFFER_VIEW& vertex_buffer::get_view() const noexcept
-	{
-		return m_buffer_view;
-	}
+
 }

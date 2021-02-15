@@ -10,8 +10,6 @@
 namespace DX12
 {
 	class command_list;
-	class vertex_buffer;
-	class index_buffer;
 	class constant_buffer_resource;
 	template<bool>
 	class texture_shader_resource_base;

@@ -1,14 +1,11 @@
 #pragma once
-#include"resource.hpp"
-#include<d3d12.h>
-#include<dxgi1_6.h>
-
-#pragma comment(lib,"d3d12.lib")
-#pragma comment(lib,"dxgi.lib")
+#include"upload_resource.hpp"
 
 namespace DX12
 {
-	class index_buffer : public resource
+	//インデックスバッファ
+	//インデックスはunsigned int 固定で
+	class index_buffer : public upload_resource
 	{
 		D3D12_INDEX_BUFFER_VIEW m_buffer_view{};
 
@@ -17,4 +14,6 @@ namespace DX12
 
 		const D3D12_INDEX_BUFFER_VIEW& get_view() const noexcept;
 	};
+
+	
 }

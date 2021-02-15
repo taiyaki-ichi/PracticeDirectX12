@@ -1,22 +1,23 @@
 #pragma once
 #include"include/pmx_data_struct.hpp"
-#include"DirectX12/color_texture.hpp"
 #include"DirectX12/descriptor_heap.hpp"
 #include"scene_data.hpp"
-#include"DirectX12/resource.hpp"
-#include"DirectX12/color_texture.hpp"
-#include"DirectX12/vertex_buffer.hpp"
-#include"DirectX12/index_buffer.hpp"
+#include"DirectX12/resource/vertex_buffer.hpp"
+#include"DirectX12/resource/index_buffer.hpp"
+#include"DirectX12/resource/color_texture.hpp"
+#include"DirectX12/resource/texture_resource.hpp"
+#include"DirectX12/resource/constant_buffer.hpp"
 #include<vector>
+#include<array>
 #include<string>
+
 
 namespace DX12
 {
 	class device;
-	class vertex_buffer;
-	class index_buffer;
 	class command_list;
 	class resource;
+	class depth_stencil_buffer;
 
 	class mmd_model
 	{
@@ -28,14 +29,14 @@ namespace DX12
 
 		//テクスチャ
 		//マテリアルによって添え字で指定される
-		std::vector<resource> m_texture{};
+		std::vector<texture_resource> m_texture{};
 
 		//シーンのデータの定数バッファ
-		resource m_scene_constant_resource{};
+		//resource m_scene_constant_resource{};
+		DX12::constant_buffer m_scene_constant_resource{};
 
-		//今のところfloat4,float3,float,float3のmaterial
-		//マテリアルの描写毎に定数バッファをリセットしビューを作製
-		std::vector<resource> m_material_constant_resource{};
+		//マテリアル用の定数バッファ
+		std::array<constant_buffer, 64> m_material_constant_resource{};
 
 		//マテリアルの情報保持用
 		struct material_info {
@@ -70,7 +71,7 @@ namespace DX12
 
 	public:
 		//コマンドリストはテクスチャのコピー用
-		bool initialize(device*, const MMDL::pmx_model<std::wstring>&, command_list*, resource* lightDepthResource);
+		bool initialize(device*, const MMDL::pmx_model<std::wstring>&, command_list*, depth_stencil_buffer* lightDepthResource);
 
 		void draw(command_list* cl);
 

@@ -1,15 +1,11 @@
 #include"mmd_model.hpp"
 #include"DirectX12/device.hpp"
-#include"DirectX12/vertex_buffer.hpp"
-#include"DirectX12/index_buffer.hpp"
 #include"DirectX12/descriptor_heap.hpp"
-#include"DirectX12/color_texture.hpp"
 #include"DirectX12/shader.hpp"
 #include"window_size.hpp"
-#include"DirectX12/resource.hpp"
 #include"DirectX12/command_list.hpp"
 #include"DirectX12/utility.hpp"
-#include"DirectX12/resource_helper_functions.hpp"
+#include"DirectX12/resource/depth_stencil_buffer.hpp"
 #include<algorithm>
 #include<iterator>
 #include<utility>
@@ -20,7 +16,6 @@ namespace DX12
 	namespace
 	{
 		//シャドウマップ用の深度バッファ生成時に使用
-		//constexpr uint32_t shadow_difinition = 1024;
 
 
 		//頂点のmap用の構造体
@@ -90,7 +85,7 @@ namespace DX12
 	}
 
 
-	bool mmd_model::initialize(device* device,const MMDL::pmx_model<std::wstring>& pmxModel,command_list* cl, resource* lightDepthResource)
+	bool mmd_model::initialize(device* device,const MMDL::pmx_model<std::wstring>& pmxModel,command_list* cl, depth_stencil_buffer* lightDepthResource)
 	{
 
 		//頂点
@@ -100,7 +95,7 @@ namespace DX12
 			std::cout << "mmd　model v is failed\n";
 			return false;
 		}
-		map_to_resource(&m_vertex_buffer, std::move(vertex));
+		m_vertex_buffer.map(std::move(vertex));
 
 
 		//インデックス
@@ -111,20 +106,21 @@ namespace DX12
 			std::cout << "mmd model i is failed\n";
 			return false;
 		}
-		map_to_resource(&m_index_buffer, std::move(index));
+		m_index_buffer.map(std::move(index));
 
 
 		//マテリアル
 		auto material = generate_map_material(pmxModel.m_material);
-		for (auto& m : material) {
-			auto resource = create_constant_resource(device, sizeof(m));
-			if (resource.is_empty()) {
+		for (int i = 0; i < material.size(); i++)
+		{
+
+			m_material_constant_resource[i].initialize(device, sizeof(material[i]));
+			if (m_material_constant_resource[i].is_empty()) {
 				std::cout << "mmd material is failed\n";
 				return false;
 			}
-			map_material tmp[] = { m };
-			map_to_resource(&resource, tmp);
-			m_material_constant_resource.emplace_back(std::move(resource));
+			map_material data[] = { material[i] };
+			m_material_constant_resource[i].map(data);
 		}
 		
 		//マテリアルインフォ
@@ -144,16 +140,17 @@ namespace DX12
 			}
 			auto& [metaData, scratchImage] = imageResult.value();
 
-			auto resource = create_texture_resource(device, cl, &metaData, &scratchImage);
-			if (resource.is_empty()) {
+			DX12::texture_resource tmp{};
+			tmp.initialize(device, cl, &metaData, &scratchImage);
+			if (tmp.is_empty()) {
 				std::cout << "mmd texture init is failed\n";
 				return false;
 			}
-			m_texture.emplace_back(std::move(resource));
+			m_texture.emplace_back(std::move(tmp));
 		}
 
 		//シーンデータ
-		m_scene_constant_resource = create_constant_resource(device, sizeof(scene_data));
+		m_scene_constant_resource.initialize(device, sizeof(scene_data));
 		if (m_scene_constant_resource.is_empty()) {
 			std::cout << "scene data constant init is failed\n";
 			return false;
@@ -185,12 +182,12 @@ namespace DX12
 			return false;
 		}
 
-		m_descriptor_heap.create_view<resource_type::CBV>(device, m_scene_constant_resource.get());
+		m_descriptor_heap.create_view<view_type::constant_buffer>(device, m_scene_constant_resource.get());
 
 		for (size_t i = 0; i < m_material_info.size(); i++)
 		{
 			//先頭のハンドルはメモしておく
-			auto handle = m_descriptor_heap.create_view<resource_type::CBV>(device, m_material_constant_resource[i].get());
+			auto handle = m_descriptor_heap.create_view<view_type::constant_buffer>(device, m_material_constant_resource[i].get());
 			if (handle)
 				m_matarial_root_gpu_handle.emplace_back(handle.value().first);
 			else {
@@ -200,37 +197,37 @@ namespace DX12
 
 			//有効なテクスチャがある場合
 			if (0 <= m_material_info[i].m_texture_index && m_material_info[i].m_texture_index < m_texture.size())
-				m_descriptor_heap.create_view<resource_type::SRV>(device, m_texture[m_material_info[i].m_texture_index].get());
+				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_texture[m_material_info[i].m_texture_index].get());
 			//ない場合は白テクスチャ
 			else
-				m_descriptor_heap.create_view(device, m_white_texture_resource.get());
+				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_white_texture_resource.get());
 
 
 			//加算スフィア
 			if (pmxModel.m_material[i].m_sphere_mode == 2)
-				m_descriptor_heap.create_view<resource_type::SRV>(device, m_texture[m_material_info[i].m_toon_index].get());
+				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_texture[m_material_info[i].m_toon_index].get());
 			else
-				m_descriptor_heap.create_view(device, &m_black_texture_resource);
+				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_black_texture_resource.get());
 
 			//乗算スフィア
 			if (pmxModel.m_material[i].m_sphere_mode == 1)
-				m_descriptor_heap.create_view<resource_type::SRV>(device, m_texture[m_material_info[i].m_toon_index].get());
+				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_texture[m_material_info[i].m_toon_index].get());
 			else
-				m_descriptor_heap.create_view(device, &m_white_texture_resource);
+				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_white_texture_resource.get());
 
 			//toon
 			//個別toonなら対応
 			const unsigned int* ptr = std::get_if<0>(&pmxModel.m_material[i].m_toon);
 			if (ptr && *ptr < m_texture.size())
-				m_descriptor_heap.create_view<resource_type::SRV>(device, m_texture[*ptr].get());
+				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_texture[*ptr].get());
 			else 
-				m_descriptor_heap.create_view(device, &m_gray_gradation_texture_resource);
+				m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_gray_gradation_texture_resource.get());
 		}
 		
 		//ライト深度のリソースの描写用のViewを生成
 		//ハンドルはメモしておく（おっふせっとからアクセスできるけど。。）
 		{
-			auto result = m_descriptor_heap.create_view<resource_type::DSV>(device, lightDepthResource->get());
+			auto result = m_descriptor_heap.create_view<view_type::depth_stencil_buffer>(device, lightDepthResource->get());
 			if (result)
 				m_light_depth_gpu_handle = result.value().first;
 			else {

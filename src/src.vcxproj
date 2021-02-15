@@ -19,14 +19,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DirectX12\color_texture.cpp" />
     <ClCompile Include="DirectX12\command_list.cpp" />
     <ClCompile Include="DirectX12\device.cpp" />
     <ClCompile Include="DirectX12\double_buffer.cpp" />
-    <ClCompile Include="DirectX12\index_buffer.cpp" />
-    <ClCompile Include="DirectX12\resource.cpp" />
-    <ClCompile Include="DirectX12\resource_helper_functions.cpp" />
-    <ClCompile Include="DirectX12\vertex_buffer.cpp" />
+    <ClCompile Include="DirectX12\resource\color_texture.cpp" />
+    <ClCompile Include="DirectX12\resource\constant_buffer.cpp" />
+    <ClCompile Include="DirectX12\resource\depth_stencil_buffer.cpp" />
+    <ClCompile Include="DirectX12\resource\float4_shader_resource.cpp" />
+    <ClCompile Include="DirectX12\resource\float_shader_resource.cpp" />
+    <ClCompile Include="DirectX12\resource\index_buffer.cpp" />
+    <ClCompile Include="DirectX12\resource\resource_base.cpp" />
+    <ClCompile Include="DirectX12\resource\texture_resource.cpp" />
+    <ClCompile Include="DirectX12\resource\upload_resource.cpp" />
+    <ClCompile Include="DirectX12\resource\vertex_buffer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mmd_model.cpp" />
     <ClCompile Include="mmd_model_renderer.cpp" />
@@ -34,19 +39,25 @@
     <ClCompile Include="perapolygon_renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DirectX12\color_texture.hpp" />
     <ClInclude Include="DirectX12\command_list.hpp" />
     <ClInclude Include="DirectX12\depth_buffer.hpp" />
     <ClInclude Include="DirectX12\descriptor_heap.hpp" />
     <ClInclude Include="DirectX12\device.hpp" />
     <ClInclude Include="DirectX12\double_buffer.hpp" />
-    <ClInclude Include="DirectX12\index_buffer.hpp" />
-    <ClInclude Include="DirectX12\resource.hpp" />
-    <ClInclude Include="DirectX12\resource_helper_functions.hpp" />
+    <ClInclude Include="DirectX12\resource\color_texture.hpp" />
+    <ClInclude Include="DirectX12\resource\float4_shader_resource.hpp" />
+    <ClInclude Include="DirectX12\resource\float_shader_resource.hpp" />
+    <ClInclude Include="DirectX12\resource\constant_buffer.hpp" />
+    <ClInclude Include="DirectX12\resource\depth_stencil_buffer.hpp" />
+    <ClInclude Include="DirectX12\resource\index_buffer.hpp" />
+    <ClInclude Include="DirectX12\resource\map_function.hpp" />
+    <ClInclude Include="DirectX12\resource\resource_base.hpp" />
+    <ClInclude Include="DirectX12\resource\texture_resource.hpp" />
+    <ClInclude Include="DirectX12\resource\upload_resource.hpp" />
+    <ClInclude Include="DirectX12\resource\vertex_buffer.hpp" />
     <ClInclude Include="DirectX12\resource_type_tag.hpp" />
     <ClInclude Include="DirectX12\shader.hpp" />
     <ClInclude Include="DirectX12\utility.hpp" />
-    <ClInclude Include="DirectX12\vertex_buffer.hpp" />
     <ClInclude Include="mmd_model.hpp" />
     <ClInclude Include="mmd_model_renderer.hpp" />
     <ClInclude Include="perapolygon.hpp" />
@@ -179,6 +190,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ObjectFileName>$(IntDir)</ObjectFileName>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -199,6 +211,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ObjectFileName>$(IntDir)</ObjectFileName>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -214,6 +227,8 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -229,6 +244,8 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

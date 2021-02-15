@@ -1,10 +1,8 @@
 #include"perapolygon.hpp"
 #include"DirectX12/device.hpp"
-#include"DirectX12/vertex_buffer.hpp"
 #include"DirectX12/resource_type_tag.hpp"
 #include"DirectX12/descriptor_heap.hpp"
 #include"DirectX12/command_list.hpp"
-#include"DirectX12/resource_helper_functions.hpp"
 #include"window_size.hpp"
 #include"scene_data.hpp"
 
@@ -29,32 +27,25 @@ namespace DX12
 		}
 
 		//実際のリソースたちの初期化
-		m_resource[ResourceIndex::COLOR] = create_simple_resource(device, window_width, window_height,
-			DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, { DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.5f,0.5f,0.5f,1.f } });
 
-		m_resource[ResourceIndex::NORMAL] = create_simple_resource(device, window_width, window_height,
-			DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, { DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.5f,0.5f,0.5f,1.f } });
+		m_float4_resource[Float4ResourceIndex::COLOR].initialize(device, window_width, window_height,
+			D3D12_CLEAR_VALUE{ DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.5f,0.5f,0.5f,1.f } });
 
-		m_resource[ResourceIndex::BLOOM] = create_simple_resource(device, window_width, window_height,
-			DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, { DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.f,0.f,0.f,1.f } });
+		m_float4_resource[Float4ResourceIndex::NORMAL].initialize(device, window_width, window_height,
+			D3D12_CLEAR_VALUE{ DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.5f,0.5f,0.5f,1.f } });
 
-		m_resource[ResourceIndex::SHRINK_BLOOM] = create_simple_resource(device, window_width / 2, window_height,
-			DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, { DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.f,0.f,0.f,1.f } });
+		m_float4_resource[Float4ResourceIndex::BLOOM].initialize(device, window_width, window_height,
+			D3D12_CLEAR_VALUE{ DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.f,0.f,0.f,1.f } });
 
-		m_resource[ResourceIndex::DOF] = create_simple_resource(device, window_width / 2, window_height,
-			DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, { DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.f,0.f,0.f,1.f } });
+		m_float4_resource[Float4ResourceIndex::SHRINK_BLOOM].initialize(device, window_width / 2, window_height,
+			D3D12_CLEAR_VALUE{ DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.f,0.f,0.f,1.f } });
 
-		m_resource[ResourceIndex::SSAO] = create_simple_resource(device, window_width , window_height,
-			DXGI_FORMAT_R32_FLOAT, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, { DXGI_FORMAT_R32_FLOAT,{ 1.f,1.f,1.f,1.f } });
+		m_float4_resource[Float4ResourceIndex::DOF].initialize(device, window_width / 2, window_height,
+			D3D12_CLEAR_VALUE{ DXGI_FORMAT_R8G8B8A8_UNORM,{ 0.f,0.f,0.f,1.f } });
 
-		m_resource[ResourceIndex::CBV] = create_constant_resource(device, sizeof(scene_data_for_perapolygon));
+		m_SSAO_resource.initialize(device, window_width, window_height, D3D12_CLEAR_VALUE{ DXGI_FORMAT_R32_FLOAT,{ 1.f,1.f,1.f,1.f } });
 
+		m_constant_buffer.initialize(device, sizeof(scene_data_for_perapolygon));
 
 
 		//頂点バッファ
@@ -75,13 +66,13 @@ namespace DX12
 				return false;
 			}
 
-			map_to_resource(&m_vertex_buffer, pv);
+			m_vertex_buffer.map(pv);
 		}
 
 		//レンダーターゲット用のディスクリプタヒープにViewを作製
 		for (int i = 0; i < RESOURCE_NUM - 2; i++)
 		{
-			auto result = m_rtv_descriptor_heap.create_view<resource_type::RTV>(device, m_resource[i].get());
+			auto result = m_rtv_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_float4_resource[i].get());
 			if (!result) {
 				std::cout << "pera rtv create view " << i << " is failed\n";
 				return false;
@@ -89,7 +80,7 @@ namespace DX12
 		}
 		//深度用としてSSAO用のViewを生成
 		{
-			auto result = m_rtv_descriptor_heap.create_view<resource_type::R32>(device, m_resource[ResourceIndex::SSAO].get());
+			auto result = m_rtv_descriptor_heap.create_view<view_type::float_shader_resource>(device, m_SSAO_resource.get());
 			if (!result) {
 				std::cout << "pera rtv crate view dsv is failed\n";
 				return false;
@@ -105,14 +96,14 @@ namespace DX12
 		//シェーダリソース用のディスクリプタヒープにViewを作製
 		for (int i = 0; i < RESOURCE_NUM - 2; i++)
 		{
-			auto result = m_cbv_srv_usv_descriptor_heap.create_view<resource_type::SRV>(device, m_resource[i].get());
+			auto result = m_cbv_srv_usv_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_float4_resource[i].get());
 			if (!result) {
 				std::cout << "pera srv create view " << i << " is failed\n";
 				return false;
 			}
 		}
 		{
-			auto result = m_cbv_srv_usv_descriptor_heap.create_view<resource_type::R32>(device, m_resource[ResourceIndex::SSAO].get());
+			auto result = m_cbv_srv_usv_descriptor_heap.create_view<view_type::float_shader_resource>(device, m_SSAO_resource.get());
 			if (!result) {
 				std::cout << "pera srv create view dsv is failed\n";
 				return false;
@@ -120,7 +111,7 @@ namespace DX12
 		}
 	
 		{
-			auto result = m_cbv_srv_usv_descriptor_heap.create_view<resource_type::CBV>(device, m_resource[ResourceIndex::CBV].get());
+			auto result = m_cbv_srv_usv_descriptor_heap.create_view<view_type::constant_buffer>(device, m_constant_buffer.get());
 			if (!result) {
 				std::cout << "pera srv create view cbv is failed\n";
 				return false;
@@ -130,7 +121,7 @@ namespace DX12
 		//最後に深度バッファのViewを生成
 		//つまり添え字はRESOURCE_NUM
 		{
-			auto result = m_cbv_srv_usv_descriptor_heap.create_view<resource_type::DSV>(device, depthResource);
+			auto result = m_cbv_srv_usv_descriptor_heap.create_view<view_type::depth_stencil_buffer>(device, depthResource);
 			if (!result) {
 				std::cout << "pera srv depth resource create view is failed\n";
 				return false;
@@ -149,28 +140,30 @@ namespace DX12
 
 	void  perapolygon::all_resource_barrior(command_list* cl, D3D12_RESOURCE_STATES state)
 	{
-		for (int i = 0; i < RESOURCE_NUM-1; i++)
-			m_resource[i].barrior(cl, state);
+		for (int i = 0; i < RESOURCE_NUM - 2; i++)
+			m_float4_resource[i].barrior(cl, state);
+		m_SSAO_resource.barrior(cl, state);
 	}
 
 	void perapolygon::ssao_resource_barrior(command_list* cl, D3D12_RESOURCE_STATES state)
 	{
-		m_resource[ResourceIndex::SSAO].barrior(cl, state);
+		m_SSAO_resource.barrior(cl, state);
 	}
 
 	D3D12_CPU_DESCRIPTOR_HANDLE perapolygon::get_ssao_cpu_handle()
 	{
-		return m_rtv_descriptor_heap.get_cpu_handle(ResourceIndex::SSAO);
+		//
+		return m_rtv_descriptor_heap.get_cpu_handle(5);
 	}
 
 	void perapolygon::map_scene_data(const scene_data_for_perapolygon& sceneData)
 	{
 		scene_data_for_perapolygon* ptr = nullptr;
-		m_resource[ResourceIndex::CBV].get()->Map(0, nullptr, (void**)&ptr);
-
+		m_constant_buffer.get()->Map(0, nullptr, (void**)&ptr);
+		
 		*ptr = sceneData;
 
-		m_resource[ResourceIndex::CBV].get()->Unmap(0, nullptr);
+		m_constant_buffer.get()->Unmap(0, nullptr);
 	}
 
 	void perapolygon::clear(command_list* cl)
@@ -212,7 +205,7 @@ namespace DX12
 		cl->get()->SetDescriptorHeaps(1, &m_cbv_srv_usv_descriptor_heap.get());
 		cl->get()->SetGraphicsRootDescriptorTable(0, m_cbv_srv_usv_descriptor_heap.get_gpu_handle());
 
-		auto desc = m_resource[ResourceIndex::BLOOM].get()->GetDesc();
+		auto desc = m_float4_resource[Float4ResourceIndex::BLOOM].get()->GetDesc();
 		D3D12_VIEWPORT vp{};
 		D3D12_RECT sr{};
 

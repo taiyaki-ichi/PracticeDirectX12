@@ -1,10 +1,11 @@
 #include"color_texture.hpp"
-#include"device.hpp"
 #include<vector>
+
+#include<iostream>
 
 namespace DX12
 {
-	
+
 	bool color_texture_resource_base::initialize(device* device, unsigned int width, unsigned int height)
 	{
 		D3D12_HEAP_PROPERTIES texHeapProp{};
@@ -26,14 +27,14 @@ namespace DX12
 		resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;//レイアウトについては決定しない
 		resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;//とくにフラグなし
 
-		if (!resource::initialize(
+		if (!resource_base::initialize(
 			device,
 			&texHeapProp,
 			D3D12_HEAP_FLAG_NONE,//特に指定なし
 			&resDesc,
 			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 			nullptr
-			)) {
+		)) {
 			std::cout << "color_texture_resource_base::initialize is failed\n";
 			return false;
 		}
@@ -62,5 +63,4 @@ namespace DX12
 
 		return true;
 	}
-	
 }

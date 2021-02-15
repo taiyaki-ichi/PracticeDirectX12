@@ -1,7 +1,6 @@
 #pragma once
-#include"resource_helper_functions.hpp"
 #include"command_list.hpp"
-#include"resource.hpp"
+#include"resource/depth_stencil_buffer.hpp"
 #include"device.hpp"
 #include"descriptor_heap.hpp"
 #include<array>
@@ -20,8 +19,6 @@ namespace DX12
 	namespace descriptor_heap_type {
 		struct DSV;
 	};
-
-	class resource;
 	class command_list;
 	
 	//共通で使いまわすような深度バッファたちをまとめたいクラス
@@ -32,7 +29,7 @@ namespace DX12
 		descriptor_heap<descriptor_heap_type::DSV> m_descriptor_heap{};
 
 		//実際のリソース
-		std::array<resource, Size> m_depth_resource{};
+		std::array<DX12::depth_stencil_buffer, Size> m_depth_resource{};
 
 		//初期化の実装部分
 		template<typename Head, typename ...Tail>
@@ -51,7 +48,7 @@ namespace DX12
 		D3D12_CPU_DESCRIPTOR_HANDLE get_cpu_handle(unsigned int index);
 
 		//index番目のリソースの取得
-		resource* get_resource(unsigned int index);
+		DX12::depth_stencil_buffer* get_resource(unsigned int index);
 	};
 
 
@@ -60,14 +57,14 @@ namespace DX12
 	template<typename Head, typename ...Tail>
 	inline bool depth_buffer<Size>::depth_buffer_init_impl(device* device, unsigned int cnt, Head&& head, Tail&&... tail)
 	{
-		m_depth_resource[cnt] = create_depth_resource(device, head.first, head.second);
+		m_depth_resource[cnt].initialize(device, head.first, head.second);
 
 		if (m_depth_resource[cnt].is_empty()) {
 			std::cout << "depth buffer init " << cnt << " is failed\n";
 			return false;
 		}
 
-		m_descriptor_heap.create_view<resource_type::DSV>(device, m_depth_resource[cnt].get());
+		m_descriptor_heap.create_view<view_type::depth_stencil_buffer>(device, m_depth_resource[cnt].get());
 
 		if constexpr (sizeof...(tail) <= 0)
 			return true;
@@ -113,7 +110,7 @@ namespace DX12
 	}
 
 	template<unsigned int Size>
-	inline resource* depth_buffer<Size>::get_resource(unsigned int index)
+	inline DX12::depth_stencil_buffer* depth_buffer<Size>::get_resource(unsigned int index)
 	{
 		return &m_depth_resource[index];
 	}

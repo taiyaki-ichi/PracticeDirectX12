@@ -1,19 +1,14 @@
 #pragma once
-#include"resource_type_tag.hpp"
-#include"resource.hpp"
-#include"device.hpp"
+#include"resource_base.hpp"
 #include<vector>
-#include<d3d12.h>
-#include<dxgi1_6.h>
 
-#pragma comment(lib,"d3d12.lib")
-#pragma comment(lib,"dxgi.lib")
+#include<iostream>
 
 namespace DX12
 {
-	
+
 	//カラーテクスチャのベースとなるクラス
-	class color_texture_resource_base : public resource
+	class color_texture_resource_base : public resource_base
 	{
 	public:
 		virtual ~color_texture_resource_base() = default;
@@ -26,8 +21,6 @@ namespace DX12
 	class simple_color_texture_resource : public color_texture_resource_base
 	{
 	public:
-		using resource_type = typename resource_type::SRV;
-
 		bool initialize(device* device);
 	};
 
@@ -38,8 +31,6 @@ namespace DX12
 	class gray_gradation_texture_resource : public color_texture_resource_base
 	{
 	public:
-		using resource_type = typename resource_type::SRV;
-
 		bool initialize(device*);
 	};
 
@@ -67,5 +58,5 @@ namespace DX12
 
 		return true;
 	}
-	
+
 }

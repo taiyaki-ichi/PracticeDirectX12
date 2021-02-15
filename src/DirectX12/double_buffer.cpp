@@ -67,8 +67,9 @@ namespace DX12
 			}
 			
 			m_buffer[i].initialize(resourcePtr);
-			m_descriptor_heap.create_view<resource_type::RTV>(device, m_buffer[i].get());
+			m_descriptor_heap.create_view<view_type::float4_shader_resource>(device, m_buffer[i].get());
 		}
+
 
 		return true;
 	}

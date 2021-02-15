@@ -63,7 +63,7 @@ float4 main(Output input) : SV_TARGET
 
 	}
 
-
+/*
 
 	float w, h, miplevels;
 	tex.GetDimensions(0, w, h, miplevels);
@@ -99,9 +99,11 @@ float4 main(Output input) : SV_TARGET
 		}
 	}
 	//return lerp(retColor[0], retColor[1], t);
+
+	*/
 	
-	//float4 col = tex.Sample(smp, input.uv);
-	float4 col = lerp(retColor[0], retColor[1], t);
+	float4 col = tex.Sample(smp, input.uv);
+	//float4 col = lerp(retColor[0], retColor[1], t);
 
 	return float4(col.rgb * texSSAO.Sample(smp, input.uv), col.a);
 }

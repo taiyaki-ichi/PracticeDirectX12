@@ -61,7 +61,7 @@ namespace DX12
 
 		//タイプを持っている場合のインターフェース関数
 		//getで実際のリソースを取得できるように
-		template<typename T, typename CreateType = typename T::resource_type>
+		template<typename T, typename CreateType = typename T::view_type>
 		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> create_view(device* device, T* resourcePtr);
 		//持っていない場合
 		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> create_view(...);
@@ -249,7 +249,7 @@ namespace DX12
 
 	//ディスクリプタヒープのタイプがCBV_SRV_UAVの時にCBVのビューを作る
 	template<>
-	inline bool create_view_func<descriptor_heap_type::CBV_SRV_UAV, resource_type::CBV>
+	inline bool create_view_func<descriptor_heap_type::CBV_SRV_UAV, view_type::constant_buffer>
 		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 	{
 		//定数バッファ
@@ -266,7 +266,7 @@ namespace DX12
 
 	//ディスクリプタヒープのタイプがCBV_SRV_UAVの時にSRVのビューを作る
 	template<>
-	inline bool  create_view_func<descriptor_heap_type::CBV_SRV_UAV, resource_type::SRV>
+	inline bool  create_view_func<descriptor_heap_type::CBV_SRV_UAV, view_type::float4_shader_resource>
 		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 	{
 		//テクスチャ
@@ -288,7 +288,7 @@ namespace DX12
 	//ディスクリプタヒープのタイプがCBV_SRV_UAVの時に深度バッファをシェーダリソースとして
 	//扱うためのViewの作製
 	template<>
-	inline bool  create_view_func<descriptor_heap_type::CBV_SRV_UAV, resource_type::DSV>
+	inline bool  create_view_func<descriptor_heap_type::CBV_SRV_UAV, view_type::depth_stencil_buffer>
 		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC resDesc{};
@@ -308,7 +308,7 @@ namespace DX12
 	//深度バッファを深度バッファとして使うため
 	//深度バッファ用のディスクリプタヒープにViewを作る用
 	template<>
-	inline bool  create_view_func<descriptor_heap_type::DSV, resource_type::DSV>
+	inline bool  create_view_func<descriptor_heap_type::DSV, view_type::depth_stencil_buffer>
 		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 	{
 		D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
@@ -328,7 +328,7 @@ namespace DX12
 	//レンダーターゲット用のディスクリプタヒープに
 	//レンダーターゲットのViewを作る
 	template<>
-	inline bool create_view_func<descriptor_heap_type::RTV, resource_type::RTV>
+	inline bool create_view_func<descriptor_heap_type::RTV, view_type::float4_shader_resource>
 		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 	{
 		//SRGBレンダーターゲットビュー設定
@@ -343,7 +343,7 @@ namespace DX12
 
 
 	template<>
-	inline bool create_view_func<descriptor_heap_type::RTV, resource_type::R32>
+	inline bool create_view_func<descriptor_heap_type::RTV, view_type::float_shader_resource>
 		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 	{
 		//SRGBレンダーターゲットビュー設定
@@ -357,7 +357,7 @@ namespace DX12
 	}
 
 	template<>
-	inline bool create_view_func<descriptor_heap_type::CBV_SRV_UAV, resource_type::R32>
+	inline bool create_view_func<descriptor_heap_type::CBV_SRV_UAV, view_type::float_shader_resource>
 		(device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};

@@ -1,8 +1,10 @@
 #pragma once
-#include"DirectX12/resource.hpp"
 #include"DirectX12/descriptor_heap.hpp"
-#include"DirectX12/vertex_buffer.hpp"
 #include"scene_data.hpp"
+#include"DirectX12/resource/vertex_buffer.hpp"
+#include"DirectX12/resource/constant_buffer.hpp"
+#include"DirectX12/resource/float_shader_resource.hpp"
+#include"DirectX12/resource/float4_shader_resource.hpp"
 #include<utility>
 #include<array>
 #include<d3d12.h>
@@ -11,7 +13,6 @@
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
 
-#include"DirectX12/color_texture.hpp"
 
 namespace DX12
 {
@@ -22,24 +23,26 @@ namespace DX12
 		struct RTV;
 		struct CBV_SRV_UAV;
 	}
-	class vertex_buffer;
 	class command_list;
-	class resource;
 
 	class perapolygon
 	{
 		//リソースたち
+
 		constexpr static unsigned int RESOURCE_NUM = 7;
-		resource m_resource[RESOURCE_NUM]{};
-		enum ResourceIndex {
+
+		std::array<float4_shader_resource, 5> m_float4_resource{};
+		enum Float4ResourceIndex {
 			COLOR,//色
 			NORMAL,//法線
 			BLOOM,//ブルーム用
 			SHRINK_BLOOM,//ブルーム用の縮小されたリソース
 			DOF,//被写界深度ぼかしフィルタ用
-			SSAO,//スクリーンスペースアンビエントオクルージョン用
-			CBV,//シーンのデータなどを格納
 		};
+		//スクリーンスペースアンビエントオクルージョン用
+		float_shader_resource m_SSAO_resource{};
+		//シーンのデータなどを格納
+		constant_buffer m_constant_buffer{};
 
 
 		//ぺらポリゴンのリソースにデータを書き込む用

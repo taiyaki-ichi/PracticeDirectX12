@@ -4,8 +4,6 @@
 #include"DirectX12/double_buffer.hpp"
 #include"DirectX12/command_list.hpp"
 #include"DirectX12/shader.hpp"
-#include"DirectX12/vertex_buffer.hpp"
-#include"DirectX12/index_buffer.hpp"
 #include"DirectX12/descriptor_heap.hpp"
 #include"include/load_pmx.hpp"
 #include"DirectX12/depth_buffer.hpp"
