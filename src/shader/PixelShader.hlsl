@@ -76,7 +76,6 @@ PixcelOutput main(BasicType input)
 	output.highLum = y > 0.995f ? output.col : 0.0f;
 	output.highLum.a = 1.0;
 
-
 	return output;
 }
 

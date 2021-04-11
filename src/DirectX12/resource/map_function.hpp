@@ -29,7 +29,7 @@ namespace DX12
 
 		for (size_t y = 0; y < image.height; ++y) {
 			std::copy_n(srcAddress,
-				rowPitch,
+				image.rowPitch,//rowPitch,
 				mapforImage);//コピー
 			//1行ごとの辻褄を合わせてやる
 			srcAddress += image.rowPitch;

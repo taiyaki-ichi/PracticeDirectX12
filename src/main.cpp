@@ -77,8 +77,8 @@ int main()
 	//
 	//viewproj
 	//
-	DirectX::XMFLOAT3 eye{ 0,7,-6 };
-	DirectX::XMFLOAT3 target{ 0,5,0 };
+	DirectX::XMFLOAT3 eye{ 0,12,-12 };
+	DirectX::XMFLOAT3 target{ 0,10,0 };
 	DirectX::XMFLOAT3 up{ 0,1,0 };
 	auto view = DirectX::XMMatrixLookAtLH(
 		DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
@@ -118,53 +118,16 @@ int main()
 	//mmdモデルの頂点情報
 	//頂点レイアウトとシェーダを変更するので注意
 	//
-	//3体のモデルの読み込み
-	//
-	DX12::mmd_model mmdModel1{};
-	{
-		auto result = MMDL::load_pmx("../../mmd/Paimon/派蒙.pmx");
-		if (result)
-		{
-			//多分ワイドでしょう
-			auto& model = std::get<MMDL::pmx_model<std::wstring>>(result.value());
 
-			if (!mmdModel1.initialize(&device, model, &commList, depthBuffer.get_resource(1))) {
-				std::cout << "mmd model1 init is failed\n";
-				return 0;
-			}
-		}
-		else {
-			std::cout << "mmd model1 load failed\n";
-			return 0;
-		}
-	}
 
-	DX12::mmd_model mmdModel2{};
-	{
-		auto result = MMDL::load_pmx("../../mmd/Qiqi/七七.pmx");
-		if (result)
-		{
-			auto& model = std::get<MMDL::pmx_model<std::wstring>>(result.value());
-
-			if (!mmdModel2.initialize(&device, model, &commList, depthBuffer.get_resource(1))) {
-				std::cout << "mmd model2 init is failed\n";
-				return 0;
-			}
-		}
-		else {
-			std::cout << "mmd model2 load failed\n";
-			return 0;
-		}
-	}
-
-	DX12::mmd_model mmdModel3{};
+	DX12::mmd_model mmdModel{};
 	{
 		auto result = MMDL::load_pmx("../../mmd/Mona/莫娜1.0.pmx");
 		if (result)
 		{
 			auto& model = std::get<MMDL::pmx_model<std::wstring>>(result.value());
 
-			if (!mmdModel3.initialize(&device, model, &commList, depthBuffer.get_resource(1))) {
+			if (!mmdModel.initialize(&device, model, &commList, depthBuffer.get_resource(1))) {
 				std::cout << "mmd model3 init is failed\n";
 				return 0;
 			}
@@ -220,9 +183,7 @@ int main()
 		//回転の計算
 		worldMat *= XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
 
-		mmdModel1.map_scene_data({ worldMat,view,proj,lightCamera, shadow, eye });
-		mmdModel2.map_scene_data({ worldMat * DirectX::XMMatrixTranslation(5.f,0,5.f),view,proj,lightCamera, shadow, eye });
-		mmdModel3.map_scene_data({ worldMat * DirectX::XMMatrixTranslation(-5.f,0,10.f),view,proj,lightCamera, shadow, eye });
+		mmdModel.map_scene_data({ worldMat,view,proj,lightCamera, shadow, eye });
 
 		XMVECTOR det;
 		auto invProj = XMMatrixInverse(&det, proj);
@@ -240,9 +201,7 @@ int main()
 		commList.set_render_target(0, nullptr, depthBuffer.get_cpu_handle(1));
 
 		mmdModelRenderer.preparation_for_drawing_light_depth(&commList);
-		mmdModel1.draw_light_depth(&commList);
-		mmdModel2.draw_light_depth(&commList);
-		mmdModel3.draw_light_depth(&commList);
+		mmdModel.draw_light_depth(&commList);
 
 		//
 		//mmdをぺらポリゴンへ描写
@@ -260,9 +219,7 @@ int main()
 		depthBuffer.clear(&commList, 0);
 
 		mmdModelRenderer.preparation_for_drawing(&commList);
-		mmdModel1.draw(&commList);
-		mmdModel2.draw(&commList);
-		mmdModel3.draw(&commList);
+		mmdModel.draw(&commList);
 
 		perapolygonRenderer.preparation_for_drawing_for_blur(&commList);
 		perapolygon.draw_shrink_texture_for_blur(&commList);

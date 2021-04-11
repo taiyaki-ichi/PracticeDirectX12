@@ -54,56 +54,8 @@ float4 Get5x5GaussianBlur(Texture2D<float4> tex, SamplerState smp, float2 uv, fl
 
 
 float4 main(Output input) : SV_TARGET
-{
-
-	if (input.uv.x < 0.3 && input.uv.y < 0.3)
-	{
-		float s = texSSAO.Sample(smp, input.uv / 0.3);
-		return float4(s, s, s, 1.f);
-
-	}
-
-/*
-
-	float w, h, miplevels;
-	tex.GetDimensions(0, w, h, miplevels);
-	float dx = 1.0 / w;
-	float dy = 1.0 / h;
-
-	float depthDiff = abs(depthTex.Sample(smp, float2(0.5, 0.5)) - depthTex.Sample(smp, input.uv));
-	depthDiff = pow(depthDiff, 0.5f);
-	float2 uvSize = float2(1, 0.5);
-	float2 uvOfst = float2(0, 0);
-
-	//numが2より大きくなると青がかかってしまう。
-	//なぜだろう
-	int num = 2;
-
-	float t = depthDiff * num;
-	float no;
-	t = modf(t, no);
-	float4 retColor[2];
-	retColor[0] = tex.Sample(smp, input.uv);//通常テクスチャ
-	if (no == 0.0f) {
-		retColor[1] = Get5x5GaussianBlur(texShrink, smp, input.uv * uvSize + uvOfst, dx, dy, float4(uvOfst, uvOfst + uvSize));
-	}
-	else {
-		for (int i = 1; i <= num; ++i) {
-			if (i - no < 0)continue;
-			retColor[i - no] = Get5x5GaussianBlur(texShrink, smp, input.uv * uvSize + uvOfst, dx, dy, float4(uvOfst, uvOfst + uvSize));
-			uvOfst.y += uvSize.y;
-			uvSize *= 0.5f;
-			if (i - no > 1) {
-				break;
-			}
-		}
-	}
-	//return lerp(retColor[0], retColor[1], t);
-
-	*/
-	
+{	
 	float4 col = tex.Sample(smp, input.uv);
-	//float4 col = lerp(retColor[0], retColor[1], t);
 
 	return float4(col.rgb * texSSAO.Sample(smp, input.uv), col.a);
 }
@@ -130,7 +82,6 @@ BlurOutput BlurPS(Output input)
 //SSAO用
 float SsaoPS(Output input) : SV_TARGET
 {
-
 
 	float dp = depthTex.Sample(smp, input.uv);//現在のUVの深度
 
