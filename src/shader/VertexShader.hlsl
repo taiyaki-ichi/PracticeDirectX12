@@ -1,7 +1,7 @@
 #include"BasicType.hlsli"
 
 
-BasicType main(float4 pos : POSITION, float4 normal : NORMAL, float2 uv : TEXCOORD,uint instNo : SV_InstanceId)
+BasicType main(float4 pos : POSITION, float4 normal : NORMAL, float2 uv : TEXCOORD,uint instNo : SV_InstanceId, min16uint4 boneno : BONENO, min16uint4 weight : WEIGHT)
 {
 
 	BasicType output;//ピクセルシェーダへ渡す値

@@ -10,6 +10,7 @@
 #include<iterator>
 #include<utility>
 #include<cassert>
+#include<array>
 
 namespace DX12
 {
@@ -27,6 +28,18 @@ namespace DX12
 			DirectX::XMFLOAT3 m_normal{};
 			//UV座標
 			DirectX::XMFLOAT2 m_uv{};
+
+			//ボーンの種類のフラグ
+			unsigned char m_bone_type_flag{};
+			//ボーン番号たち
+			std::array<unsigned short, 4> m_bone_no{};
+			//ウェイトたち
+			std::array<float, 4> m_weight{};
+
+			//SDEF用
+			std::array<DirectX::XMFLOAT3, 3> m_SDEF{};
+
+
 		};
 
 		//mapvertexの生成
@@ -35,7 +48,7 @@ namespace DX12
 			std::vector<map_vertex> result{};
 
 			auto func = [](const MMDL::pmx_vertex& v) -> map_vertex {
-				return { v.m_position,v.m_normal,v.m_uv };
+				return { v.m_position,v.m_normal,v.m_uv ,static_cast<unsigned char>(v.m_bone_type_flag),v.m_bone,v.m_weight,v.m_SDEF_vector };
 			};
 
 			std::transform(vertex.begin(), vertex.end(), std::back_inserter(result), std::move(func));

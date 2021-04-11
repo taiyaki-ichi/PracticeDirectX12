@@ -69,6 +69,8 @@ namespace DX12
 		//lightDepthのビューのハンドルのメモ
 		D3D12_GPU_DESCRIPTOR_HANDLE m_light_depth_gpu_handle{};
 
+
+
 	public:
 		//コマンドリストはテクスチャのコピー用
 		bool initialize(device*, const MMDL::pmx_model<std::wstring>&, command_list*, depth_stencil_buffer* lightDepthResource);

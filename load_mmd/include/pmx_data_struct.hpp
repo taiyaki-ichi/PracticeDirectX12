@@ -2,6 +2,7 @@
 #include<DirectXMath.h>
 #include<vector>
 #include<variant>
+#include<array>
 
 namespace MMDL
 {
@@ -65,12 +66,33 @@ namespace MMDL
 		//とりあえず配列で実装、不便だったらカエル
 		//初期値はpmxEditor見て決めた、不適切ならカエル
 		
-		//
-		//フラグ追加
-		//
-		unsigned short m_born[4]{ 0,0,0,0 };
-		float m_weight[4]{ 0.f,0.f,0.f,0.f };
-		DirectX::XMFLOAT3 m_SDEF_vector[3]{ {0.f,0.f,0.f},{0.f,0.f,0.f},{0.f,0.f,0.f} };
+		enum bone_type_flag {
+			//単一ボーンのみから影響を受ける。つまりm_born[0]のみ
+			BDEF1 = 0,
+
+			//2つのボーンから影響を受ける。m_borm[0],m_born[1]のインデックスを使用
+			//また、m_weight[0]に一つ目のボーンのウェイト
+			//1-m_weight[0]が2つ目のボーンのウェイト
+			BDEF2 = 1,
+
+			//4つのボーンから影響を受ける。
+			//m_born[0-3],m_weight[0-3]のそれぞれがそれぞれのデータ
+			//m_wieghtの合計が１とはならないことがあるかもなので注意
+			BDEF4 = 2,
+
+			//上３つとは少し異なる形式
+			//m_born[0],m_born[1]にボーンのインデックス
+			//m_weight[0]に1つ目のボーンのウェイト、2つ目は1-m_weight[0]
+			//m_SDEF_vector[0]=SDEF-C値
+			//m_SDEF_vector[1]=SDEF-R0値
+			//m_SDEF_vector[2]=SDEF-R1値
+			SDEF = 3,
+		};
+
+		bone_type_flag m_bone_type_flag{};
+		std::array<unsigned short, 4> m_bone{ 0,0,0,0 };
+		std::array<float, 4> m_weight{ 0.f,0.f,0.f,0.f };
+		std::array<DirectX::XMFLOAT3, 3> m_SDEF_vector{ {{0.f,0.f,0.f},{0.f,0.f,0.f},{0.f,0.f,0.f} } };
 
 		//エッジ倍率
 		float m_edge_magnification{};
@@ -125,7 +147,7 @@ namespace MMDL
 
 	//ボーン
 	template<typename StringType>
-	struct pmx_born
+	struct pmx_bone
 	{
 		StringType m_name{};
 		StringType m_name_eng{};
@@ -135,15 +157,15 @@ namespace MMDL
 		//親ボーンのインデックス
 		int m_parent_index = -1;
 		//変形階層
-		int m_transformation_level = -1;;
+		int m_transformation_level = -1;
 
 		//ボーンフラグ
-		unsigned short m_flag = 0;;
+		unsigned short m_flag = 0;
 
 		//座標のおっふせっと、ボーンの位置からの相対分
 		DirectX::XMFLOAT3 m_offset{};
 		//接続先ビーンのボーンIndex
-		int m_children_index = -1;;
+		int m_children_index = -1;
 		//付与親ボーンのボーンIndex
 		int m_impart_parent_index = -1;
 		//付与率
@@ -186,7 +208,7 @@ namespace MMDL
 		std::vector<pmx_surface> m_surface;
 		std::vector<StringType> m_texture_path;
 		std::vector<pmx_material<StringType>> m_material;
-		std::vector<pmx_born<StringType>> m_born;
+		std::vector<pmx_bone<StringType>> m_bone;
 	};
 
 }

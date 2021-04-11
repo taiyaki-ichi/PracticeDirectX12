@@ -37,7 +37,7 @@ namespace MMDL
 			std::vector<pmx_surface>,
 			std::vector<StringType>,
 			std::vector<pmx_material<StringType>>,
-			std::vector<pmx_born<StringType>>
+			std::vector<pmx_bone<StringType>>
 		>;
 	}
 
@@ -83,29 +83,30 @@ namespace MMDL
 					read_binary_from_file(file, &vertex[i].m_additional_uv, size);
 				}
 
-				unsigned char weightMethod;
-				read_binary_from_file(file, &weightMethod);
+				char tmpByte{};
+				read_binary_from_file(file, &tmpByte);
+				vertex[i].m_bone_type_flag = static_cast<pmx_vertex::bone_type_flag>(tmpByte);
 
 				//取得したウェイトのタイプの有効なデータを取得していく
-				switch (weightMethod)
+				switch (vertex[i].m_bone_type_flag)
 				{
-				case pmx_vertex_weight_type::BDEF1:
-					read_binary_from_file(file, &vertex[i].m_born, header.m_data[pmx_header::BONE_INDEX_SIZE]);
+				case pmx_vertex::bone_type_flag::BDEF1:
+					read_binary_from_file(file, &vertex[i].m_bone, header.m_data[pmx_header::BONE_INDEX_SIZE]);
 					break;
 
-				case pmx_vertex_weight_type::BDEF2:
-					read_binary_from_file(file, &vertex[i].m_born, static_cast<size_t>(header.m_data[pmx_header::BONE_INDEX_SIZE]) * 2);
+				case pmx_vertex::bone_type_flag::BDEF2:
+					read_binary_from_file(file, &vertex[i].m_bone, static_cast<size_t>(header.m_data[pmx_header::BONE_INDEX_SIZE]) * 2);
 					//x64だとsizeofでずれる
 					read_binary_from_file(file, &vertex[i].m_weight,/* sizeof(&vertex[i].m_weight[0])*/ 4);
 					break;
 
-				case pmx_vertex_weight_type::BDEF4:
-					read_binary_from_file(file, &vertex[i].m_born, static_cast<size_t>(header.m_data[pmx_header::BONE_INDEX_SIZE]) * 4);
+				case pmx_vertex::bone_type_flag::BDEF4:
+					read_binary_from_file(file, &vertex[i].m_bone, static_cast<size_t>(header.m_data[pmx_header::BONE_INDEX_SIZE]) * 4);
 					read_binary_from_file(file, &vertex[i].m_weight, /*sizeof(&vertex[i].m_weight[0])*/4 * 4);
 					break;
 
-				case pmx_vertex_weight_type::SDEF:
-					read_binary_from_file(file, &vertex[i].m_born, static_cast<size_t>(header.m_data[pmx_header::BONE_INDEX_SIZE]) * 2);
+				case pmx_vertex::bone_type_flag::SDEF:
+					read_binary_from_file(file, &vertex[i].m_bone, static_cast<size_t>(header.m_data[pmx_header::BONE_INDEX_SIZE]) * 2);
 					read_binary_from_file(file, &vertex[i].m_weight, /*sizeof(vertex[i].m_weight[0])*/4);
 					read_binary_from_file(file, &vertex[i].m_SDEF_vector, sizeof(vertex[i].m_SDEF_vector[0]) * 3);
 					break;
@@ -231,7 +232,7 @@ namespace MMDL
 		//
 		//ボーン
 		//
-		std::vector<pmx_born<StringType>> bone{};
+		std::vector<pmx_bone<StringType>> bone{};
 		{
 			int boneNum;
 			read_binary_from_file(file, &boneNum);
