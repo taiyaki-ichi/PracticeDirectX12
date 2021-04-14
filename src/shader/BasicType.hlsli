@@ -12,13 +12,16 @@ struct BasicType {
 };
 
 cbuffer SceneData : register(b0) {
-	matrix world;//ワールド変換行列
 	matrix view;
 	matrix proj;//ビュープロジェクション行列
 	matrix lightCamera;//ライトのカメラ
 	matrix shadow;//影
 	float3 eye;
 };
+
+cbuffer Tranceform : register(b1) {
+	matrix world;
+}
 
 struct PixcelOutput
 {

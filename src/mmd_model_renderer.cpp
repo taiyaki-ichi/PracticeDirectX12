@@ -26,46 +26,51 @@ namespace DX12
 		D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 		rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
-		D3D12_DESCRIPTOR_RANGE range[]{ {},{} ,{},{} };
+		D3D12_DESCRIPTOR_RANGE range[]{ {},{} ,{},{} ,{} };
 		//頂点情報
 		range[0].NumDescriptors = 1;
 		range[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 		range[0].BaseShaderRegister = 0;
 		range[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-		//マテリアるの基本データ
 		range[1].NumDescriptors = 1;
 		range[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 		range[1].BaseShaderRegister = 1;
 		range[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-		//マテリアルのスフィアとかトゥーン
-		range[2].NumDescriptors = 4;
-		range[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		range[2].BaseShaderRegister = 0;
+		//マテリアるの基本データ
+		range[2].NumDescriptors = 1;
+		range[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+		range[2].BaseShaderRegister = 2;
 		range[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-		//ライトの深度用
-		range[3].NumDescriptors = 1;
+		//マテリアルのスフィアとかトゥーン
+		range[3].NumDescriptors = 4;
 		range[3].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		range[3].BaseShaderRegister = 4;
+		range[3].BaseShaderRegister = 0;
 		range[3].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+		//ライトの深度用
+		range[4].NumDescriptors = 1;
+		range[4].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+		range[4].BaseShaderRegister = 4;
+		range[4].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 
 		D3D12_ROOT_PARAMETER rootparam[]{ {},{},{} };
 		rootparam[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		rootparam[0].DescriptorTable.pDescriptorRanges = &range[0];//デスクリプタレンジのアドレス
-		rootparam[0].DescriptorTable.NumDescriptorRanges = 1;//デスクリプタレンジ数
+		rootparam[0].DescriptorTable.NumDescriptorRanges = 2;//デスクリプタレンジ数
 		rootparam[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;//全てのシェーダから見える
 
 		//マテリアルごとにGPUハンドルを一緒にずらすためまとめる
 		rootparam[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		rootparam[1].DescriptorTable.pDescriptorRanges = &range[1];//デスクリプタレンジのアドレス
+		rootparam[1].DescriptorTable.pDescriptorRanges = &range[2];//デスクリプタレンジのアドレス
 		rootparam[1].DescriptorTable.NumDescriptorRanges = 2;//デスクリプタレンジ数
 		rootparam[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;//全てのシェーダから見える
 
 		rootparam[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		rootparam[2].DescriptorTable.pDescriptorRanges = &range[3];//デスクリプタレンジのアドレス
+		rootparam[2].DescriptorTable.pDescriptorRanges = &range[4];//デスクリプタレンジのアドレス
 		rootparam[2].DescriptorTable.NumDescriptorRanges = 1;//デスクリプタレンジ数
 		rootparam[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;//全てのシェーダから見える
 

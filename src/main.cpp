@@ -178,12 +178,15 @@ int main()
 	lightDepthScissorRect.right = lightDepthScissorRect.left + shadow_difinition;//切り抜き右座標
 	lightDepthScissorRect.bottom = lightDepthScissorRect.top + shadow_difinition;//切り抜き下座標
 
+
 	while (DX12::update_window()) {
 		
 		//回転の計算
 		worldMat *= XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
 
-		mmdModel.map_scene_data({ worldMat,view,proj,lightCamera, shadow, eye });
+		mmdModel.map_scene_data({ view,proj,lightCamera, shadow, eye });
+
+		mmdModel.map_transform_data({ worldMat });
 
 		XMVECTOR det;
 		auto invProj = XMMatrixInverse(&det, proj);

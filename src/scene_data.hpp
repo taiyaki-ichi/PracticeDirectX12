@@ -6,7 +6,7 @@ namespace DX12
 	//mmdmodel‚É“n‚·—p
 	struct scene_data
 	{
-		DirectX::XMMATRIX m_world{};
+		//DirectX::XMMATRIX m_world{};
 		DirectX::XMMATRIX m_view{};
 		DirectX::XMMATRIX m_proj{};
 
@@ -16,6 +16,11 @@ namespace DX12
 		DirectX::XMMATRIX m_shadow{};
 
 		DirectX::XMFLOAT3 m_eye{};
+	};
+
+	struct transform_data 
+	{
+		DirectX::XMMATRIX m_world{};
 	};
 
 	//perapolygon‚É“n‚·—p
@@ -34,4 +39,6 @@ namespace DX12
 		DirectX::XMFLOAT3 m_eye{};
 	};
 
+
+	
 }

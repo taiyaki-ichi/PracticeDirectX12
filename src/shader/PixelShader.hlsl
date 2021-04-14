@@ -10,7 +10,7 @@ SamplerState smpToon:register(s1);//1番スロットに設定されたサンプラ
 SamplerComparisonState shadowSmp:register(s2);
 
 
-cbuffer Material : register(b1) {
+cbuffer Material : register(b2) {
 	float4 diffuse;//ディフューズ色
 	float4 specular;//スペキュラ
 	float3 ambient;//アンビエント

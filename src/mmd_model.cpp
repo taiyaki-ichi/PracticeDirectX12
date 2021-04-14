@@ -38,9 +38,9 @@ namespace DX12
 
 			//SDEF用
 			std::array<DirectX::XMFLOAT3, 3> m_SDEF{};
-
-
 		};
+
+
 
 		//mapvertexの生成
 		std::vector<map_vertex> generate_map_vertex(const std::vector<MMDL::pmx_vertex>& vertex)
@@ -169,6 +169,13 @@ namespace DX12
 			return false;
 		}
 
+		//座標移動系
+		//とりあえずワールドのみ
+		m_transform_constant_resource.initialize(device, sizeof(transform_data));
+		if (m_transform_constant_resource.is_empty())
+			throw "";
+		
+
 		m_white_texture_resource.initialize(device);
 		if (m_white_texture_resource.is_empty()) {
 			std::cout << "mmd whire tex is falied\n";
@@ -190,12 +197,14 @@ namespace DX12
 	
 		//今のところ個数は行列1つとマテリアル分
 		//ライト深度ようにもう1つ
-		if (!m_descriptor_heap.initialize(device, static_cast<unsigned int>(1 + m_material_info.size() * 5 + 1))) {
+		if (!m_descriptor_heap.initialize(device, static_cast<unsigned int>(2 + m_material_info.size() * 5 + 1))) {
 			std::cout << "mmd desc heap is failed\n";
 			return false;
 		}
 
 		m_descriptor_heap.create_view(device, &m_scene_constant_resource);
+		m_descriptor_heap.create_view(device, &m_transform_constant_resource);
+
 
 		for (size_t i = 0; i < m_material_info.size(); i++)
 		{
@@ -248,6 +257,15 @@ namespace DX12
 				return false;
 			}
 		}
+
+		//
+		//ボーン
+		//
+		m_bone_materices.resize(pmxModel.m_bone.size());
+		std::fill(m_bone_materices.begin(), m_bone_materices.end(), DirectX::XMMatrixIdentity());
+
+
+
 		return true;
 	}
 
@@ -288,6 +306,16 @@ namespace DX12
 		*ptr = sd;
 
 		m_scene_constant_resource.get()->Unmap(0, nullptr);
+	}
+
+	void mmd_model::map_transform_data(const transform_data& td)
+	{
+		transform_data* ptr = nullptr;
+		m_transform_constant_resource.get()->Map(0, nullptr, (void**)&ptr);
+
+		*ptr = td;
+
+		m_transform_constant_resource.get()->Unmap(0, nullptr);
 	}
 
 	void mmd_model::draw_light_depth(command_list* cl)

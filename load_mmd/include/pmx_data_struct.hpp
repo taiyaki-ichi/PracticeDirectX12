@@ -200,8 +200,6 @@ namespace MMDL
 	template<typename StringType>
 	struct pmx_model
 	{
-		using string_type = typename StringType;
-
 		pmx_header m_header;
 		pmx_info<StringType> m_info;
 		std::vector<pmx_vertex> m_vertex;

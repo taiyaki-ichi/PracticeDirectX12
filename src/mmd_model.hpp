@@ -32,8 +32,10 @@ namespace DX12
 		std::vector<texture_resource> m_texture{};
 
 		//シーンのデータの定数バッファ
-		//resource m_scene_constant_resource{};
 		DX12::constant_buffer m_scene_constant_resource{};
+
+		//座標移動系のバッファ
+		DX12::constant_buffer m_transform_constant_resource{};
 
 		//マテリアル用の定数バッファ
 		std::array<constant_buffer, 64> m_material_constant_resource{};
@@ -69,7 +71,7 @@ namespace DX12
 		//lightDepthのビューのハンドルのメモ
 		D3D12_GPU_DESCRIPTOR_HANDLE m_light_depth_gpu_handle{};
 
-
+		std::vector<DirectX::XMMATRIX> m_bone_materices{};
 
 	public:
 		//コマンドリストはテクスチャのコピー用
@@ -78,6 +80,8 @@ namespace DX12
 		void draw(command_list* cl);
 
 		void map_scene_data(const scene_data&);
+
+		void map_transform_data(const transform_data&);
 
 		//ライト深度バッファへの描写
 		void draw_light_depth(command_list* cl);
