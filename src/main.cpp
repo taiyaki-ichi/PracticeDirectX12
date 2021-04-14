@@ -144,6 +144,9 @@ int main()
 		return 0;
 	}
 
+	std::array<DirectX::XMMATRIX, 512> mmdModelBoneMatrices{};
+	std::fill(mmdModelBoneMatrices.begin(), mmdModelBoneMatrices.end(), DirectX::XMMatrixIdentity());
+
 
 	//
 	//‚Ø‚çƒ|ƒŠƒSƒ“
@@ -186,7 +189,7 @@ int main()
 
 		mmdModel.map_scene_data({ view,proj,lightCamera, shadow, eye });
 
-		mmdModel.map_transform_data({ worldMat });
+		mmdModel.map_transform_data({ worldMat ,mmdModelBoneMatrices });
 
 		XMVECTOR det;
 		auto invProj = XMMatrixInverse(&det, proj);

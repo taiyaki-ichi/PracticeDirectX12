@@ -21,6 +21,7 @@ cbuffer SceneData : register(b0) {
 
 cbuffer Tranceform : register(b1) {
 	matrix world;
+	matrix bones[512];
 }
 
 struct PixcelOutput
