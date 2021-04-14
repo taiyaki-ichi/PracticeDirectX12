@@ -155,7 +155,7 @@ namespace MMDL
 		//位置
 		DirectX::XMFLOAT3 m_position{};
 		//親ボーンのインデックス
-		int m_parent_index = -1;
+		std::int16_t m_parent_index = -1;
 		//変形階層
 		int m_transformation_level = -1;
 

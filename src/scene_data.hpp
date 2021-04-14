@@ -22,7 +22,7 @@ namespace DX12
 	struct transform_data 
 	{
 		DirectX::XMMATRIX m_world{};
-		std::array<DirectX::XMMATRIX, 512> m_bones{};
+		std::array<DirectX::XMMATRIX, 256> m_bones{};
 	};
 
 	//perapolygon‚É“n‚·—p

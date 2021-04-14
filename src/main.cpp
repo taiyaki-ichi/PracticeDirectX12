@@ -144,7 +144,7 @@ int main()
 		return 0;
 	}
 
-	std::array<DirectX::XMMATRIX, 512> mmdModelBoneMatrices{};
+	std::array<DirectX::XMMATRIX, 256> mmdModelBoneMatrices{};
 	std::fill(mmdModelBoneMatrices.begin(), mmdModelBoneMatrices.end(), DirectX::XMMatrixIdentity());
 
 
@@ -181,6 +181,7 @@ int main()
 	lightDepthScissorRect.right = lightDepthScissorRect.left + shadow_difinition;//Ø‚è”²‚«‰EÀ•W
 	lightDepthScissorRect.bottom = lightDepthScissorRect.top + shadow_difinition;//Ø‚è”²‚«‰ºÀ•W
 
+	mmdModelBoneMatrices[20] = XMMatrixTranslation(2.1, -12.5, 0.0) * XMMatrixRotationZ(XM_PIDIV2) * XMMatrixTranslation(-2.1, 12.5, 0.0);
 
 	while (DX12::update_window()) {
 		
