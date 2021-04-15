@@ -89,11 +89,6 @@ int main()
 		100.f
 	);
 
-	//
-	//モデル本体を回転させたり移動させたりする行列
-	//
-	DirectX::XMMATRIX worldMat = DirectX::XMMatrixIdentity();
-
 	//平行ライトの向き
 	//右下奥向き
 	DirectX::XMFLOAT3 parallelLightVec{ 1.f,-1.f,1.f };
@@ -144,8 +139,6 @@ int main()
 		return 0;
 	}
 
-	std::array<DirectX::XMMATRIX, 256> mmdModelBoneMatrices{};
-	std::fill(mmdModelBoneMatrices.begin(), mmdModelBoneMatrices.end(), DirectX::XMMatrixIdentity());
 
 
 	//
@@ -181,16 +174,11 @@ int main()
 	lightDepthScissorRect.right = lightDepthScissorRect.left + shadow_difinition;//切り抜き右座標
 	lightDepthScissorRect.bottom = lightDepthScissorRect.top + shadow_difinition;//切り抜き下座標
 
-	mmdModelBoneMatrices[20] = XMMatrixTranslation(2.1, -12.5, 0.0) * XMMatrixRotationZ(XM_PIDIV2) * XMMatrixTranslation(-2.1, 12.5, 0.0);
 
 	while (DX12::update_window()) {
 		
-		//回転の計算
-		worldMat *= XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
-
 		mmdModel.map_scene_data({ view,proj,lightCamera, shadow, eye });
-
-		mmdModel.map_transform_data({ worldMat ,mmdModelBoneMatrices });
+		mmdModel.update();
 
 		XMVECTOR det;
 		auto invProj = XMMatrixInverse(&det, proj);

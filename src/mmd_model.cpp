@@ -295,10 +295,11 @@ namespace DX12
 		//
 		//ƒ{[ƒ“
 		//
-		m_bone_matrices.resize(pmxModel.m_bone.size());
 		std::fill(m_bone_matrices.begin(), m_bone_matrices.end(), DirectX::XMMatrixIdentity());
 
 		m_bone_node = get_bone_node(pmxModel);
+
+		m_world_matrix = DirectX::XMMatrixIdentity();
 
 		return true;
 	}
@@ -342,15 +343,20 @@ namespace DX12
 		m_scene_constant_resource.get()->Unmap(0, nullptr);
 	}
 
-	void mmd_model::map_transform_data(const transform_data& td)
+	void mmd_model::update()
 	{
+		m_world_matrix *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
+
+		//mmdModelBoneMatrices[20] = XMMatrixTranslation(2.1, -12.5, 0.0) * XMMatrixRotationZ(XM_PIDIV2) * XMMatrixTranslation(-2.1, 12.5, 0.0);
+
 		transform_data* ptr = nullptr;
 		m_transform_constant_resource.get()->Map(0, nullptr, (void**)&ptr);
 
-		*ptr = td;
+		*ptr = { m_world_matrix,m_bone_matrices };
 
 		m_transform_constant_resource.get()->Unmap(0, nullptr);
 	}
+
 
 	void mmd_model::draw_light_depth(command_list* cl)
 	{
