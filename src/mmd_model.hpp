@@ -18,6 +18,13 @@ namespace DX12
 	class command_list;
 	class resource;
 	class depth_stencil_buffer;
+	
+	//とりあえずここにおいておく
+	struct BoneNode {
+		int m_bone_index{};
+		DirectX::XMFLOAT3 m_position{};
+		std::vector<BoneNode> m_children{};
+	};
 
 	class mmd_model
 	{
@@ -71,7 +78,9 @@ namespace DX12
 		//lightDepthのビューのハンドルのメモ
 		D3D12_GPU_DESCRIPTOR_HANDLE m_light_depth_gpu_handle{};
 
-		std::vector<DirectX::XMMATRIX> m_bone_materices{};
+		std::vector<DirectX::XMMATRIX> m_bone_matrices{};
+
+		BoneNode m_bone_node{};
 
 	public:
 		//コマンドリストはテクスチャのコピー用
@@ -85,6 +94,8 @@ namespace DX12
 
 		//ライト深度バッファへの描写
 		void draw_light_depth(command_list* cl);
+
+
 
 	};
 

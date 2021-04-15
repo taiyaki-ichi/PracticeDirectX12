@@ -95,6 +95,40 @@ namespace DX12
 			return result;
 		}
 
+		//再帰用
+		//とりあえずO(n^2)
+		BoneNode get_bone_node_impl(BoneNode&& rootBoneNode, const MMDL::pmx_model<std::wstring>& pmxModel)
+		{
+			for (std::size_t i = 0; i < pmxModel.m_bone.size(); i++)
+			{
+				if (pmxModel.m_bone[i].m_parent_index == rootBoneNode.m_bone_index) {
+					BoneNode childrenBoneNode{};
+					childrenBoneNode.m_bone_index = i;
+					childrenBoneNode.m_position = pmxModel.m_bone[i].m_position;
+					rootBoneNode.m_children.emplace_back(get_bone_node_impl(std::move(childrenBoneNode), pmxModel));
+				}
+			}
+			return rootBoneNode;
+		}
+
+		BoneNode get_bone_node(const MMDL::pmx_model<std::wstring>& pmxModel)
+		{
+			//まず親のボーンの取得
+			BoneNode rootBoneNode{};
+			for (std::size_t i = 0; i < pmxModel.m_bone.size(); i++)
+			{
+				if (pmxModel.m_bone[i].m_name.compare(0, 4, L"全ての親") == 0)
+				{
+					rootBoneNode.m_bone_index = i;
+					rootBoneNode.m_position = pmxModel.m_bone[i].m_position;
+					break;
+				}
+			}
+
+			return get_bone_node_impl(std::move(rootBoneNode), pmxModel);
+		}
+
+
 	}
 
 
@@ -261,10 +295,10 @@ namespace DX12
 		//
 		//ボーン
 		//
-		m_bone_materices.resize(pmxModel.m_bone.size());
-		std::fill(m_bone_materices.begin(), m_bone_materices.end(), DirectX::XMMatrixIdentity());
+		m_bone_matrices.resize(pmxModel.m_bone.size());
+		std::fill(m_bone_matrices.begin(), m_bone_matrices.end(), DirectX::XMMatrixIdentity());
 
-
+		m_bone_node = get_bone_node(pmxModel);
 
 		return true;
 	}
