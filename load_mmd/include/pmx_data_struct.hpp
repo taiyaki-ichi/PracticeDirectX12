@@ -66,7 +66,7 @@ namespace MMDL
 		//とりあえず配列で実装、不便だったらカエル
 		//初期値はpmxEditor見て決めた、不適切ならカエル
 		
-		enum bone_type_flag {
+		enum bone_type_flag  : std::uint16_t {
 			//単一ボーンのみから影響を受ける。つまりm_born[0]のみ
 			BDEF1 = 0,
 

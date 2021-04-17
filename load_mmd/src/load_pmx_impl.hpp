@@ -91,24 +91,24 @@ namespace MMDL
 				switch (vertex[i].m_bone_type_flag)
 				{
 				case pmx_vertex::bone_type_flag::BDEF1:
-					read_binary_from_file(file, &vertex[i].m_bone, header.m_data[pmx_header::BONE_INDEX_SIZE]);
+					read_binary_from_file(file, vertex[i].m_bone.data(), header.m_data[pmx_header::BONE_INDEX_SIZE]);
 					break;
 
 				case pmx_vertex::bone_type_flag::BDEF2:
-					read_binary_from_file(file, &vertex[i].m_bone, static_cast<size_t>(header.m_data[pmx_header::BONE_INDEX_SIZE]) * 2);
+					read_binary_from_file(file, vertex[i].m_bone.data(), static_cast<size_t>(header.m_data[pmx_header::BONE_INDEX_SIZE]) * 2);
 					//x64‚¾‚Æsizeof‚Å‚¸‚ê‚é
 					read_binary_from_file(file, vertex[i].m_weight.data(), /*sizeof(&vertex[i].m_weight[0])*/4);
 					break;
 
 				case pmx_vertex::bone_type_flag::BDEF4:
-					read_binary_from_file(file, &vertex[i].m_bone, static_cast<size_t>(header.m_data[pmx_header::BONE_INDEX_SIZE]) * 4);
+					read_binary_from_file(file, vertex[i].m_bone.data(), static_cast<size_t>(header.m_data[pmx_header::BONE_INDEX_SIZE]) * 4);
 					read_binary_from_file(file, vertex[i].m_weight.data(), /*sizeof(&vertex[i].m_weight[0])*/ 4 * 2);
 					break;
 
 				case pmx_vertex::bone_type_flag::SDEF:
-					read_binary_from_file(file, &vertex[i].m_bone, static_cast<size_t>(header.m_data[pmx_header::BONE_INDEX_SIZE]) * 2);
+					read_binary_from_file(file, vertex[i].m_bone.data(), static_cast<size_t>(header.m_data[pmx_header::BONE_INDEX_SIZE]) * 2);
 					read_binary_from_file(file, vertex[i].m_weight.data(), /*sizeof(vertex[i].m_weight[0])*/ 4 * 4);
-					read_binary_from_file(file, &vertex[i].m_SDEF_vector, sizeof(vertex[i].m_SDEF_vector[0]) * 3);
+					read_binary_from_file(file, vertex[i].m_SDEF_vector.data(), sizeof(vertex[i].m_SDEF_vector[0]) * 3);
 					break;
 				}
 

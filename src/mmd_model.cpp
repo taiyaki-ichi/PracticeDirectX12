@@ -30,14 +30,16 @@ namespace DX12
 			DirectX::XMFLOAT2 m_uv{};
 
 			//ボーンの種類のフラグ
-			unsigned char m_bone_type_flag{};
+			//std::uint16_t m_bone_type_flag{};
 			//ボーン番号たち
-			std::array<unsigned short, 4> m_bone_no{};
+			std::uint16_t m_bone_no[4]{};
 			//ウェイトたち
-			std::array<float, 4> m_weight{};
+			float m_weight[4]{};
 
 			//SDEF用
-			std::array<DirectX::XMFLOAT3, 3> m_SDEF{};
+			DirectX::XMFLOAT3 m_SDEF[3]{};
+
+			std::uint16_t m_bone_type_flag{};
 		};
 
 
@@ -48,10 +50,25 @@ namespace DX12
 			std::vector<map_vertex> result{};
 
 			auto func = [](const MMDL::pmx_vertex& v) -> map_vertex {
-				return { v.m_position,v.m_normal,v.m_uv ,static_cast<unsigned char>(v.m_bone_type_flag),v.m_bone,v.m_weight,v.m_SDEF_vector };
+				map_vertex result{};
+				result.m_position = v.m_position;
+				result.m_normal = v.m_normal;
+				result.m_uv = v.m_uv;
+				result.m_bone_type_flag = v.m_bone_type_flag;
+				for (std::size_t i = 0; i < 4; i++) {
+					result.m_bone_no[i] = v.m_bone[i];
+					result.m_weight[i] = v.m_weight[i];
+				}
+
+				return result;
+
+				//return { v.m_position,v.m_normal,v.m_uv ,v.m_bone_type_flag,v.m_bone,v.m_weight,v.m_SDEF_vector };
 			};
 
 			std::transform(vertex.begin(), vertex.end(), std::back_inserter(result), std::move(func));
+
+			auto& hoge = vertex[9666];
+			auto& huga = result[9666];
 
 			return result;
 		}
@@ -99,12 +116,15 @@ namespace DX12
 		//とりあえずO(n^2)
 		BoneNode get_bone_node_impl(BoneNode&& rootBoneNode, const MMDL::pmx_model<std::wstring>& pmxModel)
 		{
+
 			for (std::size_t i = 0; i < pmxModel.m_bone.size(); i++)
 			{
 				if (pmxModel.m_bone[i].m_parent_index == rootBoneNode.m_bone_index) {
 					BoneNode childrenBoneNode{};
 					childrenBoneNode.m_bone_index = i;
-					childrenBoneNode.m_position = pmxModel.m_bone[i].m_position;
+
+
+					childrenBoneNode.m_position =  pmxModel.m_bone[i].m_position;
 					rootBoneNode.m_children.emplace_back(get_bone_node_impl(std::move(childrenBoneNode), pmxModel));
 				}
 			}
@@ -131,6 +151,29 @@ namespace DX12
 
 	}
 
+
+	std::optional<const BoneNode*> mmd_model::find_bone_node(std::size_t index,const BoneNode& boneNode)
+	{
+		if (boneNode.m_bone_index == index)
+			return &boneNode;
+
+		for (auto& bn : boneNode.m_children)
+		{
+			auto tmp = find_bone_node(index, bn);
+			if (tmp)
+				return tmp.value();
+		}
+
+		return std::nullopt;
+	}
+
+	void mmd_model::rotaion_bone_matrix(const BoneNode& boneNode, const DirectX::XMMATRIX& rotationMatrix)
+	{
+		m_bone_matrices[boneNode.m_bone_index] *= rotationMatrix;
+
+		for (auto& childrenBonenNode : boneNode.m_children)
+			rotaion_bone_matrix(childrenBonenNode, m_bone_matrices[boneNode.m_bone_index]);
+	}
 
 	bool mmd_model::initialize(device* device,const MMDL::pmx_model<std::wstring>& pmxModel,command_list* cl, depth_stencil_buffer* lightDepthResource)
 	{
@@ -346,8 +389,9 @@ namespace DX12
 	void mmd_model::update()
 	{
 		m_world_matrix *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
-
-		//mmdModelBoneMatrices[20] = XMMatrixTranslation(2.1, -12.5, 0.0) * XMMatrixRotationZ(XM_PIDIV2) * XMMatrixTranslation(-2.1, 12.5, 0.0);
+		//rotation_bone(16, DirectX::XMMatrixRotationZ(-DirectX::XM_PIDIV2 / 60.f));
+		//rotation_bone(76, DirectX::XMMatrixRotationZ(-DirectX::XM_PIDIV2 / 60.f));
+		//rotation_bone(49, DirectX::XMMatrixRotationZ(-DirectX::XM_PIDIV2 / 60.f));
 
 		transform_data* ptr = nullptr;
 		m_transform_constant_resource.get()->Map(0, nullptr, (void**)&ptr);
@@ -368,6 +412,20 @@ namespace DX12
 		cl->get()->SetGraphicsRootDescriptorTable(0, m_descriptor_heap.get_gpu_handle());
 
 		cl->get()->DrawIndexedInstanced(m_all_index_num, 1, 0, 0, 0);
+	}
+
+	void mmd_model::rotation_bone(std::size_t index, const DirectX::XMMATRIX& rotationMatrix)
+	{
+		auto indexBoneNode = find_bone_node(index, m_bone_node);
+
+		if (indexBoneNode) {
+			
+			auto rm = DirectX::XMMatrixTranslation(-indexBoneNode.value()->m_position.x, -indexBoneNode.value()->m_position.y, -indexBoneNode.value()->m_position.z)
+				* rotationMatrix
+				* DirectX::XMMatrixTranslation(indexBoneNode.value()->m_position.x, indexBoneNode.value()->m_position.y, indexBoneNode.value()->m_position.z);
+
+			rotaion_bone_matrix(*indexBoneNode.value(), rm);
+		}
 	}
 
 }

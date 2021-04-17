@@ -84,6 +84,11 @@ namespace DX12
 
 		DirectX::XMMATRIX m_world_matrix{};
 	
+		//boneNode以下のノードの内、指定したインデックスを探す
+		std::optional<const BoneNode*> find_bone_node(std::size_t index, const BoneNode& boneNode);
+
+		//再帰する
+		void rotaion_bone_matrix(const BoneNode& boneNode, const DirectX::XMMATRIX& rotationMatrix);
 
 	public:
 		//コマンドリストはテクスチャのコピー用
@@ -97,6 +102,10 @@ namespace DX12
 
 		//ライト深度バッファへの描写
 		void draw_light_depth(command_list* cl);
+
+		//お試し
+		//インデックス以降のボーンの回転
+		void rotation_bone(std::size_t index, const DirectX::XMMATRIX& rotationMatrix);
 
 	};
 

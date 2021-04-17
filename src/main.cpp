@@ -77,8 +77,8 @@ int main()
 	//
 	//viewproj
 	//
-	DirectX::XMFLOAT3 eye{ 0,12,-12 };
-	DirectX::XMFLOAT3 target{ 0,10,0 };
+	DirectX::XMFLOAT3 eye{ 0,7,-6 };
+	DirectX::XMFLOAT3 target{ 0,5,0 };
 	DirectX::XMFLOAT3 up{ 0,1,0 };
 	auto view = DirectX::XMMatrixLookAtLH(
 		DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
@@ -117,7 +117,7 @@ int main()
 
 	DX12::mmd_model mmdModel{};
 	{
-		auto result = MMDL::load_pmx("../../mmd/Mona/îúõP1.0.pmx");
+		auto result = MMDL::load_pmx("../../mmd/Paimon/îhñ÷.pmx");
 		if (result)
 		{
 			auto& model = std::get<MMDL::pmx_model<std::wstring>>(result.value());
@@ -174,6 +174,7 @@ int main()
 	lightDepthScissorRect.right = lightDepthScissorRect.left + shadow_difinition;//êÿÇËî≤Ç´âEç¿ïW
 	lightDepthScissorRect.bottom = lightDepthScissorRect.top + shadow_difinition;//êÿÇËî≤Ç´â∫ç¿ïW
 
+	mmdModel.rotation_bone(16, DirectX::XMMatrixRotationZ(-DirectX::XM_PIDIV2));
 
 	while (DX12::update_window()) {
 		
