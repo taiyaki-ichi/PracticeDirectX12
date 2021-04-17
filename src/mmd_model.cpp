@@ -29,16 +29,17 @@ namespace DX12
 			//UV座標
 			DirectX::XMFLOAT2 m_uv{};
 
-			//ボーンの種類のフラグ
-			//std::uint16_t m_bone_type_flag{};
 			//ボーン番号たち
-			std::uint16_t m_bone_no[4]{};
+			std::array<std::uint16_t, 4> m_bone_no{};
 			//ウェイトたち
-			float m_weight[4]{};
+			std::array<float, 4> m_weight{};
 
 			//SDEF用
-			DirectX::XMFLOAT3 m_SDEF[3]{};
+			std::array<DirectX::XMFLOAT3, 3> m_SDEF{};
 
+			//なぜか構造体の途中に奥と正しく解釈されない
+			//m_bone_noの前に奥とm_bone_no[0]がスキップされてしまった
+			//なぜか分からない
 			std::uint16_t m_bone_type_flag{};
 		};
 
@@ -50,25 +51,10 @@ namespace DX12
 			std::vector<map_vertex> result{};
 
 			auto func = [](const MMDL::pmx_vertex& v) -> map_vertex {
-				map_vertex result{};
-				result.m_position = v.m_position;
-				result.m_normal = v.m_normal;
-				result.m_uv = v.m_uv;
-				result.m_bone_type_flag = v.m_bone_type_flag;
-				for (std::size_t i = 0; i < 4; i++) {
-					result.m_bone_no[i] = v.m_bone[i];
-					result.m_weight[i] = v.m_weight[i];
-				}
-
-				return result;
-
-				//return { v.m_position,v.m_normal,v.m_uv ,v.m_bone_type_flag,v.m_bone,v.m_weight,v.m_SDEF_vector };
+				return { v.m_position,v.m_normal,v.m_uv ,v.m_bone,v.m_weight,v.m_SDEF_vector ,v.m_bone_type_flag };
 			};
 
 			std::transform(vertex.begin(), vertex.end(), std::back_inserter(result), std::move(func));
-
-			auto& hoge = vertex[9666];
-			auto& huga = result[9666];
 
 			return result;
 		}
@@ -389,9 +375,6 @@ namespace DX12
 	void mmd_model::update()
 	{
 		m_world_matrix *= DirectX::XMMatrixRotationRollPitchYaw(0.f, 0.01f, 0.f);
-		//rotation_bone(16, DirectX::XMMatrixRotationZ(-DirectX::XM_PIDIV2 / 60.f));
-		//rotation_bone(76, DirectX::XMMatrixRotationZ(-DirectX::XM_PIDIV2 / 60.f));
-		//rotation_bone(49, DirectX::XMMatrixRotationZ(-DirectX::XM_PIDIV2 / 60.f));
 
 		transform_data* ptr = nullptr;
 		m_transform_constant_resource.get()->Map(0, nullptr, (void**)&ptr);
