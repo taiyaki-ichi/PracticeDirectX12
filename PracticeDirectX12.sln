@@ -7,9 +7,15 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "src", "src\src.vcxproj", "{
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "load_mmd", "load_mmd\load_mmd.vcxitems", "{3236C697-86F0-4EDE-964E-2EF3E18AD158}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectX12Wrapper", "DirectX12Wrapper\DirectX12Wrapper.vcxitems", "{D1F8AE40-8879-4236-ACC0-9BC0B2B74402}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectX12WrapperTest", "DirectX12WrapperTest\DirectX12WrapperTest.vcxproj", "{5F9A7898-42C5-493D-B011-3FF5FCE3881F}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		load_mmd\load_mmd.vcxitems*{3236c697-86f0-4ede-964e-2ef3e18ad158}*SharedItemsImports = 9
+		DirectX12Wrapper\DirectX12Wrapper.vcxitems*{5f9a7898-42c5-493d-b011-3ff5fce3881f}*SharedItemsImports = 4
+		DirectX12Wrapper\DirectX12Wrapper.vcxitems*{d1f8ae40-8879-4236-acc0-9bc0b2b74402}*SharedItemsImports = 9
 		load_mmd\load_mmd.vcxitems*{f4107366-ae45-4dd5-8947-cbaa7c77c3cf}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +33,14 @@ Global
 		{F4107366-AE45-4DD5-8947-CBAA7C77C3CF}.Release|x64.Build.0 = Release|x64
 		{F4107366-AE45-4DD5-8947-CBAA7C77C3CF}.Release|x86.ActiveCfg = Release|Win32
 		{F4107366-AE45-4DD5-8947-CBAA7C77C3CF}.Release|x86.Build.0 = Release|Win32
+		{5F9A7898-42C5-493D-B011-3FF5FCE3881F}.Debug|x64.ActiveCfg = Debug|x64
+		{5F9A7898-42C5-493D-B011-3FF5FCE3881F}.Debug|x64.Build.0 = Debug|x64
+		{5F9A7898-42C5-493D-B011-3FF5FCE3881F}.Debug|x86.ActiveCfg = Debug|Win32
+		{5F9A7898-42C5-493D-B011-3FF5FCE3881F}.Debug|x86.Build.0 = Debug|Win32
+		{5F9A7898-42C5-493D-B011-3FF5FCE3881F}.Release|x64.ActiveCfg = Release|x64
+		{5F9A7898-42C5-493D-B011-3FF5FCE3881F}.Release|x64.Build.0 = Release|x64
+		{5F9A7898-42C5-493D-B011-3FF5FCE3881F}.Release|x86.ActiveCfg = Release|Win32
+		{5F9A7898-42C5-493D-B011-3FF5FCE3881F}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

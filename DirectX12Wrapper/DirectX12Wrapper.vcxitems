@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{d1f8ae40-8879-4236-acc0-9bc0b2b74402}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CommandList.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescripotrHeapViewTag.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeap.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeapTypeTag.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeapViewHepler.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Shader.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RootSignature\RootSignature.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RootSignature\RootSignatureInitializeHelper.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RootSignature\RootSignatureInitializeTag.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Device.hpp" />
+  </ItemGroup>
+</Project>
