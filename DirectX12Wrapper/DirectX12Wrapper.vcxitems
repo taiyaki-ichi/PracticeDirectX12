@@ -19,6 +19,16 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeap.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeapTypeTag.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeapViewHepler.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ColorTextureResource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ConstantBufferResource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\DepthStencilBufferResource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\DoubleBufferResource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\IndexBufferResource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ResourceBase.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\TextureResource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\UploadResource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\VertexBufferResource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Utility.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Shader.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RootSignature\RootSignature.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RootSignature\RootSignatureInitializeHelper.hpp" />
