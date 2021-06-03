@@ -10,6 +10,7 @@
 namespace DX12
 {
 
+
 	//ディスクリプタヒープにビューを作る関数
 	//特殊化できない場合失敗
 	template<typename DescriptorHeapType, typename CreateType>
