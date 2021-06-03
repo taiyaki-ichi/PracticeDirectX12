@@ -1,40 +1,15 @@
-#include"Device.hpp"
-#include"CommandList.hpp"
-#include"RootSignature/RootSignatureInitializeHelper.hpp"
-#include"RootSignature/RootSignatureInitializeTag.hpp"
-#include"RootSignature/RootSignature.hpp"
-#include"DescriptorHeap/DescriptorHeap.hpp"
+#include"Window.hpp"
 
 int main()
 {
 	using namespace DX12;
 
-	DX12::Device device{};
-	device.Initialize();
+	constexpr std::size_t WINDOW_WIDTH = 1024;
+	constexpr std::size_t WINDOW_HEIGHT = 768;
 
-	DX12::CommandList commandList{};
-	commandList.Initialize(&device);
+	auto hwnd = CreateSimpleWindow(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
 
-	constexpr auto hoge = GetDescriptorTableTuple<
-		DescriptorTableArrayTag<
-			DescriptorTableTag<DescriptorRangeTag::CBV,DescriptorRangeTag::CBV>,
-			DescriptorTableTag<DescriptorRangeTag::SRV, DescriptorRangeTag::SRV>
-		>
-	>();
-
-	auto huga = GetDescriptorTableStructArray(hoge);
-
-	RootSignature rootSignature{};
-	rootSignature.Initialize<
-		DescriptorTableArrayTag<
-		DescriptorTableTag<DescriptorRangeTag::CBV, DescriptorRangeTag::CBV>,
-		DescriptorTableTag<DescriptorRangeTag::SRV, DescriptorRangeTag::SRV>
-		>,
-		StaticSamplersTag<StaticSamplerTag::Standard>
-	>(&device);
-
-	DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> descriptorHeap{};
-	descriptorHeap.Initialize(&device, 10);
+	while (UpdateWindow()) {};
 
 	return 0;
 }

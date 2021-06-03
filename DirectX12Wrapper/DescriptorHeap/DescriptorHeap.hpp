@@ -40,7 +40,7 @@ namespace DX12
 
 		//Viewを作り成功した場合はハンドルを返す
 		//TはViewTypeTraitsとGetResourcePtrPolicyを特殊化している必要がある
-		template<typename T>
+		template<typename T,typename ViewType=ViewTypeTraits<T>, typename GetResourcePtrPolicy=ResourcePtrTraits<T>>
 		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>>
 			PushBackView(Device* device, T* resource);
 
@@ -103,7 +103,7 @@ namespace DX12
 	}
 
 	template<typename DescriptorHeapTypeTag>
-	template<typename T>
+	template<typename T, typename ViewType,typename GetResourcePtrPolicy>
 	inline std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>>
 		DescriptorHeap<DescriptorHeapTypeTag>::PushBackView(Device* device, T* resource)
 	{
@@ -115,10 +115,10 @@ namespace DX12
 		auto cpuHandle = GetCPUHandle(offset);
 
 		//Viewを作製したいリソースのポインタを取得
-		auto resourcePtr = ResourcePtrTraits<T>::Get(resource);
+		auto resourcePtr = GetResourcePtrPolicy::Get(resource);
 
 		//viewの生成
-		if (!CreateView<DescriptorHeapTypeTag, typename ViewTypeTraits<T>::Type>(device, resourcePtr, cpuHandle))
+		if (!CreateView<DescriptorHeapTypeTag, ViewType>(device, resourcePtr, cpuHandle))
 			return std::nullopt;
 
 		//戻り値用にgpuハンドルの取得
