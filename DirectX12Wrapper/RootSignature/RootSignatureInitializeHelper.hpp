@@ -95,7 +95,7 @@ namespace DX12
 	auto GetDescriptorTableStructArray(const DescriptorTableDataTupleType& descriptorTableArray)
 	{
 		std::array<D3D12_ROOT_PARAMETER, std::tuple_size_v<DescriptorTableDataTupleType>> result{};
-		GetDescriptorTableStructArrayImpl<0>(descriptorTableArray, result);;
+		GetDescriptorTableStructArrayImpl<0>(descriptorTableArray, result);
 		return result;
 	}
 
@@ -180,6 +180,40 @@ namespace DX12
 		GetStaticSamplerArrayImpl<StaticSamplersType, 0>(result);
 
 		return result;
+	}
+
+
+
+	//
+	//void‚ªˆø”‚É‚«‚½‚Ìˆ——p
+	//
+
+	//–¼‘O•Ï‚¦‚½‚¢
+	struct VoidObject {
+		constexpr std::size_t size() const noexcept {
+			return 0;
+		}
+
+		constexpr auto data() const noexcept {
+			return nullptr;
+		}
+	};
+
+	template<>
+	constexpr auto GetDescriptorTableTuple<void>()
+	{
+		return static_cast<int>(0);
+	}
+
+	auto GetDescriptorTableStructArray(int)
+	{
+		return VoidObject{};
+	}
+
+	template<>
+	constexpr auto GetStaticSamplerArray<void>()
+	{
+		return VoidObject{};
 	}
 
 

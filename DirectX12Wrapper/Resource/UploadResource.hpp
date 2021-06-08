@@ -52,7 +52,7 @@ namespace DX12
 			&heapprop,
 			D3D12_HEAP_FLAG_NONE,
 			&resdesc,
-			D3D12_RESOURCE_STATE_GENERIC_READ,
+			ResourceState::GenericRead,
 			nullptr
 		);
 	}

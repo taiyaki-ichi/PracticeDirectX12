@@ -2,7 +2,10 @@
 #include"Device.hpp"
 #include"CommandList.hpp"
 #include"DoubleBuffer.hpp"
+#include"Resource/VertexBufferResource.hpp"
+#include"RootSignature/RootSignature.hpp"
 
+#include<array>
 
 int main()
 {
@@ -23,6 +26,16 @@ int main()
 	auto [factry, swapChain] = commandList.CreateFactryAndSwapChain(hwnd);
 	doubleBuffer.Initialize(&device, factry, swapChain);
 
+	std::array<std::array<double, 3>, 3> vertex{
+		{{0.0,1.0,0.0},{-1.0,-1.0,0.0},{1.0,-1.0,0.0}}
+	};
+
+	VertexBufferResource vertexBufferResource{};
+	vertexBufferResource.Initialize(&device, sizeof(vertex), sizeof(double) * 3);
+	vertexBufferResource.Map(vertex);
+
+	RootSignature rootSignature{};
+	rootSignature.Initialize<void, void>(&device);
 
 
 	while (UpdateWindow()) {
