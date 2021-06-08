@@ -1,6 +1,7 @@
 #pragma once
 #include"../Device.hpp"
 #include"../CommandList.hpp"
+#include"ResourceState.hpp"
 #include<optional>
 #include<d3d12.h>
 #include<dxgi1_6.h>
@@ -16,7 +17,7 @@ namespace DX12
 	{
 		ID3D12Resource* resource = nullptr;
 
-		D3D12_RESOURCE_STATES state{};
+		ResourceState state{};
 
 		std::optional<D3D12_CLEAR_VALUE> clearValue{};
 
@@ -31,13 +32,13 @@ namespace DX12
 		ResourceBase& operator=(ResourceBase&&) noexcept;
 
 		void Initialize(Device* device, const D3D12_HEAP_PROPERTIES* heapProp, D3D12_HEAP_FLAGS flag,
-			const D3D12_RESOURCE_DESC* resoDesc, D3D12_RESOURCE_STATES s, const D3D12_CLEAR_VALUE* cv);
+			const D3D12_RESOURCE_DESC* resoDesc, ResourceState s, const D3D12_CLEAR_VALUE* cv);
 
 		//主にバックバッファを生成する際に使用
 		//なくしてしまいたい
 		void Initialize(ID3D12Resource* r);
 
-		void Barrior(CommandList*, D3D12_RESOURCE_STATES);
+		void Barrior(CommandList*, ResourceState);
 
 		ID3D12Resource* Get() const noexcept;
 
@@ -77,7 +78,7 @@ namespace DX12
 	}
 
 	inline void ResourceBase::Initialize(Device* device, const D3D12_HEAP_PROPERTIES* heapProp, D3D12_HEAP_FLAGS flag,
-		const D3D12_RESOURCE_DESC* resoDesc, D3D12_RESOURCE_STATES s, const D3D12_CLEAR_VALUE* cv)
+		const D3D12_RESOURCE_DESC* resoDesc, ResourceState s, const D3D12_CLEAR_VALUE* cv)
 	{
 		state = s;
 
@@ -88,7 +89,7 @@ namespace DX12
 			heapProp,
 			flag,
 			resoDesc,
-			s,
+			static_cast<D3D12_RESOURCE_STATES>(s),
 			cv,
 			IID_PPV_ARGS(&resource))))
 		{
@@ -104,7 +105,7 @@ namespace DX12
 			throw "";
 	}
 
-	inline void ResourceBase::Barrior(CommandList* cl, D3D12_RESOURCE_STATES rs)
+	inline void ResourceBase::Barrior(CommandList* cl, ResourceState rs)
 	{
 		if (state == rs)
 			return;
@@ -114,8 +115,8 @@ namespace DX12
 		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 		barrier.Transition.pResource = resource;
-		barrier.Transition.StateBefore = state;
-		barrier.Transition.StateAfter = rs;
+		barrier.Transition.StateBefore = static_cast<D3D12_RESOURCE_STATES>(state);
+		barrier.Transition.StateAfter = static_cast<D3D12_RESOURCE_STATES>(rs);
 		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 		cl->Get()->ResourceBarrier(1, &barrier);
 

@@ -32,7 +32,7 @@ namespace DX12
 
 		D3D12_CPU_DESCRIPTOR_HANDLE GetBackbufferCpuHandle();
 
-		void BarriorToBackbuffer(CommandList*, D3D12_RESOURCE_STATES);
+		void BarriorToBackbuffer(CommandList*, ResourceState);
 
 		void ClearBackBuffer(CommandList*);
 
@@ -105,7 +105,7 @@ namespace DX12
 		return descriptorHeap.GetCPUHandle(bbIdx);
 	}
 
-	inline void DoubleBuffer::BarriorToBackbuffer(CommandList* cl, D3D12_RESOURCE_STATES state)
+	inline void DoubleBuffer::BarriorToBackbuffer(CommandList* cl, ResourceState state)
 	{
 		auto bbIdx = swapChain->GetCurrentBackBufferIndex();
 		doubleBufferResources[bbIdx].Barrior(cl, state);

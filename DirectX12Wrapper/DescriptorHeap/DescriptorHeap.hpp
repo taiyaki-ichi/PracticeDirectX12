@@ -118,7 +118,7 @@ namespace DX12
 		auto resourcePtr = GetResourcePtrPolicy::Get(resource);
 
 		//viewの生成
-		if (!CreateView<DescriptorHeapTypeTag, ViewType>(device, resourcePtr, cpuHandle))
+		if (!CreateView<DescriptorHeapTypeTag, typename ViewType::Type>(device, resourcePtr, cpuHandle))
 			return std::nullopt;
 
 		//戻り値用にgpuハンドルの取得

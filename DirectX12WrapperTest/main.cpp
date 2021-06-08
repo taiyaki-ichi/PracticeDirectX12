@@ -1,12 +1,11 @@
-//#include"Window.hpp"
-#define STB_IMAGE_IMPLEMENTATION
-#include<stb_image.h>
+#include"Window.hpp"
+#include"Device.hpp"
+#include"CommandList.hpp"
+#include"DoubleBuffer.hpp"
 
-#include<utility>
 
 int main()
 {
-	/*
 	using namespace DX12;
 
 	constexpr std::size_t WINDOW_WIDTH = 1024;
@@ -14,12 +13,32 @@ int main()
 
 	auto hwnd = CreateSimpleWindow(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
 
-	while (UpdateWindow()) {};
-	*/
+	Device device{};
+	device.Initialize();
 
-	int x, y, n;
-	std::uint8_t *data = stbi_load("image.png", &x, &y, &n, 0);
+	CommandList commandList{};
+	commandList.Initialize(&device);
+
+	DoubleBuffer doubleBuffer{};
+	auto [factry, swapChain] = commandList.CreateFactryAndSwapChain(hwnd);
+	doubleBuffer.Initialize(&device, factry, swapChain);
 
 
+
+	while (UpdateWindow()) {
+		doubleBuffer.BarriorToBackbuffer(&commandList, ResourceState::RenderTarget);
+		doubleBuffer.ClearBackBuffer(&commandList);
+
+
+
+		doubleBuffer.BarriorToBackbuffer(&commandList, ResourceState::Common);
+
+		commandList.Close();
+		commandList.Execute();
+		commandList.Clear();
+
+		doubleBuffer.Flip();
+	};
+	
 	return 0;
 }
