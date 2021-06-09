@@ -18,7 +18,12 @@ namespace DX12
 	{
 		ID3D12PipelineState* pipelineState = nullptr;
 
+		RootSignature* rootSignaturePtr = nullptr;
+
 	public:
+		PipelineState() = default;
+		~PipelineState();
+
 		PipelineState(const  PipelineState&) = delete;
 		PipelineState& operator=(const PipelineState&) = delete;
 
@@ -28,7 +33,7 @@ namespace DX12
 		void Initialize(Device*, RootSignature*, Shader* vertexShader, Shader* pixcelShader,
 			const std::vector<VertexLayout>&, const std::vector<RenderTargetFormat>&, bool depthEnable);
 
-		//preparefor
+		void PrepareForDrawing(CommandList*);
 
 	};
 
@@ -36,6 +41,11 @@ namespace DX12
 	//
 	//
 	//
+
+	PipelineState::~PipelineState() {
+		if (pipelineState)
+			pipelineState->Release();
+	}
 
 	inline PipelineState::PipelineState(PipelineState&& rhs) noexcept {
 		pipelineState = rhs.pipelineState;
@@ -51,6 +61,8 @@ namespace DX12
 		 Shader* vertexShader, Shader* pixcelShader, const std::vector<VertexLayout>& vertexLayouts, 
 		const std::vector<RenderTargetFormat>& renderTargetFormats,bool depthEnable) {
 
+		rootSignaturePtr = rootSignature;
+
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineDesc{};
 
 		//シェーダ
@@ -60,6 +72,7 @@ namespace DX12
 		graphicsPipelineDesc.PS.BytecodeLength = pixcelShader->Get()->GetBufferSize();
 
 		//頂点シェーダへの入力情報のレイアウト
+		
 		std::vector<D3D12_INPUT_ELEMENT_DESC> inputElementDescs(vertexLayouts.size(), D3D12_INPUT_ELEMENT_DESC{});
 		std::uint32_t alignedByteOffset = 0;
 		for (std::size_t i = 0; i < vertexLayouts.size(); i++)
@@ -81,6 +94,7 @@ namespace DX12
 				alignedByteOffset += sizeof(float) * 4;
 			}
 		}
+
 		graphicsPipelineDesc.InputLayout.pInputElementDescs = inputElementDescs.data();
 		graphicsPipelineDesc.InputLayout.NumElements = inputElementDescs.size();
 
@@ -88,7 +102,6 @@ namespace DX12
 		graphicsPipelineDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 		//カット値はナシ
 		graphicsPipelineDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
-
 
 		//ラスタライザの設定
 		D3D12_RASTERIZER_DESC rasterizerDesc{};
@@ -113,6 +126,7 @@ namespace DX12
 		//ブレンドステート
 		D3D12_RENDER_TARGET_BLEND_DESC renderTagetBlendDesc{};
 		renderTagetBlendDesc.BlendEnable = FALSE;//とりあえず
+		renderTagetBlendDesc.LogicOpEnable = FALSE;
 		renderTagetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
 		D3D12_BLEND_DESC blendDesc{};
@@ -128,7 +142,7 @@ namespace DX12
 		//数が少ないのでとりあえずのコード
 		for (std::size_t i = 0; i < renderTargetFormats.size(); i++) {
 			if (renderTargetFormats[i] == RenderTargetFormat::R8G8B8A8)
-				graphicsPipelineDesc.RTVFormats[i] = DXGI_FORMAT_B8G8R8X8_UNORM;
+				graphicsPipelineDesc.RTVFormats[i] = DXGI_FORMAT_R8G8B8A8_UNORM;
 			else if (renderTargetFormats[i] == RenderTargetFormat::R32_FLOAT)
 				graphicsPipelineDesc.RTVFormats[i] = DXGI_FORMAT_R32_FLOAT;
 		}
@@ -150,8 +164,19 @@ namespace DX12
 		graphicsPipelineDesc.SampleDesc.Count = 1;//サンプリングは1ピクセルにつき１
 		graphicsPipelineDesc.SampleDesc.Quality = 0;//クオリティは最低
 
-		if (FALSE(device->Get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&pipelineState))))
+		graphicsPipelineDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
+
+		graphicsPipelineDesc.pRootSignature = rootSignature->Get();
+
+		if (FAILED(device->Get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&pipelineState))))
 			throw "";
+	}
+
+	inline void PipelineState::PrepareForDrawing(CommandList* cl) {
+		cl->Get()->SetPipelineState(pipelineState);
+		cl->Get()->SetGraphicsRootSignature(rootSignaturePtr->Get());
+
+		cl->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 
 }
