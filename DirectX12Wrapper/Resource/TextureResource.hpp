@@ -74,7 +74,7 @@ namespace DX12
 				&heapProperties,
 				D3D12_HEAP_FLAG_NONE,
 				&resourceDesc,
-				D3D12_RESOURCE_STATE_COPY_DEST,
+				ResourceState::CopyDest,
 				nullptr
 			);
 		}

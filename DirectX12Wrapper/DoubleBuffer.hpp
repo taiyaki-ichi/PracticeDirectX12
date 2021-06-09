@@ -93,7 +93,6 @@ namespace DX12
 			if (FAILED(swapChain->GetBuffer(static_cast<UINT>(i), IID_PPV_ARGS(&resourcePtr))))
 				throw "GetBuffer is failed\n";
 
-			resourcePtr->SetName(L"DoubleBufferResource");
 			doubleBufferResources[i].Initialize(resourcePtr);
 			auto result = descriptorHeap.PushBackView(device, &doubleBufferResources[i]);
 		}

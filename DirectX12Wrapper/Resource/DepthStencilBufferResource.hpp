@@ -51,7 +51,7 @@ namespace DX12
 			&depthHeapProp,
 			D3D12_HEAP_FLAG_NONE,
 			&depthResDesc,
-			D3D12_RESOURCE_STATE_DEPTH_WRITE, //デプス書き込みに使用
+			ResourceState::DepthWrite,//デプス書き込みに使用
 			&depthClearValue
 		);
 	}

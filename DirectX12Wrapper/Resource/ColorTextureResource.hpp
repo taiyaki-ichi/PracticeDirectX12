@@ -69,7 +69,7 @@ namespace DX12
 			&texHeapProp,
 			D3D12_HEAP_FLAG_NONE,//“Á‚ÉŽw’è‚È‚µ
 			&resDesc,
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+			ResourceState::PixcelShaderResource,
 			nullptr
 		);
 	}
