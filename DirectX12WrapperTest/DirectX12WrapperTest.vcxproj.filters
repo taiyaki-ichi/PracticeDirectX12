@@ -4,10 +4,16 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shader\VertexShader.hlsl" />
-    <FxCompile Include="Shader\PixelShader.hlsl" />
+    <FxCompile Include="Shader\VertexShader001.hlsl" />
+    <FxCompile Include="Shader\PixelShader001.hlsl" />
+    <FxCompile Include="Shader\VertexShader002.hlsl" />
+    <FxCompile Include="Shader\PixelShader002.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test001.hpp" />
+    <ClInclude Include="test002.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\Header002.hlsli" />
   </ItemGroup>
 </Project>

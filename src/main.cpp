@@ -27,6 +27,7 @@ constexpr uint32_t shadow_difinition = 1024;
 
 int main()
 {
+
 	//using‚µ‚È‚¢‚Æ‰‰ŽZŽq‚ªŽg‚¦‚È‚¢
 	using namespace DirectX;
 

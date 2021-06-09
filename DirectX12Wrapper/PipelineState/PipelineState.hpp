@@ -130,7 +130,7 @@ namespace DX12
 		renderTagetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
 		D3D12_BLEND_DESC blendDesc{};
-		blendDesc.AlphaToCoverageEnable = FALSE;
+		blendDesc.AlphaToCoverageEnable = TRUE;
 		blendDesc.IndependentBlendEnable = FALSE;
 		//renderTagetBlendDesc.BlendEnable‚ªFalse‚È‚Ì‚Å1‚Â–Ú‚Ì‚İİ’è‚Å\•ª
 		blendDesc.RenderTarget[0] = renderTagetBlendDesc;
