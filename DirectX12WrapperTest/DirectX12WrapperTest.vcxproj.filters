@@ -7,4 +7,7 @@
     <FxCompile Include="Shader\VertexShader.hlsl" />
     <FxCompile Include="Shader\PixelShader.hlsl" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="test001.hpp" />
+  </ItemGroup>
 </Project>
