@@ -5,6 +5,29 @@
 
 namespace DX12
 {
+
+	enum class DescriptorRangeType {
+		SRV = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+		UAV = D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
+		CBV = D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
+		Sampler = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
+	};
+
+	enum class StaticSamplerType {
+		Standard,
+		Toon,
+		SadowMapping,
+	};
+
+	//おおかたの通常の描写用
+	struct Standard;
+
+	//トゥーン用
+	struct Toon;
+
+	//シャドウマッピング用
+	struct ShadowMapping;
+
 	class RootSignature
 	{
 		ID3D12RootSignature* rootSignature = nullptr;
@@ -21,6 +44,8 @@ namespace DX12
 
 		template<typename DescriptorTableType, typename StaticSamplersType>
 		void Initialize(Device*);
+
+		void Initialize(Device*, const std::vector<std::vector<DescriptorRangeType>>&,const std::vector<StaticSamplerType>&);
 
 		ID3D12RootSignature* Get();
 	};
@@ -66,6 +91,57 @@ namespace DX12
 		constexpr auto staticSamplers = GetStaticSamplerArray<StaticSamplersType>();
 		rootSignatureDesc.pStaticSamplers = staticSamplers.data();
 		rootSignatureDesc.NumStaticSamplers = staticSamplers.size();
+
+		ID3DBlob* rootSigBlob = nullptr;
+		ID3DBlob* errorBlob = nullptr;
+
+		{
+			auto result = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &rootSigBlob, &errorBlob);
+			if (FAILED(result)) {
+				std::string errstr;
+				errstr.resize(errorBlob->GetBufferSize());
+				std::copy_n((char*)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize(), errstr.begin());
+				throw errstr + "\n";
+			}
+		}
+
+		{
+			auto result = device->Get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+			if (FAILED(result))
+				throw "CreateRootSignature is falied : CreateRootSignature\n";
+
+			rootSigBlob->Release();
+		}
+	}
+
+
+	void RootSignature::Initialize(Device* device, const std::vector<std::vector<DescriptorRangeType>>& descriptorRangeTypes, 
+		const std::vector<StaticSamplerType>& staticSamplerTypes)
+	{
+		D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
+		rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+
+		auto descriptorRanges = GetDescriptorRange(descriptorRangeTypes);
+		auto descriptorTables = GetDescriptorTables(descriptorRanges);
+		if (descriptorTables.size() > 0) {
+			rootSignatureDesc.pParameters = descriptorTables.data();
+			rootSignatureDesc.NumParameters = descriptorTables.size();
+		}
+		else {
+			rootSignatureDesc.pParameters = nullptr;
+			rootSignatureDesc.NumParameters = 0;
+		}
+
+		auto staticSamplers = GetStaticSamplers(staticSamplerTypes);
+		if (descriptorRanges.size() > 0) {
+			rootSignatureDesc.pStaticSamplers = staticSamplers.data();
+			rootSignatureDesc.NumStaticSamplers = staticSamplers.size();
+		}
+		else {
+			rootSignatureDesc.pStaticSamplers = nullptr;
+			rootSignatureDesc.NumStaticSamplers = 0;
+		}
 
 		ID3DBlob* rootSigBlob = nullptr;
 		ID3DBlob* errorBlob = nullptr;

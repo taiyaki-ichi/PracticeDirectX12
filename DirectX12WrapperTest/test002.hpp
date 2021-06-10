@@ -14,6 +14,7 @@
 
 #include<array>
 
+//テクスチャの表示をする
 namespace test002
 {
 	struct Vertex {
@@ -21,7 +22,6 @@ namespace test002
 		float u, v;
 	};
 
-	//テクスチャの表示
 	inline int main()
 	{
 		using namespace DX12;
@@ -76,7 +76,8 @@ namespace test002
 		descriptorHeap.PushBackView(&device, &textureResource);
 		
 		RootSignature rootSignature{};
-		rootSignature.Initialize<MyDescriptorTable, StaticSamplersTag<StaticSamplerTag::Standard>>(&device);
+		//rootSignature.Initialize<MyDescriptorTable, StaticSamplersTag<StaticSamplerTag::Standard>>(&device);
+		rootSignature.Initialize(&device, { {DescriptorRangeType::SRV} }, { StaticSamplerType::Standard });
 
 		Shader vertexShader{};
 		vertexShader.Intialize(L"Shader/VertexShader002.hlsl", "main", "vs_5_0");

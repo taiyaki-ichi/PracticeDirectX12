@@ -9,9 +9,10 @@
 
 #include<array>
 
+//ƒ|ƒŠƒSƒ“‚Ì•`ŽÊ‚Ì•`ŽÊ‚ð‚·‚é
 namespace test001
 {
-	//ŽOŠpŒ`‚Ìƒ|ƒŠƒSƒ“‚Ì•`ŽÊ
+
 	inline int main() 
 	{
 		using namespace DX12;
@@ -40,7 +41,7 @@ namespace test001
 		vertexBufferResource.Map(vertex);
 
 		RootSignature rootSignature{};
-		rootSignature.Initialize<void, void>(&device);
+		rootSignature.Initialize(&device, {}, {});
 
 		Shader vertexShader{};
 		vertexShader.Intialize(L"Shader/VertexShader001.hlsl", "main", "vs_5_0");
