@@ -66,10 +66,6 @@ namespace test002
 		TextureResource textureResource{};
 		textureResource.Initialize(&device, &commandList, data, x, y, x * n);
 
-		using MyDescriptorTable = DescriptorTableArrayTag<
-			DescriptorTableTag<DescriptorRangeTag::SRV>
-		>;
-
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> descriptorHeap{};
 		descriptorHeap.Initialize(&device, 1);
 
