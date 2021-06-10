@@ -72,7 +72,6 @@ namespace test002
 		descriptorHeap.PushBackView(&device, &textureResource);
 		
 		RootSignature rootSignature{};
-		//rootSignature.Initialize<MyDescriptorTable, StaticSamplersTag<StaticSamplerTag::Standard>>(&device);
 		rootSignature.Initialize(&device, { {DescriptorRangeType::SRV} }, { StaticSamplerType::Standard });
 
 		Shader vertexShader{};
