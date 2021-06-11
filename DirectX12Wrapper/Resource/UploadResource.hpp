@@ -20,11 +20,24 @@ namespace DX12
 
 		//コンテナ、配列用
 		template<typename T>
-		void Map(T&& container);
+		void Map(T&&);
 
 		//テクスチャデータ用
 		void Map(uint8_t* data, std::size_t rowPitch, std::size_t height);
 	};
+
+	//ヘルパ
+	template<typename,typename =std::void_t<>>
+	struct HasIterator :std::false_type {};
+
+	template<typename T>
+	struct HasIterator<T, std::void_t<typename std::remove_reference_t<T>::iterator>> :std::true_type {};
+
+	template<typename T>
+	void MapStruct(ID3D12Resource*, T&&);
+
+	template<typename T>
+	void MapContainer(ID3D12Resource*, T&&);
 
 	//
 	//
@@ -58,8 +71,9 @@ namespace DX12
 	}
 
 	template<typename T>
-	inline void UploadResource::Map(T&& container)
+	inline void UploadResource::Map(T&& t)
 	{
+		/*
 		using value_type = std::remove_reference_t<decltype(*std::begin(container))>;
 
 		value_type* target = nullptr;
@@ -70,6 +84,12 @@ namespace DX12
 
 		std::copy(std::begin(container), std::end(container), target);
 		Get()->Unmap(0, nullptr);
+		*/
+
+		if constexpr (HasIterator<T>::value)
+			MapContainer(Get(), std::forward<T>(t));
+		else
+			MapStruct(Get(), std::forward<T>(t));
 	}
 
 	void UploadResource::Map(uint8_t* data, std::size_t rowPitch, std::size_t height)
@@ -88,6 +108,26 @@ namespace DX12
 		}
 
 		Get()->Unmap(0, nullptr);
+	}
+
+	template<typename T>
+	void MapStruct(ID3D12Resource* resourcePtr,T&& t)
+	{
+		using ValueType = std::remove_reference_t<T>;
+		ValueType* target = nullptr;
+		resourcePtr->Map(0, nullptr, (void**)&target);
+		*target = std::forward<T>(t);
+		resourcePtr->Unmap(0, nullptr);
+	}
+
+	template<typename T>
+	void MapContainer(ID3D12Resource* resourcePtr, T&& t)
+	{
+		using ValueType = std::remove_reference_t<decltype(*std::begin(t))>;
+		ValueType* target = nullptr;
+		resourcePtr->Map(0, nullptr, (void**)&target);
+		std::copy(std::begin(t), std::end(t), target);
+		resourcePtr->Unmap(0, nullptr);
 	}
 
 

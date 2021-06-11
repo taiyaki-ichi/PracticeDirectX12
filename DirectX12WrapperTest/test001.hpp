@@ -12,7 +12,7 @@
 //ƒ|ƒŠƒSƒ“‚Ì•`Ê‚Ì•`Ê‚ğ‚·‚é
 namespace test001
 {
-
+	
 	inline int main() 
 	{
 		using namespace DX12;

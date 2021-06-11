@@ -40,7 +40,7 @@ namespace OffLoader
 		std::string line;
 
 		std::vector<VertexType> vertexList{};
-		std::array<double, 3> tmpVertexElement;
+		std::array<float, 3> tmpVertexElement;
 		for (std::size_t i = 0; i < vertexSize; i++) {
 			GetValidLine(is, line);
 			GetElement(line, tmpVertexElement);
@@ -48,7 +48,7 @@ namespace OffLoader
 		}
 
 		std::vector<FaceType> faceList{};
-		std::array<std::size_t, 4> tmpFaceElement;
+		std::array<std::uint16_t, 4> tmpFaceElement;
 		faceList.reserve(faceSize);
 		for (std::size_t i = 0; i < faceSize; i++) {
 
