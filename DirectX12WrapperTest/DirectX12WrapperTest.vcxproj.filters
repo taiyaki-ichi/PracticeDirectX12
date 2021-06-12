@@ -9,8 +9,8 @@
     <FxCompile Include="Shader\VertexShader002.hlsl" />
     <FxCompile Include="Shader\PixelShader002.hlsl" />
     <FxCompile Include="Shader\VertexShader003.hlsl" />
-    <FxCompile Include="Shader\PixelShader003.hlsl" />
-    <FxCompile Include="Shader\GeometryShader003.hlsl" />
+    <FxCompile Include="Shader\PixelShader003_DrawFace.hlsl" />
+    <FxCompile Include="Shader\GeometryShader003_DrawFace.hlsl" />
     <FxCompile Include="Shader\GeometryShader003_DrawNormal.hlsl" />
     <FxCompile Include="Shader\PixelShader003_DrawNormal.hlsl" />
   </ItemGroup>

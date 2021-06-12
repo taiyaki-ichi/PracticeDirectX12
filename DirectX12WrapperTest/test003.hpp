@@ -46,7 +46,6 @@ namespace test003
 
 		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint16_t, 3>>("Assets/bun_zipper.off");
 		
-
 		VertexBufferResource vertexBufferResource{};
 		vertexBufferResource.Initialize(&device, sizeof(decltype(vertex)::value_type) * vertex.size(), sizeof(decltype(vertex)::value_type));
 		vertexBufferResource.Map(vertex);
@@ -61,11 +60,11 @@ namespace test003
 		Shader vertexShader{};
 		vertexShader.Intialize(L"Shader/VertexShader003.hlsl", "main", "vs_5_0");
 
-		Shader pixelShader{};
-		pixelShader.Intialize(L"Shader/PixelShader003.hlsl", "main", "ps_5_0");
+		Shader drawFacePixelShader{};
+		drawFacePixelShader.Intialize(L"Shader/PixelShader003_DrawFace.hlsl", "main", "ps_5_0");
 
-		Shader geometryShader{};
-		geometryShader.Intialize(L"Shader/GeometryShader003.hlsl", "main", "gs_5_0");
+		Shader drawFaceGeometryShader{};
+		drawFaceGeometryShader.Intialize(L"Shader/GeometryShader003_DrawFace.hlsl", "main", "gs_5_0");
 
 		Shader drawNormalPixelShader{};
 		drawNormalPixelShader.Intialize(L"Shader/PixelShader003_DrawNormal.hlsl", "main", "ps_5_0");
@@ -73,10 +72,10 @@ namespace test003
 		Shader drawNormalGeometryShader{};
 		drawNormalGeometryShader.Intialize(L"Shader/GeometryShader003_DrawNormal.hlsl", "main", "gs_5_0");
 
-		PipelineState pipelineState{};
-		pipelineState.Initialize(&device, &rootSignature, &vertexShader, &pixelShader,
+		PipelineState drawFacePipelineState{};
+		drawFacePipelineState.Initialize(&device, &rootSignature, &vertexShader, &drawFacePixelShader,
 			{ {"POSITION", VertexLayoutFormat::Float3} }, { RenderTargetFormat::R8G8B8A8 }, true,
-			&geometryShader);
+			&drawFaceGeometryShader);
 
 		PipelineState drawNormalPipelineState{};
 		drawNormalPipelineState.Initialize(&device, &rootSignature, &vertexShader, &drawNormalPixelShader,
@@ -137,7 +136,7 @@ namespace test003
 
 			//–Ê‚Ì•`ŽÊ
 			{
-				pipelineState.PrepareForDrawing(&commandList);
+				drawFacePipelineState.PrepareForDrawing(&commandList);
 
 				commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferResource.GetView());
 				commandList.Get()->IASetIndexBuffer(&indexBufferResource.GetView());
