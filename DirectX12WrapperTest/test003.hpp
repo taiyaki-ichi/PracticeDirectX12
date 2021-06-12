@@ -44,14 +44,15 @@ namespace test003
 		auto [factry, swapChain] = commandList.CreateFactryAndSwapChain(hwnd);
 		doubleBuffer.Initialize(&device, factry, swapChain);
 
-		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint16_t, 3>>("Assets/tetra.off");
+		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint16_t, 3>>("Assets/bun_zipper.off");
+		
 
 		VertexBufferResource vertexBufferResource{};
 		vertexBufferResource.Initialize(&device, sizeof(decltype(vertex)::value_type) * vertex.size(), sizeof(decltype(vertex)::value_type));
 		vertexBufferResource.Map(vertex);
 
 		IndexBufferResource indexBufferResource{};
-		indexBufferResource.Initialize(&device, sizeof(face));
+		indexBufferResource.Initialize(&device, sizeof(decltype(face)::value_type) * face.size());
 		indexBufferResource.Map(face);
 
 		RootSignature rootSignature{};
@@ -63,9 +64,13 @@ namespace test003
 		Shader pixelShader{};
 		pixelShader.Intialize(L"Shader/PixelShader003.hlsl", "main", "ps_5_0");
 
+		Shader geometryShader{};
+		geometryShader.Intialize(L"Shader/GeometryShader003.hlsl", "main", "gs_5_0");
+
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, &vertexShader, &pixelShader,
-			{ {"POSITION", VertexLayoutFormat::Float3} }, { RenderTargetFormat::R8G8B8A8 }, true);
+			{ {"POSITION", VertexLayoutFormat::Float3} }, { RenderTargetFormat::R8G8B8A8 }, true,
+			&geometryShader);
 
 		DepthStencilBufferResource depthStencilBufferResource{};
 		depthStencilBufferResource.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -77,14 +82,15 @@ namespace test003
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
 		D3D12_RECT scissorRect{ 0,0,static_cast<LONG>(WINDOW_WIDTH),static_cast<LONG>(WINDOW_HEIGHT) };
 
-		XMFLOAT3 eye{ 0,3,3 };
+		float len = 0.25;
+		XMFLOAT3 eye{ 0,len,len };
 		XMFLOAT3 target{ 0,0,0 };
 		XMFLOAT3 up{ 0,1,0 };
 		auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
 		auto proj = DirectX::XMMatrixPerspectiveFovLH(
 			DirectX::XM_PIDIV2,
 			static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT),
-			1.f,
+			0.01f,
 			100.f
 		);
 
@@ -100,7 +106,8 @@ namespace test003
 		std::size_t cnt = 0;
 		while (UpdateWindow()) {
 
-			eye.z = 5 * std::cos(cnt / 60.0);
+			eye.x = len * std::cos(cnt / 60.0);
+			eye.z = len * std::sin(cnt / 60.0);
 			auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
 			sceneDataConstantBufferResource.Map(SceneData{ view,proj });
 			cnt++;

@@ -31,7 +31,8 @@ namespace DX12
 		PipelineState& operator=(PipelineState&&) noexcept;
 
 		void Initialize(Device*, RootSignature*, Shader* vertexShader, Shader* pixcelShader,
-			const std::vector<VertexLayout>&, const std::vector<RenderTargetFormat>&, bool depthEnable);
+			const std::vector<VertexLayout>&, const std::vector<RenderTargetFormat>&, bool depthEnable,
+			Shader* geometrtShader = nullptr);//
 
 		void PrepareForDrawing(CommandList*);
 
@@ -59,7 +60,7 @@ namespace DX12
 
 	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, 
 		 Shader* vertexShader, Shader* pixcelShader, const std::vector<VertexLayout>& vertexLayouts, 
-		const std::vector<RenderTargetFormat>& renderTargetFormats,bool depthEnable) {
+		const std::vector<RenderTargetFormat>& renderTargetFormats,bool depthEnable, Shader* geometrtShader) {
 
 		rootSignaturePtr = rootSignature;
 
@@ -70,6 +71,12 @@ namespace DX12
 		graphicsPipelineDesc.VS.BytecodeLength = vertexShader->Get()->GetBufferSize();
 		graphicsPipelineDesc.PS.pShaderBytecode = pixcelShader->Get()->GetBufferPointer();
 		graphicsPipelineDesc.PS.BytecodeLength = pixcelShader->Get()->GetBufferSize();
+
+		if (geometrtShader) {
+			graphicsPipelineDesc.GS.pShaderBytecode = geometrtShader->Get()->GetBufferPointer();
+			graphicsPipelineDesc.GS.BytecodeLength = geometrtShader->Get()->GetBufferSize();
+		}
+
 
 		//頂点シェーダへの入力情報のレイアウト
 		

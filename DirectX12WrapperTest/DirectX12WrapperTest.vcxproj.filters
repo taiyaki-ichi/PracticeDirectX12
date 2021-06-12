@@ -10,6 +10,7 @@
     <FxCompile Include="Shader\PixelShader002.hlsl" />
     <FxCompile Include="Shader\VertexShader003.hlsl" />
     <FxCompile Include="Shader\PixelShader003.hlsl" />
+    <FxCompile Include="Shader\GeometryShader003.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test001.hpp" />
