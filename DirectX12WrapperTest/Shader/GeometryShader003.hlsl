@@ -14,10 +14,10 @@ void main(
 	for (uint i = 0; i < 3; i++)
 	{
 		GSOutput element;
-		element.pos = input[i];
+		element.pos = mul(mul(proj, view), input[i]);
 		element.normal = normal;
 		output.Append(element);
 	}
 
-	output.RestartStrip();
+	//output.RestartStrip();
 }

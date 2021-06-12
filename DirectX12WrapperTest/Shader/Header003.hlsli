@@ -10,3 +10,8 @@ struct GSOutput
 	float4 pos : SV_POSITION;
 	float3 normal :NORMAL;
 };
+
+struct DrawNormalGSOutput
+{
+	float4 pos : SV_POSITION;
+};

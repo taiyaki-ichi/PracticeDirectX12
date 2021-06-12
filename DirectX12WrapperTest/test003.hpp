@@ -67,10 +67,22 @@ namespace test003
 		Shader geometryShader{};
 		geometryShader.Intialize(L"Shader/GeometryShader003.hlsl", "main", "gs_5_0");
 
+		Shader drawNormalPixelShader{};
+		drawNormalPixelShader.Intialize(L"Shader/PixelShader003_DrawNormal.hlsl", "main", "ps_5_0");
+
+		Shader drawNormalGeometryShader{};
+		drawNormalGeometryShader.Intialize(L"Shader/GeometryShader003_DrawNormal.hlsl", "main", "gs_5_0");
+
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, &vertexShader, &pixelShader,
 			{ {"POSITION", VertexLayoutFormat::Float3} }, { RenderTargetFormat::R8G8B8A8 }, true,
 			&geometryShader);
+
+		PipelineState drawNormalPipelineState{};
+		drawNormalPipelineState.Initialize(&device, &rootSignature, &vertexShader, &drawNormalPixelShader,
+			{ {"POSITION", VertexLayoutFormat::Float3} }, { RenderTargetFormat::R8G8B8A8 }, true,
+			&drawNormalGeometryShader);
+
 
 		DepthStencilBufferResource depthStencilBufferResource{};
 		depthStencilBufferResource.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -82,9 +94,9 @@ namespace test003
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
 		D3D12_RECT scissorRect{ 0,0,static_cast<LONG>(WINDOW_WIDTH),static_cast<LONG>(WINDOW_HEIGHT) };
 
-		float len = 0.25;
+		float len = 0.15;
 		XMFLOAT3 eye{ 0,len,len };
-		XMFLOAT3 target{ 0,0,0 };
+		XMFLOAT3 target{ 0,0.1,0 };
 		XMFLOAT3 up{ 0,1,0 };
 		auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
 		auto proj = DirectX::XMMatrixPerspectiveFovLH(
@@ -123,14 +135,29 @@ namespace test003
 
 			commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle(),depthStencilDescriptorHeap.GetCPUHandle());
 
-			pipelineState.PrepareForDrawing(&commandList);
+			//–Ê‚Ì•`ŽÊ
+			{
+				pipelineState.PrepareForDrawing(&commandList);
 
-			commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferResource.GetView());
-			commandList.Get()->IASetIndexBuffer(&indexBufferResource.GetView());
-			commandList.Get()->SetDescriptorHeaps(1, &descriptorHeap.Get());
-			commandList.Get()->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+				commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferResource.GetView());
+				commandList.Get()->IASetIndexBuffer(&indexBufferResource.GetView());
+				commandList.Get()->SetDescriptorHeaps(1, &descriptorHeap.Get());
+				commandList.Get()->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 
-			commandList.Get()->DrawIndexedInstanced(face.size() * 3, 1, 0, 0, 0);
+				commandList.Get()->DrawIndexedInstanced(face.size() * 3, 1, 0, 0, 0);
+			}
+
+			//–@ü‚Ì•`ŽÊ
+			{
+				drawNormalPipelineState.PrepareForDrawing(&commandList);
+
+				commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferResource.GetView());
+				commandList.Get()->IASetIndexBuffer(&indexBufferResource.GetView());
+				commandList.Get()->SetDescriptorHeaps(1, &descriptorHeap.Get());
+				commandList.Get()->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+
+				commandList.Get()->DrawIndexedInstanced(face.size() * 3, 1, 0, 0, 0);
+			}
 
 			doubleBuffer.BarriorToBackbuffer(&commandList, ResourceState::Common);
 

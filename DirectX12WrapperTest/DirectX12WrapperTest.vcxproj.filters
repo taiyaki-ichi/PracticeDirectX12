@@ -11,6 +11,8 @@
     <FxCompile Include="Shader\VertexShader003.hlsl" />
     <FxCompile Include="Shader\PixelShader003.hlsl" />
     <FxCompile Include="Shader\GeometryShader003.hlsl" />
+    <FxCompile Include="Shader\GeometryShader003_DrawNormal.hlsl" />
+    <FxCompile Include="Shader\PixelShader003_DrawNormal.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test001.hpp" />
