@@ -16,6 +16,9 @@ namespace DX12
 
 		//Rのみのテクスチャのようなfloatが1つからなるデータ
 		struct FloatShaderResource {};
+
+		//キューブマップ用
+		struct CubeMapResource {};
 	}
 
 	//namespace DescriptorHeapViewTag の型をViewTypeとしてusingする

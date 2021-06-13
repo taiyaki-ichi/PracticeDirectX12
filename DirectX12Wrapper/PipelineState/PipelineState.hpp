@@ -32,7 +32,7 @@ namespace DX12
 
 		void Initialize(Device*, RootSignature*, Shader* vertexShader, Shader* pixcelShader,
 			const std::vector<VertexLayout>&, const std::vector<RenderTargetFormat>&, bool depthEnable,
-			Shader* geometrtShader = nullptr);//
+			Shader* geometrtShader = nullptr);
 
 		void PrepareForDrawing(CommandList*);
 

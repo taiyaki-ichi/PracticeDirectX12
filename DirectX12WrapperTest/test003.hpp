@@ -16,7 +16,7 @@
 #include<cmath>
 #include<DirectXMath.h>
 
-
+//ジオメトリシェーダを使用し法線などを描画
 namespace test003
 {
 	struct SceneData{

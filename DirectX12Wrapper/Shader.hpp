@@ -46,7 +46,6 @@ namespace DX12
 			D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
 			0, &blob, &errorBlob);
 
-		//Ž¸”s‚µ‚½ê‡
 		if (FAILED(result))
 		{
 			if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND))

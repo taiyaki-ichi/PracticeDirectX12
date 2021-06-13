@@ -216,6 +216,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="test004.hpp" />
     <ClInclude Include="test001.hpp" />
     <ClInclude Include="test002.hpp" />
     <ClInclude Include="test003.hpp" />

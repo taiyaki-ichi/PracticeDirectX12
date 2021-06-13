@@ -20,6 +20,7 @@ namespace DX12
 		struct DepthStencilBuffer;
 		struct Float4ShaderResource;
 		struct FloatShaderResource;
+		struct CubeMapResource;
 	}
 
 	//ƒrƒ…[‚ğì¬‚·‚éŠÖ”
@@ -74,6 +75,38 @@ namespace DX12
 	}
 
 	template<>
+	inline bool CreateView<DescriptorHeapTypeTag::CBV_SRV_UAV, DescriptorHeapViewTag::FloatShaderResource>
+		(Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
+	{
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+		srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MipLevels = 1;
+
+		device->Get()->CreateShaderResourceView(resource, &srvDesc, cpuHandle);
+
+		return true;
+	}
+
+	template<>
+	inline bool CreateView<DescriptorHeapTypeTag::CBV_SRV_UAV, DescriptorHeapViewTag::CubeMapResource>
+		(Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle) 
+	{
+		const auto& desc = resource->GetDesc();
+		D3D12_SHADER_RESOURCE_VIEW_DESC resDesc{};
+		resDesc.Format = desc.Format;
+		resDesc.Texture2DArray.ArraySize = desc.DepthOrArraySize;
+		resDesc.Texture2DArray.MipLevels = desc.MipLevels;
+		resDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		resDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+
+		device->Get()->CreateShaderResourceView(resource, &resDesc, cpuHandle);
+
+		return true;
+	}
+
+	template<>
 	inline bool  CreateView<DescriptorHeapTypeTag::DSV, DescriptorHeapViewTag::DepthStencilBuffer>
 		(Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 	{
@@ -114,17 +147,20 @@ namespace DX12
 	}
 
 	template<>
-	inline bool CreateView<DescriptorHeapTypeTag::CBV_SRV_UAV, DescriptorHeapViewTag::FloatShaderResource>
+	inline bool CreateView<DescriptorHeapTypeTag::RTV, DescriptorHeapViewTag::CubeMapResource>
 		(Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 	{
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-		srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MipLevels = 1;
+		const auto& desc = resource->GetDesc();
+		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+		rtvDesc.Format = desc.Format;
+		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+		rtvDesc.Texture2DArray.ArraySize = desc.DepthOrArraySize;
+		rtvDesc.Texture2DArray.FirstArraySlice = 0;
 
-		device->Get()->CreateShaderResourceView(resource, &srvDesc, cpuHandle);
+		device->Get()->CreateRenderTargetView(resource, &rtvDesc, cpuHandle);
 
 		return true;
 	}
+
+
 }
