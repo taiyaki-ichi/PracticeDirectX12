@@ -1,5 +1,6 @@
 #pragma once
 #include"Resource/ShaderResource.hpp"
+#include"Resource/DepthStencilBufferResource.hpp"
 
 namespace test004
 {
@@ -8,6 +9,8 @@ namespace test004
 		using namespace DX12;
 
 		CubeMapShaderResource cubeMapShaderResource{};
+
+		CubeMapDepthStencilBufferResource cubeMapDepthStencilBufferResource{};
 
 		return 0;
 	}

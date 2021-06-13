@@ -4,32 +4,44 @@
 
 namespace DX12
 {
-	class DepthStencilBufferResource : public ResourceBase
+	template<std::size_t DepthOrArraySize>
+	class DepthStencilBufferResourceBase : public ResourceBase
 	{
 	public:
 		void Initialize(Device*, std::size_t width, std::size_t height);
 	};
 
+
+	using DepthStencilBufferResource = DepthStencilBufferResourceBase<1>;
+
 	template<>
-	struct ViewTypeTraits<DepthStencilBufferResource>
-	{
+	struct ViewTypeTraits<DepthStencilBufferResource>{
 		using Type = DescriptorHeapViewTag::DepthStencilBuffer;
+	};
+
+
+	using CubeMapDepthStencilBufferResource = DepthStencilBufferResourceBase<6>;
+
+	template<>
+	struct ViewTypeTraits<CubeMapDepthStencilBufferResource> {
+		using Type = DescriptorHeapViewTag::CubeMapDepthStencilBuffer;
 	};
 
 	//
 	//
 	//
 
-	inline void DepthStencilBufferResource::Initialize(Device* device, std::size_t width, std::size_t height)
+	template<std::size_t DepthOrArraySize>
+	inline void DepthStencilBufferResourceBase<DepthOrArraySize>::Initialize(Device* device, std::size_t width, std::size_t height)
 	{
 		D3D12_RESOURCE_DESC depthResDesc{};
-		depthResDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;//2次元のテクスチャデータとして
+		depthResDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 		depthResDesc.Width = width;
 		depthResDesc.Height = height;
-		depthResDesc.DepthOrArraySize = 1;//テクスチャ配列でもないし3Dテクスチャでもない
-		depthResDesc.Format = DXGI_FORMAT_R32_TYPELESS;//深度値書き込み用フォーマット
-		depthResDesc.SampleDesc.Count = 1;//サンプルは1ピクセル当たり1つ
-		depthResDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;//このバッファは深度ステンシルとして使用します
+		depthResDesc.DepthOrArraySize = DepthOrArraySize;
+		depthResDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+		depthResDesc.SampleDesc.Count = 1;
+		depthResDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 		depthResDesc.MipLevels = 1;
 		depthResDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		depthResDesc.Alignment = 0;
@@ -40,8 +52,8 @@ namespace DX12
 		depthHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 
 		D3D12_CLEAR_VALUE depthClearValue{};
-		depthClearValue.DepthStencil.Depth = 1.f;//深さ１(最大値)でクリア
-		depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;//32bit深度値としてクリア
+		depthClearValue.DepthStencil.Depth = 1.f;
+		depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
 		depthClearValue.Color[0] = 1.f;
 		depthClearValue.Color[1] = 1.f;
 		depthClearValue.Color[2] = 1.f;
@@ -51,7 +63,7 @@ namespace DX12
 			&depthHeapProp,
 			D3D12_HEAP_FLAG_NONE,
 			&depthResDesc,
-			ResourceState::DepthWrite,//デプス書き込みに使用
+			ResourceState::DepthWrite,
 			&depthClearValue
 		);
 	}

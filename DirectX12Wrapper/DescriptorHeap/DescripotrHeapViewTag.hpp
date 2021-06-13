@@ -19,6 +19,9 @@ namespace DX12
 
 		//キューブマップ用
 		struct CubeMapResource {};
+
+		//キューブマップ用のデプスステンシル
+		struct CubeMapDepthStencilBuffer {};
 	}
 
 	//namespace DescriptorHeapViewTag の型をViewTypeとしてusingする

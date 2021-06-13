@@ -21,6 +21,7 @@ namespace DX12
 		struct Float4ShaderResource;
 		struct FloatShaderResource;
 		struct CubeMapResource;
+		struct CubeMapDepthStencilBuffer;
 	}
 
 	//ビューを作成する関数
@@ -113,6 +114,22 @@ namespace DX12
 		D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
 		dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;//デプス値に32bit使用
 		dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+		dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+
+		device->Get()->CreateDepthStencilView(resource, &dsvDesc, cpuHandle);
+
+		return true;
+	}
+
+	template<>
+	inline bool  CreateView<DescriptorHeapTypeTag::DSV, DescriptorHeapViewTag::CubeMapDepthStencilBuffer>
+		(Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
+	{
+		D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
+		dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+		dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+		dsvDesc.Texture2DArray.ArraySize = 6;
+		dsvDesc.Texture2DArray.FirstArraySlice = 0;
 		dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
 
 		device->Get()->CreateDepthStencilView(resource, &dsvDesc, cpuHandle);
