@@ -13,6 +13,9 @@
     <FxCompile Include="Shader\GeometryShader003_DrawFace.hlsl" />
     <FxCompile Include="Shader\GeometryShader003_DrawNormal.hlsl" />
     <FxCompile Include="Shader\PixelShader003_DrawNormal.hlsl" />
+    <FxCompile Include="Shader\VertexShader004_ColorBunny.hlsl" />
+    <FxCompile Include="Shader\PixelShader004_ColorBunny.hlsl" />
+    <FxCompile Include="Shader\GeometryShader004_ColorBunny.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test001.hpp" />
@@ -23,5 +26,6 @@
   <ItemGroup>
     <None Include="Shader\Header002.hlsli" />
     <None Include="Shader\Header003.hlsli" />
+    <None Include="Shader\Header004_ColorBunny.hlsli" />
   </ItemGroup>
 </Project>

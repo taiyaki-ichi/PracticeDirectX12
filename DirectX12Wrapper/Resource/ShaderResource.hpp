@@ -8,7 +8,7 @@ namespace DX12
 	class ShaderResourceBase : public ResourceBase
 	{
 	public:
-		void Intialize(Device*, std::size_t width, std::size_t height, std::optional<D3D12_CLEAR_VALUE>);
+		void Initialize(Device*, std::size_t width, std::size_t height, std::optional<D3D12_CLEAR_VALUE> = std::nullopt);
 	};
 
 	using Float4ShaderResource = ShaderResourceBase<DXGI_FORMAT_R8G8B8A8_UNORM, 1>;
@@ -35,7 +35,7 @@ namespace DX12
 	//
 
 	template<DXGI_FORMAT Format, std::size_t DepthOrArraySize>
-	inline void ShaderResourceBase<Format, DepthOrArraySize>::Intialize(Device* device, std::size_t width, std::size_t height, std::optional<D3D12_CLEAR_VALUE> clearValue)
+	inline void ShaderResourceBase<Format, DepthOrArraySize>::Initialize(Device* device, std::size_t width, std::size_t height, std::optional<D3D12_CLEAR_VALUE> clearValue)
 	{
 		D3D12_RESOURCE_DESC resdesc{};
 		resdesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -62,7 +62,7 @@ namespace DX12
 			&heapprop,
 			D3D12_HEAP_FLAG_NONE,
 			&resdesc,
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 
+			ResourceState::PixcelShaderResource, 
 			clear
 		);
 	}

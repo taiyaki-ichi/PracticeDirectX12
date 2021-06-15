@@ -117,6 +117,8 @@ namespace test002
 			doubleBuffer.Flip();
 		};
 
+		stbi_image_free(data);
+
 		return 0;
 	}
 }

@@ -1,5 +1,6 @@
 #include"Header003.hlsli"
 
+
 [maxvertexcount(2)]
 void main(
 	triangle float4 input[3] : SV_POSITION, 

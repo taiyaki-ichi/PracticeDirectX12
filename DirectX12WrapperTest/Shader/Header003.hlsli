@@ -15,3 +15,4 @@ struct DrawNormalGSOutput
 {
 	float4 pos : SV_POSITION;
 };
+
