@@ -37,6 +37,38 @@ namespace test004
 
 	constexpr std::size_t CUBE_MAP_SIZE = 512;
 
+	class ColorBunnyResources 
+	{
+		ConstantBufferResource worldConstantbunnferResource{};
+		ConstantBufferResource colorConstantBufferResource{};
+
+		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> descriptorHeap{};
+
+	public:
+		void Initialize(Device* device, ConstantBufferResource* sceneDataConstantBuffer) 
+		{
+			worldConstantbunnferResource.Initialize(device, sizeof(World));
+			colorConstantBufferResource.Initialize(device, sizeof(Color));
+
+			descriptorHeap.Initialize(device, 3);
+			descriptorHeap.PushBackView(device, &worldConstantbunnferResource);
+			descriptorHeap.PushBackView(device, &colorConstantBufferResource);
+			descriptorHeap.PushBackView(device, sceneDataConstantBuffer);
+		}
+
+		void MapWorld(const World& w) {
+			worldConstantbunnferResource.Map(w);
+		}
+
+		void MapColor(const Color& c) {
+			colorConstantBufferResource.Map(c);
+		}
+
+		auto& GetDecriptorHeap() {
+			return descriptorHeap;
+		}
+	};
+
 	inline int main()
 	{
 		
@@ -56,12 +88,6 @@ namespace test004
 		doubleBuffer.Initialize(&device, factry, swapChain);
 
 
-		ConstantBufferResource worldConstantbunnferResource{};
-		worldConstantbunnferResource.Initialize(&device, sizeof(World));
-
-		ConstantBufferResource colorConstantBufferResource{};
-		colorConstantBufferResource.Initialize(&device, sizeof(Color));
-
 		ConstantBufferResource sceneDataConstantBufferResource{};
 		sceneDataConstantBufferResource.Initialize(&device, sizeof(SceneData));
 
@@ -75,6 +101,7 @@ namespace test004
 		IndexBufferResource indexBufferResource{};
 		indexBufferResource.Initialize(&device, sizeof(decltype(bunnyFace)::value_type) * bunnyFace.size());
 		indexBufferResource.Map(bunnyFace);
+
 
 		Shader colorBunnyVertexShader{};
 		colorBunnyVertexShader.Intialize(L"Shader/VertexShader004_ColorBunny.hlsl", "main", "vs_5_0");
@@ -92,11 +119,24 @@ namespace test004
 		colorBunnyPipelineState.Initialize(&device, &colorBunnyRootSignature, &colorBunnyVertexShader, &colorBunnyPixelShader,
 			{ {"POSITION", VertexLayoutFormat::Float3 } }, { RenderTargetFormat::R8G8B8A8 }, true, &colorBunnyGeometryShader);
 
-		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> colorBunnyDescriptorHeap{};
-		colorBunnyDescriptorHeap.Initialize(&device, 3);
-		colorBunnyDescriptorHeap.PushBackView(&device, &worldConstantbunnferResource);
-		colorBunnyDescriptorHeap.PushBackView(&device, &colorConstantBufferResource);
-		colorBunnyDescriptorHeap.PushBackView(&device, &sceneDataConstantBufferResource);
+		constexpr std::size_t ColorBunnyNum = 3;
+		std::array<World, ColorBunnyNum> colorBunnyWorlds{
+			XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(0.f,0.f,0.f),
+			XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(0.f,0.f,3.f),
+			XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(3.f, 0.f, 3.f)
+		};
+		std::array<Color, ColorBunnyNum> colorBunnyColors{
+			XMFLOAT4(1.f, 0.f, 0.f, 1.f),
+			XMFLOAT4(0.f, 1.f, 0.f, 1.f),
+			XMFLOAT4(0.f, 0.f, 1.f, 1.f)
+		};
+
+		std::array<ColorBunnyResources, ColorBunnyNum> colorBunnyResources{};
+		for (std::size_t i = 0; i < ColorBunnyNum; i++) {
+			colorBunnyResources[i].Initialize(&device, &sceneDataConstantBufferResource);
+			colorBunnyResources[i].MapWorld(colorBunnyWorlds[i]);
+			colorBunnyResources[i].MapColor(colorBunnyColors[i]);
+		}
 
 
 		DepthStencilBufferResource depthStencilBufferResource{};
@@ -123,14 +163,15 @@ namespace test004
 		);
 		XMFLOAT4 lightDir{ 1.f,1.f,1.f,1.f };
 
-		worldConstantbunnferResource.Map(XMMatrixScaling(10.f, 10.f, 10.f));
-		colorConstantBufferResource.Map(XMFLOAT4(1.f, 0.f, 0.f, 1.f));
-		sceneDataConstantBufferResource.Map(SceneData{ view,proj,lightDir });
-
 		std::size_t cnt = 0;
 		while (UpdateWindow())
 		{
+			eye.x = 3 * std::cos(cnt / 60.0);
+			eye.z = 3 * std::sin(cnt / 60.0);
+			auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
+			cnt++;
 
+			sceneDataConstantBufferResource.Map(SceneData{ view,proj,lightDir });
 
 			commandList.SetViewport(viewport);
 			commandList.SetScissorRect(scissorRect);
@@ -147,10 +188,14 @@ namespace test004
 
 			commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferResource.GetView());
 			commandList.Get()->IASetIndexBuffer(&indexBufferResource.GetView());
-			commandList.Get()->SetDescriptorHeaps(1, &colorBunnyDescriptorHeap.Get());
-			commandList.Get()->SetGraphicsRootDescriptorTable(0, colorBunnyDescriptorHeap.GetGPUHandle());
 
-			commandList.Get()->DrawIndexedInstanced(bunnyFace.size() * 3, 1, 0, 0, 0);
+			for (std::size_t i = 0; i < ColorBunnyNum; i++)
+			{
+				commandList.Get()->SetDescriptorHeaps(1, &colorBunnyResources[i].GetDecriptorHeap().Get());
+				commandList.Get()->SetGraphicsRootDescriptorTable(0, colorBunnyResources[i].GetDecriptorHeap().GetGPUHandle());
+
+				commandList.Get()->DrawIndexedInstanced(bunnyFace.size() * 3, 1, 0, 0, 0);
+			}
 
 			doubleBuffer.BarriorToBackbuffer(&commandList, ResourceState::Common);
 

@@ -113,7 +113,7 @@ namespace DX12
 	template<typename T>
 	void MapStruct(ID3D12Resource* resourcePtr,T&& t)
 	{
-		using ValueType = std::remove_reference_t<T>;
+		using ValueType = std::remove_const_t<std::remove_reference_t<T>>;
 		ValueType* target = nullptr;
 		resourcePtr->Map(0, nullptr, (void**)&target);
 		*target = std::forward<T>(t);
