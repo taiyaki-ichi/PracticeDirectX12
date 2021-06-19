@@ -1,4 +1,5 @@
 
+
 cbuffer SceneData : register(b0) {
 	matrix view;
 	matrix proj;
@@ -7,22 +8,21 @@ cbuffer SceneData : register(b0) {
 };
 
 
-cbuffer World : register(b1) {
+cbuffer ColorBunnyData : register(b1) {
 	matrix world;
-}
-
-cbuffer Color : register(b2) {
 	float4 color;
 }
 
-cbuffer CubemapSceneData : register(b3) {
+
+cbuffer CubemapSceneData : register(b2) {
 	matrix cubemapView[6];
 	matrix cubemapProj;
 }
+
 
 struct GSOutput
 {
 	float4 pos : SV_POSITION;
 	float3 normal :NORMAL;
-	float3 reflect  : REFLECT;
+	uint renderTargetArrayIndex : SV_RenderTargetArrayIndex;
 };

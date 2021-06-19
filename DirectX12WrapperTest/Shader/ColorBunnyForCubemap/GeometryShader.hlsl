@@ -1,4 +1,4 @@
-#include"Header004_ColorBunnyForCubemap.hlsli"
+#include"Header.hlsli"
 
 
 [maxvertexcount(18)]

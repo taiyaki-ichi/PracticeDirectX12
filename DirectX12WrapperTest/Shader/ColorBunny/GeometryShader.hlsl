@@ -1,8 +1,8 @@
-#include"Header004_ColorBunny.hlsli"
+#include"Header.hlsli"
 
 [maxvertexcount(3)]
 void main(
-	triangle float4 input[3] : SV_POSITION, 
+	triangle float4 input[3] : SV_POSITION,
 	inout TriangleStream< GSOutput > output
 )
 {

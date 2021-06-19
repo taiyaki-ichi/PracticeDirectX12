@@ -1,7 +1,6 @@
-#include"Header004_ColorBunny.hlsli"
+#include"Header.hlsli"
 
-TextureCube cubemap:register(t0);
-
+TextureCube cubemap : register(t0);
 SamplerState smp:register(s0);
 
 float4 main(GSOutput input) : SV_TARGET
