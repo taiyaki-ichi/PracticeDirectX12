@@ -16,6 +16,9 @@
     <FxCompile Include="Shader\VertexShader004_ColorBunny.hlsl" />
     <FxCompile Include="Shader\PixelShader004_ColorBunny.hlsl" />
     <FxCompile Include="Shader\GeometryShader004_ColorBunny.hlsl" />
+    <FxCompile Include="Shader\PixelShader004_MirrorBunny.hlsl" />
+    <FxCompile Include="Shader\GeometryShader004_ColorBunnyForCubemap.hlsl" />
+    <FxCompile Include="Shader\PixelShader004_ColorBunnyForCubemap.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test001.hpp" />
@@ -27,5 +30,6 @@
     <None Include="Shader\Header002.hlsli" />
     <None Include="Shader\Header003.hlsli" />
     <None Include="Shader\Header004_ColorBunny.hlsli" />
+    <None Include="Shader\Header004_ColorBunnyForCubemap.hlsli" />
   </ItemGroup>
 </Project>

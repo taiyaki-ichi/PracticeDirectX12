@@ -44,7 +44,7 @@ namespace test003
 		auto [factry, swapChain] = commandList.CreateFactryAndSwapChain(hwnd);
 		doubleBuffer.Initialize(&device, factry, swapChain);
 
-		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint16_t, 3>>("Assets/bun_zipper.off");
+		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint16_t, 3>>("Assets/bunny.off");
 		
 		VertexBufferResource vertexBufferResource{};
 		vertexBufferResource.Initialize(&device, sizeof(decltype(vertex)::value_type) * vertex.size(), sizeof(decltype(vertex)::value_type));

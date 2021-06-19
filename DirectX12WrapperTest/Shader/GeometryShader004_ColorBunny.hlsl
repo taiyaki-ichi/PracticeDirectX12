@@ -15,7 +15,9 @@ void main(
 	{
 		GSOutput element;
 		element.pos = mul(mul(proj, view), mul(world, input[i]));
-		element.normal = normal;
+		element.normal = mul(world, normal);
+		float3 eyeDir = normalize(mul(world, input[i]).xyz - eye);
+		element.reflect = reflect(eyeDir, mul(world, normal).xyz);
 		output.Append(element);
 	}
 }

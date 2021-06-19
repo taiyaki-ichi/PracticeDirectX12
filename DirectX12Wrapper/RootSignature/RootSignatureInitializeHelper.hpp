@@ -125,12 +125,33 @@ namespace DX12
 		return result;
 	}
 
+	inline D3D12_STATIC_SAMPLER_DESC GetCubemapStaticSampler(std::size_t registerNum)
+	{
+		D3D12_STATIC_SAMPLER_DESC result{};
+		result.Filter = D3D12_FILTER_ANISOTROPIC;
+		result.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		result.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		result.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		result.MinLOD = 0;
+		result.MaxAnisotropy = 16;
+		result.ComparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+		result.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
+		result.MinLOD = 0.f;
+		result.MaxLOD = D3D12_FLOAT32_MAX;
+		result.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+		result.RegisterSpace = registerNum;
+
+		return result;
+	}
+
 	inline std::vector<D3D12_STATIC_SAMPLER_DESC> GetStaticSamplers(const std::vector<StaticSamplerType>& staticSamplerTypes)
 	{
 		std::vector<D3D12_STATIC_SAMPLER_DESC> result{};
 		result.reserve(staticSamplerTypes.size());
 
-		D3D12_STATIC_SAMPLER_DESC(*getStaticSamplerFuncs[])(std::size_t) = { GetStanderdStaticSampler ,GetToonStaticSampler,GetSadowMappingStaticSampler };
+		D3D12_STATIC_SAMPLER_DESC(*getStaticSamplerFuncs[])(std::size_t) = {
+			GetStanderdStaticSampler ,GetToonStaticSampler,GetSadowMappingStaticSampler ,GetCubemapStaticSampler
+		};
 
 		for (std::size_t i = 0; i < staticSamplerTypes.size(); i++) {
 			result.push_back(getStaticSamplerFuncs[static_cast<std::size_t>(staticSamplerTypes[i])](i));

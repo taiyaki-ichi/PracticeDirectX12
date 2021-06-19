@@ -17,6 +17,7 @@ namespace DX12
 		Standard,
 		Toon,
 		SadowMapping,
+		Cubemap,
 	};
 
 	//‚¨‚¨‚©‚½‚Ì’Êí‚Ì•`Ê—p

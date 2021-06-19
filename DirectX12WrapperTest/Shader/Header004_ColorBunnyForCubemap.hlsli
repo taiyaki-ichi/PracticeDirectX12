@@ -20,9 +20,10 @@ cbuffer CubemapSceneData : register(b3) {
 	matrix cubemapProj;
 }
 
+
 struct GSOutput
 {
 	float4 pos : SV_POSITION;
 	float3 normal :NORMAL;
-	float3 reflect  : REFLECT;
+	uint renderTargetArrayIndex : SV_RenderTargetArrayIndex;
 };
