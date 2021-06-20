@@ -13,15 +13,6 @@
     <FxCompile Include="Shader\GeometryShader003_DrawFace.hlsl" />
     <FxCompile Include="Shader\GeometryShader003_DrawNormal.hlsl" />
     <FxCompile Include="Shader\PixelShader003_DrawNormal.hlsl" />
-    <FxCompile Include="Shader\ColorBunny\VertexShader.hlsl" />
-    <FxCompile Include="Shader\ColorBunnyForCubemap\VertexShader.hlsl" />
-    <FxCompile Include="Shader\ColorBunny\PixelShader.hlsl" />
-    <FxCompile Include="Shader\ColorBunny\GeometryShader.hlsl" />
-    <FxCompile Include="Shader\ColorBunnyForCubemap\GeometryShader.hlsl" />
-    <FxCompile Include="Shader\ColorBunnyForCubemap\PixelShader.hlsl" />
-    <FxCompile Include="Shader\MirrorBunny\VertexShader.hlsl" />
-    <FxCompile Include="Shader\MirrorBunny\GeometryShader.hlsl" />
-    <FxCompile Include="Shader\MirrorBunny\PixelShader.hlsl" />
     <FxCompile Include="Shader\ColorObject\PixelShader.hlsl" />
     <FxCompile Include="Shader\ColorObject\VertexShader.hlsl" />
     <FxCompile Include="Shader\ColorObjectForCubemap\GeometryShader.hlsl" />
@@ -34,16 +25,12 @@
     <ClInclude Include="test001.hpp" />
     <ClInclude Include="test002.hpp" />
     <ClInclude Include="test003.hpp" />
-    <ClInclude Include="test004.hpp" />
     <ClInclude Include="utility.hpp" />
-    <ClInclude Include="test005.hpp" />
+    <ClInclude Include="test004.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Header002.hlsli" />
     <None Include="Shader\Header003.hlsli" />
-    <None Include="Shader\ColorBunny\Header.hlsli" />
-    <None Include="Shader\ColorBunnyForCubemap\Header.hlsli" />
-    <None Include="Shader\MirrorBunny\Header.hlsli" />
     <None Include="Shader\ColorObject\Header.hlsli" />
     <None Include="Shader\ColorObjectForCubemap\Header.hlsli" />
     <None Include="Shader\MirrorObject\Header.hlsli" />

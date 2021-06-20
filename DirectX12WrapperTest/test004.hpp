@@ -3,19 +3,15 @@
 #include"Device.hpp"
 #include"CommandList.hpp"
 #include"DoubleBuffer.hpp"
-#include"Resource/VertexBufferResource.hpp"
-#include"RootSignature/RootSignature.hpp"
-#include"PipelineState/PipelineState.hpp"
-#include"Resource/IndexBufferResource.hpp"
-#include"Resource/ShaderResource.hpp"
-#include"Resource/ConstantBufferResource.hpp"
-
 #include"OffLoader.hpp"
+#include"utility.hpp"
+#include"Resource/VertexBufferResource.hpp"
+#include"Resource/ShaderResource.hpp"
 
 #include<array>
 #include<DirectXMath.h>
 
-//動的な環境マップを扱う
+
 namespace test004
 {
 	using namespace DX12;
@@ -24,7 +20,6 @@ namespace test004
 	constexpr std::size_t WINDOW_WIDTH = 1024;
 	constexpr std::size_t WINDOW_HEIGHT = 768;
 
-
 	struct SceneData {
 		XMMATRIX view;
 		XMMATRIX proj;
@@ -32,12 +27,9 @@ namespace test004
 		XMFLOAT3 eye;
 	};
 
-	using World = XMMATRIX;
-	using Color = XMFLOAT4;
-
-	struct ColorBunnyData {
-		World world;
-		Color colot;
+	struct ColorObjectData {
+		XMMATRIX world;
+		std::array<float, 4> color;
 	};
 
 	constexpr std::size_t CUBE_MAP_EDGE = 512;
@@ -47,7 +39,6 @@ namespace test004
 		XMMATRIX proj;
 	};
 
-
 	class Mesh
 	{
 		std::size_t faceNum{};
@@ -55,18 +46,32 @@ namespace test004
 		VertexBufferResource vertexBufferResource{};
 		IndexBufferResource indexBufferResource{};
 
+		struct Vertex {
+			std::array<float, 3> pos;
+			std::array<float, 3> normal;
+		};
+
 	public:
-		void Initialize(Device* device)
+		void Initialize(Device* device,const char* fileName)
 		{
-			auto [bunnyVertex, bunnyFace] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint16_t, 3>>("../../Assets/bun_zipper.off");
+			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint16_t, 3>>(fileName);
+			auto normalList = GetVertexNormal(vertexList, faceList);
 
-			faceNum = bunnyFace.size();
+			std::vector<Vertex> posNormalList{};
+			posNormalList.reserve(vertexList.size());
+			XMFLOAT3 tmpFloat3;
+			for (std::size_t i = 0; i < vertexList.size(); i++) {
+				XMStoreFloat3(&tmpFloat3, normalList[i]);
+				posNormalList.push_back({ vertexList[i],{tmpFloat3.x,tmpFloat3.y,tmpFloat3.z} });
+			}
 
-			vertexBufferResource.Initialize(device, sizeof(decltype(bunnyVertex)::value_type) * bunnyVertex.size(), sizeof(decltype(bunnyVertex)::value_type));
-			vertexBufferResource.Map(std::move(bunnyVertex));
+			faceNum = faceList.size();
 
-			indexBufferResource.Initialize(device, sizeof(decltype(bunnyFace)::value_type) * bunnyFace.size());
-			indexBufferResource.Map(std::move(bunnyFace));
+			vertexBufferResource.Initialize(device, sizeof(Vertex) * posNormalList.size(), sizeof(Vertex));
+			vertexBufferResource.Map(std::move(posNormalList));
+
+			indexBufferResource.Initialize(device, sizeof(decltype(faceList)::value_type) * faceList.size());
+			indexBufferResource.Map(std::move(faceList));
 		}
 
 		void SetMesh(CommandList* cl)
@@ -91,7 +96,7 @@ namespace test004
 		void Initialize(Device* device, ConstantBufferResource* sceneDataConstantBuffer, ConstantBufferResource* cubemapSceneDataConstantBuffer)
 		{
 			for (std::size_t i = 0; i < ColorObjectNum; i++)
-				colorBunnyDataConstantBufferResource[i].Initialize(device, sizeof(ColorBunnyData));
+				colorBunnyDataConstantBufferResource[i].Initialize(device, sizeof(ColorObjectData));
 
 			descriptorHeap.Initialize(device, 2 + ColorObjectNum);
 			descriptorHeap.PushBackView(device, sceneDataConstantBuffer);
@@ -101,12 +106,12 @@ namespace test004
 		}
 
 		template<typename T>
-		void MapColorBunnyData( T&& t, std::size_t i) 
+		void MapColorBunnyData(T&& t, std::size_t i)
 		{
 			colorBunnyDataConstantBufferResource[i].Map(std::forward<T>(t));
 		}
 
-		void SetDescriptorHeap(CommandList* cl, std::size_t i) 
+		void SetDescriptorHeap(CommandList* cl, std::size_t i)
 		{
 			cl->Get()->SetDescriptorHeaps(1, &descriptorHeap.Get());
 			cl->Get()->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle(0));
@@ -131,30 +136,29 @@ namespace test004
 
 			{
 				Shader vs{};
-				vs.Intialize(L"Shader/ColorBunny/VertexShader.hlsl", "main", "vs_5_0");
-
-				Shader gs{};
-				gs.Intialize(L"Shader/ColorBunny/GeometryShader.hlsl", "main", "gs_5_0");
+				vs.Intialize(L"Shader/ColorObject/VertexShader.hlsl", "main", "vs_5_0");
 
 				Shader ps{};
-				ps.Intialize(L"Shader/ColorBunny/PixelShader.hlsl", "main", "ps_5_0");
+				ps.Intialize(L"Shader/ColorObject/PixelShader.hlsl", "main", "ps_5_0");
 
 				standerdPipelineState.Initialize(device, &rootSignature, &vs, &ps,
-					{ {"POSITION", VertexLayoutFormat::Float3 } }, { RenderTargetFormat::R8G8B8A8 }, true, &gs);
+					{ {"POSITION", VertexLayoutFormat::Float3 },{"NORMAL",VertexLayoutFormat::Float3 } }, 
+					{ RenderTargetFormat::R8G8B8A8 }, true);
 			}
 
 			{
 				Shader vs{};
-				vs.Intialize(L"Shader/ColorBunnyForCubemap/VertexShader.hlsl", "main", "vs_5_0");
+				vs.Intialize(L"Shader/ColorObjectForCubemap/VertexShader.hlsl", "main", "vs_5_0");
 
 				Shader gs{};
-				gs.Intialize(L"Shader/ColorBunnyForCubemap/GeometryShader.hlsl", "main", "gs_5_0");
+				gs.Intialize(L"Shader/ColorObjectForCubemap/GeometryShader.hlsl", "main", "gs_5_0");
 
 				Shader ps{};
-				ps.Intialize(L"Shader/ColorBunnyForCubemap/PixelShader.hlsl", "main", "ps_5_0");
+				ps.Intialize(L"Shader/ColorObjectForCubemap/PixelShader.hlsl", "main", "ps_5_0");
 
 				cubemapPipelineState.Initialize(device, &rootSignature, &vs, &ps,
-					{ {"POSITION", VertexLayoutFormat::Float3 } }, { RenderTargetFormat::R8G8B8A8 }, true, &gs);
+					{ {"POSITION", VertexLayoutFormat::Float3 } ,{"NORMAL",VertexLayoutFormat::Float3 } }, 
+					{ RenderTargetFormat::R8G8B8A8 }, true, &gs);
 			}
 		}
 
@@ -177,7 +181,7 @@ namespace test004
 	public:
 		void Initialize(Device* device, ConstantBufferResource* sceneConstantBufferResource)
 		{
-			worldConstantbunnferResource.Initialize(device, sizeof(World));
+			worldConstantbunnferResource.Initialize(device, sizeof(XMMATRIX));
 			cubemapShaderResource.Initialize(device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, D3D12_CLEAR_VALUE{ DXGI_FORMAT_R8G8B8A8_UNORM , {0.5f,0.5f,0.5f,1.f} });
 
 			descriptorHeap.Initialize(device, 3);
@@ -217,19 +221,17 @@ namespace test004
 			);
 
 			Shader vs{};
-			vs.Intialize(L"Shader/MirrorBunny/VertexShader.hlsl", "main", "vs_5_0");
-
-			Shader gs{};
-			gs.Intialize(L"Shader/MirrorBunny/GeometryShader.hlsl", "main", "gs_5_0");
+			vs.Intialize(L"Shader/MirrorObject/VertexShader.hlsl", "main", "vs_5_0");
 
 			Shader ps{};
-			ps.Intialize(L"Shader/MirrorBunny/PixelShader.hlsl", "main", "ps_5_0");
+			ps.Intialize(L"Shader/MirrorObject/PixelShader.hlsl", "main", "ps_5_0");
 
 			pipelineState.Initialize(device, &rootSignature, &vs, &ps,
-				{ {"POSITION", VertexLayoutFormat::Float3 } }, { RenderTargetFormat::R8G8B8A8 }, true, &gs);
+				{ {"POSITION", VertexLayoutFormat::Float3 },{"NORMAL",VertexLayoutFormat::Float3 } },
+				{ RenderTargetFormat::R8G8B8A8 }, true);
 		}
 
-		void SetPipelineState(CommandList* cl){
+		void SetPipelineState(CommandList* cl) {
 			pipelineState.PrepareForDrawing(cl);
 		}
 	};
@@ -288,38 +290,41 @@ namespace test004
 		cubemapSceneDataConstantBuffer.Initialize(&device, sizeof(CubemapSceneData));
 
 
+		Mesh bunnyMesh{};
+		bunnyMesh.Initialize(&device, "../../Assets/bun_zipper_res3.off");
+
+		Mesh sphereMesh{};
+		sphereMesh.Initialize(&device, "../../Assets/sphere.off");
+
+
 		constexpr std::size_t ColorObjectNum = 4;
 
-		std::array<World, ColorObjectNum> colorBunnyWorlds{
-			XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(5.f,0.f,0.f),
-			XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(-4.f,0.f,0.f),
-			XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(0.f, 0.f, 3.f),
-			XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(0.f, 0.f, -2.f)
-		};
-		std::array<Color, ColorObjectNum> colorBunnyColors{
-			XMFLOAT4(1.f, 0.f, 0.f, 1.f),
-			XMFLOAT4(0.f, 1.f, 0.f, 1.f),
-			XMFLOAT4(0.f, 0.f, 1.f, 1.f),
-			XMFLOAT4(1.f, 1.f, 0.f, 1.f)
+		std::array<XMMATRIX, ColorObjectNum> colorObjectWorlds{
+			XMMatrixScaling(20.f, 20.f, 20.f) * XMMatrixTranslation(10.f,0.f,0.f),
+			XMMatrixScaling(20.f, 20.f, 20.f) * XMMatrixTranslation(-9.f,0.f,0.f),
+			XMMatrixScaling(20.f, 20.f, 20.f) * XMMatrixTranslation(0.f, 0.f, 7.f),
+			XMMatrixScaling(20.f, 20.f, 20.f) * XMMatrixTranslation(0.f, 0.f, -6.f)
 		};
 
+		std::array<std::array<float, 4>, ColorObjectNum> colorObjectColors{ {
+			{1.f, 0.f, 0.f, 1.f},
+			{0.f, 1.f, 0.f, 1.f},
+			{0.f, 0.f, 1.f, 1.f},
+			{1.f, 1.f, 0.f, 1.f}
+		} };
+
+		ColorObjectModel<ColorObjectNum> colorObjectModel{};
+		colorObjectModel.Initialize(&device, &sceneDataConstantBufferResource, &cubemapSceneDataConstantBuffer);
+
+		ColorObjectRenderer colorObjectRenderer{};
+		colorObjectRenderer.Initialize(&device);
 
 
-		Mesh bunnyMesh{};
-		bunnyMesh.Initialize(&device);
+		MirrorObjectModel mirrorObjectModel{};
+		mirrorObjectModel.Initialize(&device, &sceneDataConstantBufferResource);
 
-		ColorObjectModel<ColorObjectNum> colorBunnyModel{};
-		colorBunnyModel.Initialize(&device, &sceneDataConstantBufferResource, &cubemapSceneDataConstantBuffer);
-
-		ColorObjectRenderer colorBunnyRenderer{};
-		colorBunnyRenderer.Initialize(&device);
-
-		MirrorObjectModel mirrorBunnyModel{};
-		mirrorBunnyModel.Initialize(&device, &sceneDataConstantBufferResource);
-		mirrorBunnyModel.MapWorld(XMMatrixScaling(20.f, 20.f, 20.f));
-
-		MirrorObjectRenderer mirrorBunnyRenderer{};
-		mirrorBunnyRenderer.Initialize(&device);
+		MirrorObjectRenderer mirrorObjectRenderer{};
+		mirrorObjectRenderer.Initialize(&device);
 
 
 		CubeMapDepthStencilBufferResource cubemapDepthStencilBufferResource{};
@@ -327,7 +332,7 @@ namespace test004
 
 		DescriptorHeap<DescriptorHeapTypeTag::RTV> cubemapRtvDescriptorHeap{};
 		cubemapRtvDescriptorHeap.Initialize(&device, 1);
-		cubemapRtvDescriptorHeap.PushBackView(&device, &mirrorBunnyModel.GetCubemapShaderResource());
+		cubemapRtvDescriptorHeap.PushBackView(&device, &mirrorObjectModel.GetCubemapShaderResource());
 
 
 		DepthStencilBufferResource depthStencilBufferResource{};
@@ -336,7 +341,9 @@ namespace test004
 		DescriptorHeap<DescriptorHeapTypeTag::DSV> depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.Initialize(&device, 2);
 		depthStencilDescriptorHeap.PushBackView(&device, &depthStencilBufferResource);
+		//ここにViewを作ってしまおう
 		depthStencilDescriptorHeap.PushBackView(&device, &cubemapDepthStencilBufferResource);
+
 
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
@@ -357,25 +364,22 @@ namespace test004
 			100.f
 		);
 		XMFLOAT4 lightDir{ 1.f,1.f,1.f,1.f };
+		XMFLOAT3 mirrorPos{ 0.f, 0.f, 0.f };
 
-		std::size_t cnt = 0;
 		while (UpdateWindow())
 		{
-			eye.x = len * std::cos(cnt / 100.0);
-			eye.z = len * std::sin(cnt / 100.0);
-			auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
-			cnt++;
-
 
 			sceneDataConstantBufferResource.Map(SceneData{ view,proj,lightDir,eye });
 
-			auto cubemapSceneData = GetCubemapSceneData(XMFLOAT3(0.f, 0.f, 0.f));
+			for (std::size_t i = 0; i < ColorObjectNum; i++) {
+				colorObjectWorlds[i] *= XMMatrixRotationY(0.02);
+				colorObjectModel.MapColorBunnyData(ColorObjectData{ colorObjectWorlds[i] ,colorObjectColors[i] }, i);
+			}
+
+			auto cubemapSceneData = GetCubemapSceneData(mirrorPos);
 			cubemapSceneDataConstantBuffer.Map(cubemapSceneData);
 
-			for (std::size_t i = 0; i < ColorObjectNum; i++) {
-				colorBunnyWorlds[i] *= XMMatrixRotationY(0.02);
-				colorBunnyModel.MapColorBunnyData(ColorBunnyData{ colorBunnyWorlds[i] ,colorBunnyColors[i] }, i);
-			}
+			mirrorObjectModel.MapWorld(XMMatrixScaling(3.f, 3.f, 3.f) * XMMatrixTranslation(mirrorPos.x, mirrorPos.y, mirrorPos.z));
 
 
 			//Cubemap
@@ -383,28 +387,27 @@ namespace test004
 				commandList.SetViewport(cubemapViewport);
 				commandList.SetScissorRect(cubemapScissorRect);
 
-				mirrorBunnyModel.GetCubemapShaderResource().Barrior(&commandList, ResourceState::RenderTarget);
+				mirrorObjectModel.GetCubemapShaderResource().Barrior(&commandList, ResourceState::RenderTarget);
 				commandList.Get()->ClearRenderTargetView(cubemapRtvDescriptorHeap.GetCPUHandle(),
-					mirrorBunnyModel.GetCubemapShaderResource().GetClearValue()->Color, 0, nullptr);
+					mirrorObjectModel.GetCubemapShaderResource().GetClearValue()->Color, 0, nullptr);
 
 				commandList.Get()->ClearDepthStencilView(depthStencilDescriptorHeap.GetCPUHandle(1),
 					D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 
 				commandList.SetRenderTarget(cubemapRtvDescriptorHeap.GetCPUHandle(), depthStencilDescriptorHeap.GetCPUHandle(1));
 
-				colorBunnyRenderer.SetCubemapPipelineState(&commandList);
+				colorObjectRenderer.SetCubemapPipelineState(&commandList);
 				bunnyMesh.SetMesh(&commandList);
 
 				for (std::size_t i = 0; i < ColorObjectNum; i++) {
-					colorBunnyModel.SetDescriptorHeap(&commandList, i);
+					colorObjectModel.SetDescriptorHeap(&commandList, i);
 					bunnyMesh.Draw(&commandList);
 				}
 
-				mirrorBunnyModel.GetCubemapShaderResource().Barrior(&commandList, ResourceState::PixcelShaderResource);
+				mirrorObjectModel.GetCubemapShaderResource().Barrior(&commandList, ResourceState::PixcelShaderResource);
 			}
-			
-			
-			//バックバッファへの描写
+
+			//BackBuffer
 			{
 				commandList.SetViewport(viewport);
 				commandList.SetScissorRect(scissorRect);
@@ -421,25 +424,26 @@ namespace test004
 
 				//ColorBunny
 				{
-					colorBunnyRenderer.SetStanderdPipelineState(&commandList);
+					colorObjectRenderer.SetStanderdPipelineState(&commandList);
 					bunnyMesh.SetMesh(&commandList);
 
 					for (std::size_t i = 0; i < ColorObjectNum; i++) {
-						colorBunnyModel.SetDescriptorHeap(&commandList, i);
+						colorObjectModel.SetDescriptorHeap(&commandList, i);
 						bunnyMesh.Draw(&commandList);
 					}
 				}
 
-				//MirrorBunny
+				//MirrorSphere
 				{
-					mirrorBunnyRenderer.SetPipelineState(&commandList);
-					mirrorBunnyModel.SetDescriptorHeap(&commandList);
-					bunnyMesh.SetMesh(&commandList);
-					bunnyMesh.Draw(&commandList);
+					mirrorObjectRenderer.SetPipelineState(&commandList);
+					mirrorObjectModel.SetDescriptorHeap(&commandList);
+					sphereMesh.SetMesh(&commandList);
+					sphereMesh.Draw(&commandList);
 				}
 
 				doubleBuffer.BarriorToBackbuffer(&commandList, ResourceState::Common);
 			}
+
 
 			commandList.Close();
 			commandList.Execute();
@@ -448,7 +452,9 @@ namespace test004
 			doubleBuffer.Flip();
 		}
 
-
 		return 0;
 	}
+
+
+
 }
