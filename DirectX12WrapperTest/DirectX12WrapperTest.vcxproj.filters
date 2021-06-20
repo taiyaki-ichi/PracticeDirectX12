@@ -22,12 +22,21 @@
     <FxCompile Include="Shader\MirrorBunny\VertexShader.hlsl" />
     <FxCompile Include="Shader\MirrorBunny\GeometryShader.hlsl" />
     <FxCompile Include="Shader\MirrorBunny\PixelShader.hlsl" />
+    <FxCompile Include="Shader\ColorObject\PixelShader.hlsl" />
+    <FxCompile Include="Shader\ColorObject\VertexShader.hlsl" />
+    <FxCompile Include="Shader\ColorObjectForCubemap\GeometryShader.hlsl" />
+    <FxCompile Include="Shader\ColorObjectForCubemap\PixelShader.hlsl" />
+    <FxCompile Include="Shader\ColorObjectForCubemap\VertexShader.hlsl" />
+    <FxCompile Include="Shader\MirrorObject\PixelShader.hlsl" />
+    <FxCompile Include="Shader\MirrorObject\VertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test001.hpp" />
     <ClInclude Include="test002.hpp" />
     <ClInclude Include="test003.hpp" />
     <ClInclude Include="test004.hpp" />
+    <ClInclude Include="utility.hpp" />
+    <ClInclude Include="test005.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Header002.hlsli" />
@@ -35,5 +44,8 @@
     <None Include="Shader\ColorBunny\Header.hlsli" />
     <None Include="Shader\ColorBunnyForCubemap\Header.hlsli" />
     <None Include="Shader\MirrorBunny\Header.hlsli" />
+    <None Include="Shader\ColorObject\Header.hlsli" />
+    <None Include="Shader\ColorObjectForCubemap\Header.hlsli" />
+    <None Include="Shader\MirrorObject\Header.hlsli" />
   </ItemGroup>
 </Project>

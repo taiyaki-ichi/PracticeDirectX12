@@ -19,6 +19,11 @@ cbuffer CubemapSceneData : register(b2) {
 	matrix cubemapProj;
 }
 
+struct VSOutput 
+{
+	float4 pos : SV_POSITION;
+	float3 normal :NORMAL;
+};
 
 struct GSOutput
 {

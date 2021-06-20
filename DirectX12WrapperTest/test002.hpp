@@ -61,7 +61,7 @@ namespace test002
 		indexBufferResource.Map(index);
 
 		int x, y, n;
-		std::uint8_t* data = stbi_load("Assets/icon.png", &x, &y, &n, 0);
+		std::uint8_t* data = stbi_load("../../Assets/icon.png", &x, &y, &n, 0);
 
 		TextureResource textureResource{};
 		textureResource.Initialize(&device, &commandList, data, x, y, x * n);
