@@ -1,6 +1,5 @@
 #pragma once
 #include"../Device.hpp"
-#include"../CommandList.hpp"
 #include"ResourceState.hpp"
 #include<optional>
 #include<d3d12.h>
@@ -38,11 +37,12 @@ namespace DX12
 		//‚È‚­‚µ‚Ä‚µ‚Ü‚¢‚½‚¢
 		void Initialize(ID3D12Resource* r);
 
-		void Barrior(CommandList*, ResourceState);
-
 		ID3D12Resource* Get() const noexcept;
 
 		D3D12_CLEAR_VALUE* GetClearValue();
+
+		const ResourceState GetState() const noexcept;
+		void SetState(ResourceState) noexcept;
 	};
 
 
@@ -105,24 +105,6 @@ namespace DX12
 			throw "";
 	}
 
-	inline void ResourceBase::Barrior(CommandList* cl, ResourceState rs)
-	{
-		if (state == rs)
-			return;
-
-
-		D3D12_RESOURCE_BARRIER barrier{};
-		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		barrier.Transition.pResource = resource;
-		barrier.Transition.StateBefore = static_cast<D3D12_RESOURCE_STATES>(state);
-		barrier.Transition.StateAfter = static_cast<D3D12_RESOURCE_STATES>(rs);
-		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-		cl->Get()->ResourceBarrier(1, &barrier);
-
-		state = rs;
-	}
-
 	inline ID3D12Resource* ResourceBase::Get() const noexcept
 	{
 		return resource;
@@ -134,6 +116,16 @@ namespace DX12
 			return &clearValue.value();
 		else
 			return nullptr;
+	}
+
+	inline const ResourceState ResourceBase::GetState() const noexcept
+	{
+		return state;
+	}
+
+	inline void ResourceBase::SetState(ResourceState s) noexcept
+	{
+		state = s;
 	}
 
 }

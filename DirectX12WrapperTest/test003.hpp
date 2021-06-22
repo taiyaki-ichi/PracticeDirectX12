@@ -126,8 +126,8 @@ namespace test003
 			commandList.SetViewport(viewport);
 			commandList.SetScissorRect(scissorRect);
 
-			doubleBuffer.BarriorToBackbuffer(&commandList, ResourceState::RenderTarget);
-			doubleBuffer.ClearBackBuffer(&commandList);
+			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::RenderTarget);
+			commandList.ClearBackBuffer(&doubleBuffer);
 
 			commandList.Get()->ClearDepthStencilView(depthStencilDescriptorHeap.GetCPUHandle(),
 				D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
@@ -158,7 +158,7 @@ namespace test003
 				commandList.Get()->DrawIndexedInstanced(face.size() * 3, 1, 0, 0, 0);
 			}
 
-			doubleBuffer.BarriorToBackbuffer(&commandList, ResourceState::Common);
+			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::Common);
 
 			commandList.Close();
 			commandList.Execute();

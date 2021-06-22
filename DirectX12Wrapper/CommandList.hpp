@@ -1,9 +1,12 @@
 #pragma once
 #include"Device.hpp"
+#include"Resource/ResourceBase.hpp"
+#include"DoubleBuffer.hpp"
 
 namespace DX12
 {
-	
+
+
 	class CommandList
 	{
 		ID3D12CommandAllocator* allocator = nullptr;
@@ -51,6 +54,11 @@ namespace DX12
 		//シザー矩形の設定
 		void SetScissorRect(const D3D12_RECT& rect);
 		void SetScissorRect(std::uint32_t num, D3D12_RECT* rectPtr);
+
+		void Barrior(ResourceBase*, ResourceState);
+
+		void BarriorToBackBuffer(DoubleBuffer*, ResourceState rs);
+		void ClearBackBuffer(DoubleBuffer*);
 
 		//Closeを呼び出す
 		void Close();
@@ -216,6 +224,38 @@ namespace DX12
 	inline void CommandList::SetScissorRect(std::uint32_t num, D3D12_RECT* rectPtr)
 	{
 		list->RSSetScissorRects(num, rectPtr);
+	}
+
+	inline void CommandList::Barrior(ResourceBase* rb, ResourceState rs)
+	{
+		if (rb->GetState() == rs)
+			return;
+
+		D3D12_RESOURCE_BARRIER barrier{};
+		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		barrier.Transition.pResource = rb->Get();
+		barrier.Transition.StateBefore = static_cast<D3D12_RESOURCE_STATES>(rb->GetState());
+		barrier.Transition.StateAfter = static_cast<D3D12_RESOURCE_STATES>(rs);
+		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+		list->ResourceBarrier(1, &barrier);
+
+		rb->SetState(rs);
+	}
+
+	inline void CommandList::BarriorToBackBuffer(DoubleBuffer* db, ResourceState rs)
+	{
+		auto& bb = db->GetBackBufferResource();
+		Barrior(&bb, rs);
+	}
+
+	inline void CommandList::ClearBackBuffer(DoubleBuffer* db)
+	{
+
+		auto cpuHandle = db->GetBackbufferCpuHandle();
+		//バックバッファのクリア
+		float clearColor[] = { 0.5f,0.5f,0.5f,1.0f };
+		list->ClearRenderTargetView(cpuHandle, clearColor, 0, nullptr);
 	}
 
 	inline void CommandList::Close()

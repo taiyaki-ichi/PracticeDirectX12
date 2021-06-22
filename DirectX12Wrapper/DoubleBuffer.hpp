@@ -32,11 +32,9 @@ namespace DX12
 
 		D3D12_CPU_DESCRIPTOR_HANDLE GetBackbufferCpuHandle();
 
-		void BarriorToBackbuffer(CommandList*, ResourceState);
-
-		void ClearBackBuffer(CommandList*);
-
 		void Flip();
+
+		DoubleBufferResource& GetBackBufferResource();
 	};
 
 	//
@@ -105,26 +103,15 @@ namespace DX12
 		return descriptorHeap.GetCPUHandle(bbIdx);
 	}
 
-	inline void DoubleBuffer::BarriorToBackbuffer(CommandList* cl, ResourceState state)
-	{
-		auto bbIdx = swapChain->GetCurrentBackBufferIndex();
-		doubleBufferResources[bbIdx].Barrior(cl, state);
-	}
-
-	inline void DoubleBuffer::ClearBackBuffer(CommandList* cl)
-	{
-		auto bbIdx = swapChain->GetCurrentBackBufferIndex();
-		auto rtvH = descriptorHeap.GetCPUHandle(bbIdx);
-		//バックバッファのクリア
-		float clearColor[] = { 0.5f,0.5f,0.5f,1.0f };
-		cl->Get()->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
-	}
-
 	inline void DoubleBuffer::Flip()
 	{
 		swapChain->Present(1, 0);
 	}
 
-
+	inline DoubleBufferResource& DoubleBuffer::GetBackBufferResource() 
+	{
+		auto bbIdx = swapChain->GetCurrentBackBufferIndex();
+		return doubleBufferResources[bbIdx];
+	}
 
 }

@@ -1,12 +1,16 @@
 #pragma once
 #include"Window.hpp"
 #include"Device.hpp"
+#include"PipelineState/PipelineState.hpp"
 #include"CommandList.hpp"
 #include"DoubleBuffer.hpp"
 #include"OffLoader.hpp"
 #include"utility.hpp"
 #include"Resource/VertexBufferResource.hpp"
+#include"Resource/IndexBufferResource.hpp"
 #include"Resource/ShaderResource.hpp"
+#include"Resource/ConstantBufferResource.hpp"
+#include"Resource/DepthStencilBufferResource.hpp"
 
 #include<array>
 #include<DirectXMath.h>
@@ -387,7 +391,8 @@ namespace test004
 				commandList.SetViewport(cubemapViewport);
 				commandList.SetScissorRect(cubemapScissorRect);
 
-				mirrorObjectModel.GetCubemapShaderResource().Barrior(&commandList, ResourceState::RenderTarget);
+				commandList.Barrior(&mirrorObjectModel.GetCubemapShaderResource(), ResourceState::RenderTarget);
+
 				commandList.Get()->ClearRenderTargetView(cubemapRtvDescriptorHeap.GetCPUHandle(),
 					mirrorObjectModel.GetCubemapShaderResource().GetClearValue()->Color, 0, nullptr);
 
@@ -404,7 +409,7 @@ namespace test004
 					bunnyMesh.Draw(&commandList);
 				}
 
-				mirrorObjectModel.GetCubemapShaderResource().Barrior(&commandList, ResourceState::PixcelShaderResource);
+				commandList.Barrior(&mirrorObjectModel.GetCubemapShaderResource(), ResourceState::PixcelShaderResource);
 			}
 
 			//BackBuffer
@@ -412,8 +417,8 @@ namespace test004
 				commandList.SetViewport(viewport);
 				commandList.SetScissorRect(scissorRect);
 
-				doubleBuffer.BarriorToBackbuffer(&commandList, ResourceState::RenderTarget);
-				doubleBuffer.ClearBackBuffer(&commandList);
+				commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::RenderTarget);
+				commandList.ClearBackBuffer(&doubleBuffer);
 
 				commandList.Get()->ClearDepthStencilView(depthStencilDescriptorHeap.GetCPUHandle(),
 					D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
@@ -441,7 +446,7 @@ namespace test004
 					sphereMesh.Draw(&commandList);
 				}
 
-				doubleBuffer.BarriorToBackbuffer(&commandList, ResourceState::Common);
+				commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::Common);
 			}
 
 

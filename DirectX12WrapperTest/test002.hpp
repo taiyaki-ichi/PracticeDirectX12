@@ -95,8 +95,8 @@ namespace test002
 			commandList.SetViewport(viewport);
 			commandList.SetScissorRect(scissorRect);
 
-			doubleBuffer.BarriorToBackbuffer(&commandList, ResourceState::RenderTarget);
-			doubleBuffer.ClearBackBuffer(&commandList);
+			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::RenderTarget);
+			commandList.ClearBackBuffer(&doubleBuffer);
 
 			commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle());
 
@@ -108,7 +108,7 @@ namespace test002
 			commandList.Get()->IASetIndexBuffer(&indexBufferResource.GetView());
 			commandList.Get()->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
-			doubleBuffer.BarriorToBackbuffer(&commandList, ResourceState::Common);
+			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::Common);
 
 			commandList.Close();
 			commandList.Execute();
