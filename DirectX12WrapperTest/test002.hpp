@@ -102,8 +102,8 @@ namespace test002
 
 			commandList.SetPipelineState(&pipelineState);
 
-			commandList.Get()->SetDescriptorHeaps(1, &descriptorHeap.Get());
-			commandList.Get()->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+			commandList.SetDescriptorHeap(&descriptorHeap);
+			commandList.SetRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 			commandList.SetVertexBuffer(&vertexBufferResource);
 			commandList.SetIndexBuffer(&indexBufferResource);
 			commandList.Get()->DrawIndexedInstanced(6, 1, 0, 0, 0);

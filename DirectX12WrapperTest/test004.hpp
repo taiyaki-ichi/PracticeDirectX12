@@ -117,10 +117,10 @@ namespace test004
 
 		void SetDescriptorHeap(CommandList* cl, std::size_t i)
 		{
-			cl->Get()->SetDescriptorHeaps(1, &descriptorHeap.Get());
-			cl->Get()->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle(0));
-			cl->Get()->SetGraphicsRootDescriptorTable(1, descriptorHeap.GetGPUHandle(1 + i));
-			cl->Get()->SetGraphicsRootDescriptorTable(2, descriptorHeap.GetGPUHandle(1 + ColorObjectNum));
+			cl->SetDescriptorHeap(&descriptorHeap);
+			cl->SetRootDescriptorTable(0, descriptorHeap.GetGPUHandle(0));
+			cl->SetRootDescriptorTable(1, descriptorHeap.GetGPUHandle(1 + i));
+			cl->SetRootDescriptorTable(2, descriptorHeap.GetGPUHandle(1 + ColorObjectNum));
 		}
 	};
 
@@ -205,8 +205,8 @@ namespace test004
 
 		void SetDescriptorHeap(CommandList* cl)
 		{
-			cl->Get()->SetDescriptorHeaps(1, &descriptorHeap.Get());
-			cl->Get()->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+			cl->SetDescriptorHeap(&descriptorHeap);
+			cl->SetRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 		}
 	};
 
@@ -426,7 +426,6 @@ namespace test004
 				commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle(), depthStencilDescriptorHeap.GetCPUHandle());
 
 
-
 				//ColorBunny
 				{
 					commandList.SetPipelineState(&colorObjectRenderer.GetStanderdPipelineState());
@@ -459,7 +458,5 @@ namespace test004
 
 		return 0;
 	}
-
-
 
 }

@@ -140,8 +140,8 @@ namespace test003
 
 				commandList.SetVertexBuffer(&vertexBufferResource);
 				commandList.SetIndexBuffer(&indexBufferResource);
-				commandList.Get()->SetDescriptorHeaps(1, &descriptorHeap.Get());
-				commandList.Get()->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+				commandList.SetDescriptorHeap(&descriptorHeap);
+				commandList.SetRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 
 				commandList.Get()->DrawIndexedInstanced(face.size() * 3, 1, 0, 0, 0);
 			}
@@ -152,8 +152,8 @@ namespace test003
 
 				commandList.SetVertexBuffer(&vertexBufferResource);
 				commandList.SetIndexBuffer(&indexBufferResource);
-				commandList.Get()->SetDescriptorHeaps(1, &descriptorHeap.Get());
-				commandList.Get()->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+				commandList.SetDescriptorHeap(&descriptorHeap);
+				commandList.SetRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 
 				commandList.Get()->DrawIndexedInstanced(face.size() * 3, 1, 0, 0, 0);
 			}

@@ -5,6 +5,7 @@
 #include"DoubleBuffer.hpp"
 #include"Resource/VertexBufferResource.hpp"
 #include"Resource/IndexBufferResource.hpp"
+#include"DescriptorHeap/DescriptorHeap.hpp"
 
 namespace DX12
 {
@@ -61,6 +62,10 @@ namespace DX12
 
 		void SetVertexBuffer(VertexBufferResource*);
 		void SetIndexBuffer(IndexBufferResource*);
+
+		template<typename T>
+		void SetDescriptorHeap(DescriptorHeap<T>*);
+		void SetRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE);
 
 		void Barrior(ResourceBase*, ResourceState);
 
@@ -250,6 +255,17 @@ namespace DX12
 	inline void CommandList::SetIndexBuffer(IndexBufferResource* ibr)
 	{
 		list->IASetIndexBuffer(&ibr->GetView());
+	}
+
+	template<typename T>
+	inline void CommandList::SetDescriptorHeap(DescriptorHeap<T>* dh)
+	{
+		list->SetDescriptorHeaps(1, &dh->Get());
+	}
+
+	inline void CommandList::SetRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle)
+	{
+		list->SetGraphicsRootDescriptorTable(index, gpuHandle);
 	}
 
 	inline void CommandList::Barrior(ResourceBase* rb, ResourceState rs)
