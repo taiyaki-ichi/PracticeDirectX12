@@ -3,6 +3,8 @@
 #include"PipelineState/PipelineState.hpp"
 #include"Resource/ResourceBase.hpp"
 #include"DoubleBuffer.hpp"
+#include"Resource/VertexBufferResource.hpp"
+#include"Resource/IndexBufferResource.hpp"
 
 namespace DX12
 {
@@ -56,6 +58,9 @@ namespace DX12
 		//シザー矩形の設定
 		void SetScissorRect(const D3D12_RECT& rect);
 		void SetScissorRect(std::uint32_t num, D3D12_RECT* rectPtr);
+
+		void SetVertexBuffer(VertexBufferResource*);
+		void SetIndexBuffer(IndexBufferResource*);
 
 		void Barrior(ResourceBase*, ResourceState);
 
@@ -235,6 +240,16 @@ namespace DX12
 	inline void CommandList::SetScissorRect(std::uint32_t num, D3D12_RECT* rectPtr)
 	{
 		list->RSSetScissorRects(num, rectPtr);
+	}
+
+	inline void CommandList::SetVertexBuffer(VertexBufferResource* vbr)
+	{
+		list->IASetVertexBuffers(0, 1, &vbr->GetView());
+	}
+
+	inline void CommandList::SetIndexBuffer(IndexBufferResource* ibr)
+	{
+		list->IASetIndexBuffer(&ibr->GetView());
 	}
 
 	inline void CommandList::Barrior(ResourceBase* rb, ResourceState rs)

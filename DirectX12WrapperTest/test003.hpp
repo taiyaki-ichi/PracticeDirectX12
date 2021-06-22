@@ -138,8 +138,8 @@ namespace test003
 			{
 				commandList.SetPipelineState(&drawFacePipelineState);
 
-				commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferResource.GetView());
-				commandList.Get()->IASetIndexBuffer(&indexBufferResource.GetView());
+				commandList.SetVertexBuffer(&vertexBufferResource);
+				commandList.SetIndexBuffer(&indexBufferResource);
 				commandList.Get()->SetDescriptorHeaps(1, &descriptorHeap.Get());
 				commandList.Get()->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 
@@ -150,8 +150,8 @@ namespace test003
 			{
 				commandList.SetPipelineState(&drawNormalPipelineState);
 
-				commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferResource.GetView());
-				commandList.Get()->IASetIndexBuffer(&indexBufferResource.GetView());
+				commandList.SetVertexBuffer(&vertexBufferResource);
+				commandList.SetIndexBuffer(&indexBufferResource);
 				commandList.Get()->SetDescriptorHeaps(1, &descriptorHeap.Get());
 				commandList.Get()->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 

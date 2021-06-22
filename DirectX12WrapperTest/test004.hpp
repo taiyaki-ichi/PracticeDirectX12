@@ -80,8 +80,8 @@ namespace test004
 
 		void SetMesh(CommandList* cl)
 		{
-			cl->Get()->IASetVertexBuffers(0, 1, &vertexBufferResource.GetView());
-			cl->Get()->IASetIndexBuffer(&indexBufferResource.GetView());
+			cl->SetVertexBuffer(&vertexBufferResource);
+			cl->SetIndexBuffer(&indexBufferResource);
 		}
 
 		void Draw(CommandList* cl)
