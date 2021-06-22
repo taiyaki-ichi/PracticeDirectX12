@@ -143,7 +143,7 @@ namespace test003
 				commandList.SetDescriptorHeap(&descriptorHeap);
 				commandList.SetRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 
-				commandList.Get()->DrawIndexedInstanced(face.size() * 3, 1, 0, 0, 0);
+				commandList.DrawIndexedInstanced(face.size() * 3);
 			}
 
 			//–@ü‚Ì•`ŽÊ
@@ -155,7 +155,7 @@ namespace test003
 				commandList.SetDescriptorHeap(&descriptorHeap);
 				commandList.SetRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 
-				commandList.Get()->DrawIndexedInstanced(face.size() * 3, 1, 0, 0, 0);
+				commandList.DrawIndexedInstanced(face.size() * 3);
 			}
 
 			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::Common);

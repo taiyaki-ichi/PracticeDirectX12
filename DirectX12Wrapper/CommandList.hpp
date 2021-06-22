@@ -36,7 +36,6 @@ namespace DX12
 
 		std::pair<IDXGIFactory5*, IDXGISwapChain4*> CreateFactryAndSwapChain(HWND);
 
-		//コマンドの実行
 		void Execute();
 
 		//コマンドのクリア
@@ -45,18 +44,15 @@ namespace DX12
 
 		void SetPipelineState(PipelineState*);
 
-		//レンダーターゲットの設定
 		//OMSetRenderTargetsの最適化について、どのターゲットのViewもおなじディスクリプタヒープ連続して生成されていないとみなしている
 		void SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle);
 		void SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle, D3D12_CPU_DESCRIPTOR_HANDLE depthStencilHandle);
 		void SetRenderTarget(std::uint32_t renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget);
 		void SetRenderTarget(std::uint32_t renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget, D3D12_CPU_DESCRIPTOR_HANDLE depthStencilHandle);
 
-		//ビューポートの設定
 		void SetViewport(const D3D12_VIEWPORT& viewport);
 		void SetViewport(std::uint32_t num, D3D12_VIEWPORT* viewportPtr);
 
-		//シザー矩形の設定
 		void SetScissorRect(const D3D12_RECT& rect);
 		void SetScissorRect(std::uint32_t num, D3D12_RECT* rectPtr);
 
@@ -66,6 +62,9 @@ namespace DX12
 		template<typename T>
 		void SetDescriptorHeap(DescriptorHeap<T>*);
 		void SetRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE);
+
+		void DrawInstanced(std::size_t vertexNumPerInstance, std::size_t instanceNum = 1);
+		void DrawIndexedInstanced(std::size_t indexNumPerInstance, std::size_t instanceNum = 1);
 
 		void Barrior(ResourceBase*, ResourceState);
 
@@ -268,6 +267,16 @@ namespace DX12
 		list->SetGraphicsRootDescriptorTable(index, gpuHandle);
 	}
 
+	inline void CommandList::DrawInstanced(std::size_t vertexNumPerInstance, std::size_t instanceNum)
+	{
+		list->DrawInstanced(vertexNumPerInstance, instanceNum, 0, 0);
+	}
+
+	inline void CommandList::DrawIndexedInstanced(std::size_t indexNumPerInstance, std::size_t instanceNum)
+	{
+		list->DrawIndexedInstanced(indexNumPerInstance, instanceNum, 0, 0, 0);
+	}
+
 	inline void CommandList::Barrior(ResourceBase* rb, ResourceState rs)
 	{
 		if (rb->GetState() == rs)
@@ -293,7 +302,6 @@ namespace DX12
 
 	inline void CommandList::ClearBackBuffer(DoubleBuffer* db)
 	{
-
 		auto cpuHandle = db->GetBackbufferCpuHandle();
 		//バックバッファのクリア
 		float clearColor[] = { 0.5f,0.5f,0.5f,1.0f };

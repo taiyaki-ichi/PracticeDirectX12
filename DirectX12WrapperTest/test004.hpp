@@ -86,7 +86,7 @@ namespace test004
 
 		void Draw(CommandList* cl)
 		{
-			cl->Get()->DrawIndexedInstanced(faceNum * 3, 1, 0, 0, 0);
+			cl->DrawIndexedInstanced(faceNum * 3);
 		}
 	};
 

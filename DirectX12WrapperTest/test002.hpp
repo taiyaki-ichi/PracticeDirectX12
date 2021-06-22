@@ -106,7 +106,7 @@ namespace test002
 			commandList.SetRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 			commandList.SetVertexBuffer(&vertexBufferResource);
 			commandList.SetIndexBuffer(&indexBufferResource);
-			commandList.Get()->DrawIndexedInstanced(6, 1, 0, 0, 0);
+			commandList.DrawIndexedInstanced(6);
 
 			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::Common);
 

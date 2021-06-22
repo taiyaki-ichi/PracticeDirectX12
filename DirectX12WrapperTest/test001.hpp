@@ -71,7 +71,7 @@ namespace test001
 			commandList.SetPipelineState(&pipelineState);
 
 			commandList.SetVertexBuffer(&vertexBufferResource);
-			commandList.Get()->DrawInstanced(3, 1, 0, 0);
+			commandList.DrawInstanced(3);
 
 			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::Common);
 
