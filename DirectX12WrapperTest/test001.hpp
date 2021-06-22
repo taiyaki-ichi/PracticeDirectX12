@@ -68,7 +68,7 @@ namespace test001
 
 			commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle());
 
-			pipelineState.PrepareForDrawing(&commandList);
+			commandList.SetPipelineState(&pipelineState);
 
 			commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferResource.GetView());
 			commandList.Get()->DrawInstanced(3, 1, 0, 0);

@@ -100,7 +100,7 @@ namespace test002
 
 			commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle());
 
-			pipelineState.PrepareForDrawing(&commandList);
+			commandList.SetPipelineState(&pipelineState);
 
 			commandList.Get()->SetDescriptorHeaps(1, &descriptorHeap.Get());
 			commandList.Get()->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());

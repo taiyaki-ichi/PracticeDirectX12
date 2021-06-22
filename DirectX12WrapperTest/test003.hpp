@@ -136,7 +136,7 @@ namespace test003
 
 			//–Ê‚Ì•`ŽÊ
 			{
-				drawFacePipelineState.PrepareForDrawing(&commandList);
+				commandList.SetPipelineState(&drawFacePipelineState);
 
 				commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferResource.GetView());
 				commandList.Get()->IASetIndexBuffer(&indexBufferResource.GetView());
@@ -148,7 +148,7 @@ namespace test003
 
 			//–@ü‚Ì•`ŽÊ
 			{
-				drawNormalPipelineState.PrepareForDrawing(&commandList);
+				commandList.SetPipelineState(&drawNormalPipelineState);
 
 				commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferResource.GetView());
 				commandList.Get()->IASetIndexBuffer(&indexBufferResource.GetView());

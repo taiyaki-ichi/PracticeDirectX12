@@ -166,13 +166,13 @@ namespace test004
 			}
 		}
 
-		void SetStanderdPipelineState(CommandList* cl) {
-			standerdPipelineState.PrepareForDrawing(cl);
+		PipelineState& GetStanderdPipelineState() noexcept {
+			return standerdPipelineState;
+		}
+		PipelineState& GetCubemapPipelineState() noexcept {
+			return cubemapPipelineState;
 		}
 
-		void SetCubemapPipelineState(CommandList* cl) {
-			cubemapPipelineState.PrepareForDrawing(cl);
-		}
 	};
 
 	class MirrorObjectModel
@@ -235,8 +235,8 @@ namespace test004
 				{ RenderTargetFormat::R8G8B8A8 }, true);
 		}
 
-		void SetPipelineState(CommandList* cl) {
-			pipelineState.PrepareForDrawing(cl);
+		PipelineState& GetPipelineState() noexcept {
+			return pipelineState;
 		}
 	};
 
@@ -401,7 +401,7 @@ namespace test004
 
 				commandList.SetRenderTarget(cubemapRtvDescriptorHeap.GetCPUHandle(), depthStencilDescriptorHeap.GetCPUHandle(1));
 
-				colorObjectRenderer.SetCubemapPipelineState(&commandList);
+				commandList.SetPipelineState(&colorObjectRenderer.GetCubemapPipelineState());
 				bunnyMesh.SetMesh(&commandList);
 
 				for (std::size_t i = 0; i < ColorObjectNum; i++) {
@@ -429,7 +429,7 @@ namespace test004
 
 				//ColorBunny
 				{
-					colorObjectRenderer.SetStanderdPipelineState(&commandList);
+					commandList.SetPipelineState(&colorObjectRenderer.GetStanderdPipelineState());
 					bunnyMesh.SetMesh(&commandList);
 
 					for (std::size_t i = 0; i < ColorObjectNum; i++) {
@@ -440,7 +440,7 @@ namespace test004
 
 				//MirrorSphere
 				{
-					mirrorObjectRenderer.SetPipelineState(&commandList);
+					commandList.SetPipelineState(&mirrorObjectRenderer.GetPipelineState());
 					mirrorObjectModel.SetDescriptorHeap(&commandList);
 					sphereMesh.SetMesh(&commandList);
 					sphereMesh.Draw(&commandList);

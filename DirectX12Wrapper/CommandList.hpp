@@ -1,11 +1,11 @@
 #pragma once
 #include"Device.hpp"
+#include"PipelineState/PipelineState.hpp"
 #include"Resource/ResourceBase.hpp"
 #include"DoubleBuffer.hpp"
 
 namespace DX12
 {
-
 
 	class CommandList
 	{
@@ -39,6 +39,8 @@ namespace DX12
 		//コマンドのクリア
 		//引数は初期設定したいパイプラインステート
 		void Clear();
+
+		void SetPipelineState(PipelineState*);
 
 		//レンダーターゲットの設定
 		//OMSetRenderTargetsの最適化について、どのターゲットのViewもおなじディスクリプタヒープ連続して生成されていないとみなしている
@@ -184,6 +186,15 @@ namespace DX12
 	{
 		allocator->Reset();
 		list->Reset(allocator, nullptr);
+	}
+
+	inline void CommandList::SetPipelineState(PipelineState* ps)
+	{
+		list->SetPipelineState(ps->Get());
+		list->SetGraphicsRootSignature(ps->GetRootSignature());
+
+		//とりあえず
+		list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 
 	inline void CommandList::SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle)
