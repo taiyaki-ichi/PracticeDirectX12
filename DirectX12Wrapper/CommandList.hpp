@@ -6,6 +6,7 @@
 #include"Resource/VertexBufferResource.hpp"
 #include"Resource/IndexBufferResource.hpp"
 #include"DescriptorHeap/DescriptorHeap.hpp"
+#include"Resource/ShaderResource.hpp"
 
 namespace DX12
 {
@@ -67,6 +68,9 @@ namespace DX12
 		void DrawIndexedInstanced(std::size_t indexNumPerInstance, std::size_t instanceNum = 1);
 
 		void Barrior(ResourceBase*, ResourceState);
+
+		void ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE, const std::array<float, 4>&);
+		void ClearDepthView(D3D12_CPU_DESCRIPTOR_HANDLE, float);
 
 		void BarriorToBackBuffer(DoubleBuffer*, ResourceState rs);
 		void ClearBackBuffer(DoubleBuffer*);
@@ -292,6 +296,16 @@ namespace DX12
 		list->ResourceBarrier(1, &barrier);
 
 		rb->SetState(rs);
+	}
+
+	inline void CommandList::ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE handle, const std::array<float, 4>& color)
+	{
+		list->ClearRenderTargetView(handle, color.data(), 0, nullptr);
+	}
+
+	inline void CommandList::ClearDepthView(D3D12_CPU_DESCRIPTOR_HANDLE handle, float d)
+	{
+		list->ClearDepthStencilView(handle, D3D12_CLEAR_FLAG_DEPTH, d, 0, 0, nullptr);
 	}
 
 	inline void CommandList::BarriorToBackBuffer(DoubleBuffer* db, ResourceState rs)

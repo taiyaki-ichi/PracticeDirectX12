@@ -1,31 +1,40 @@
 #pragma once
 #include"ResourceBase.hpp"
 #include"DescriptorHeap/DescripotrHeapViewTag.hpp"
+#include"../Format.hpp"
 #include<array>
 #include<variant>
 
 namespace DX12
 {
-	/*
-	struct DepthStencilValue {
-		float depth;
-		std::uint8_t stencil;
+	template<Format F>
+	struct ClearValueTraits {
+		using Type;
 	};
-	using Float3Value = std::array<float, 3>;
-	using ClearValue = std::variant<Float3Value, DepthStencilValue>;
-	*/
+
+	template<>
+	struct ClearValueTraits<Format::R8G8B8A8> {
+		using Type = std::array<float, 4>;
+	};
+
+	template<>
+	struct ClearValueTraits<Format::R32_FLOAT> {
+		using Type = float;
+	};
 
 
-	template<DXGI_FORMAT Format,std::size_t DepthOrArraySize>
+	template<Format F,std::size_t DepthOrArraySize>
 	class ShaderResourceBase : public ResourceBase
 	{
 	public:
-		void Initialize(Device*, std::size_t width, std::size_t height, std::optional<D3D12_CLEAR_VALUE> = std::nullopt);
+		void Initialize(Device*, std::size_t width, std::size_t height, std::optional<typename ClearValueTraits<F>::Type> = std::nullopt);
 	};
 
-	using Float4ShaderResource = ShaderResourceBase<DXGI_FORMAT_R8G8B8A8_UNORM, 1>;
-	using FloatShaderResource = ShaderResourceBase<DXGI_FORMAT_R32_FLOAT, 1>;
-	using CubeMapShaderResource = ShaderResourceBase<DXGI_FORMAT_R8G8B8A8_UNORM, 6>;
+
+
+	using Float4ShaderResource = ShaderResourceBase<Format::R8G8B8A8, 1>;
+	using FloatShaderResource = ShaderResourceBase<Format::R32_FLOAT, 1>;
+	using CubeMapShaderResource = ShaderResourceBase<Format::R8G8B8A8, 6>;
 
 	template<>
 	struct ViewTypeTraits<Float4ShaderResource> {
@@ -46,14 +55,14 @@ namespace DX12
 	//
 	//
 
-	template<DXGI_FORMAT Format, std::size_t DepthOrArraySize>
-	inline void ShaderResourceBase<Format, DepthOrArraySize>::Initialize(Device* device, std::size_t width, std::size_t height, std::optional<D3D12_CLEAR_VALUE> clearValue)
+	template<Format F, std::size_t DepthOrArraySize>
+	inline void ShaderResourceBase<F, DepthOrArraySize>::Initialize(Device* device, std::size_t width, std::size_t height, std::optional<typename ClearValueTraits<F>::Type> cv)
 	{
 		D3D12_RESOURCE_DESC resdesc{};
 		resdesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 		resdesc.Width = width;
 		resdesc.Height = height;
-		resdesc.Format = Format;
+		resdesc.Format = static_cast<DXGI_FORMAT>(F);
 		resdesc.DepthOrArraySize = DepthOrArraySize;
 		resdesc.SampleDesc.Count = 1;
 		resdesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
@@ -66,16 +75,24 @@ namespace DX12
 		heapprop.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
 		heapprop.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 	
-		D3D12_CLEAR_VALUE* clear = nullptr;
-		if (clearValue)
-			clear = &clearValue.value();
+		D3D12_CLEAR_VALUE clearValue{};
+		clearValue.Format = static_cast<DXGI_FORMAT>(F);
+
+		//‚Æ‚è‚ ‚¦‚¸
+		if (cv)
+		{
+			if constexpr (F == Format::R8G8B8A8) 
+				std::copy(std::begin(cv.value()), std::end(cv.value()), std::begin(clearValue.Color));
+			if constexpr (F == Format::R32_FLOAT)
+				clearValue.DepthStencil.Depth = cv.value();
+		}
 
 		return ResourceBase::Initialize(device,
 			&heapprop,
 			D3D12_HEAP_FLAG_NONE,
 			&resdesc,
 			ResourceState::PixcelShaderResource, 
-			clear
+			&clearValue
 		);
 	}
 

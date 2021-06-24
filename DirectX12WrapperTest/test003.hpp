@@ -129,8 +129,7 @@ namespace test003
 			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::RenderTarget);
 			commandList.ClearBackBuffer(&doubleBuffer);
 
-			commandList.Get()->ClearDepthStencilView(depthStencilDescriptorHeap.GetCPUHandle(),
-				D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+			commandList.ClearDepthView(depthStencilDescriptorHeap.GetCPUHandle(), 1.f);
 
 			commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle(),depthStencilDescriptorHeap.GetCPUHandle());
 

@@ -183,10 +183,12 @@ namespace test004
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> descriptorHeap{};
 
 	public:
+		static constexpr std::array<float, 4> CUBEMAP_CLEAR_VALUE{ 0.5f,0.5f,0.5f,1.f };
+
 		void Initialize(Device* device, ConstantBufferResource* sceneConstantBufferResource)
 		{
 			worldConstantbunnferResource.Initialize(device, sizeof(XMMATRIX));
-			cubemapShaderResource.Initialize(device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, D3D12_CLEAR_VALUE{ DXGI_FORMAT_R8G8B8A8_UNORM , {0.5f,0.5f,0.5f,1.f} });
+			cubemapShaderResource.Initialize(device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, CUBEMAP_CLEAR_VALUE);
 
 			descriptorHeap.Initialize(device, 3);
 			descriptorHeap.PushBackView(device, sceneConstantBufferResource);
@@ -393,11 +395,8 @@ namespace test004
 
 				commandList.Barrior(&mirrorObjectModel.GetCubemapShaderResource(), ResourceState::RenderTarget);
 
-				commandList.Get()->ClearRenderTargetView(cubemapRtvDescriptorHeap.GetCPUHandle(),
-					mirrorObjectModel.GetCubemapShaderResource().GetClearValue()->Color, 0, nullptr);
-
-				commandList.Get()->ClearDepthStencilView(depthStencilDescriptorHeap.GetCPUHandle(1),
-					D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+				commandList.ClearRenderTargetView(cubemapRtvDescriptorHeap.GetCPUHandle(), MirrorObjectModel::CUBEMAP_CLEAR_VALUE);
+				commandList.ClearDepthView(depthStencilDescriptorHeap.GetCPUHandle(1), 1.f);
 
 				commandList.SetRenderTarget(cubemapRtvDescriptorHeap.GetCPUHandle(), depthStencilDescriptorHeap.GetCPUHandle(1));
 
@@ -420,8 +419,7 @@ namespace test004
 				commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::RenderTarget);
 				commandList.ClearBackBuffer(&doubleBuffer);
 
-				commandList.Get()->ClearDepthStencilView(depthStencilDescriptorHeap.GetCPUHandle(),
-					D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+				commandList.ClearDepthView(depthStencilDescriptorHeap.GetCPUHandle(), 1.f);
 
 				commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle(), depthStencilDescriptorHeap.GetCPUHandle());
 
