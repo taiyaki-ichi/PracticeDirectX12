@@ -1,9 +1,21 @@
 #pragma once
 #include"ResourceBase.hpp"
 #include"DescriptorHeap/DescripotrHeapViewTag.hpp"
+#include<array>
+#include<variant>
 
 namespace DX12
 {
+	/*
+	struct DepthStencilValue {
+		float depth;
+		std::uint8_t stencil;
+	};
+	using Float3Value = std::array<float, 3>;
+	using ClearValue = std::variant<Float3Value, DepthStencilValue>;
+	*/
+
+
 	template<DXGI_FORMAT Format,std::size_t DepthOrArraySize>
 	class ShaderResourceBase : public ResourceBase
 	{

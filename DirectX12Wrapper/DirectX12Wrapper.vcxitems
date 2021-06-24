@@ -19,8 +19,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeap.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeapTypeTag.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeapViewHepler.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Format.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PipelineState\PipelineState.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)PipelineState\RenderTarget.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PipelineState\VertexLayout.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ColorTextureResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ConstantBufferResource.hpp" />

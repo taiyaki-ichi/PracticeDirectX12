@@ -83,7 +83,7 @@ namespace test002
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, &vertexShader, &pixelShader,
 			{ {"POSITION", VertexLayoutFormat::Float3} ,{"TEXCOOD",VertexLayoutFormat::Float2} },
-			{ RenderTargetFormat::R8G8B8A8 }, false);
+			{ Format::R8G8B8A8 }, false);
 
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };

@@ -147,7 +147,7 @@ namespace test004
 
 				standerdPipelineState.Initialize(device, &rootSignature, &vs, &ps,
 					{ {"POSITION", VertexLayoutFormat::Float3 },{"NORMAL",VertexLayoutFormat::Float3 } }, 
-					{ RenderTargetFormat::R8G8B8A8 }, true);
+					{ Format::R8G8B8A8 }, true);
 			}
 
 			{
@@ -162,7 +162,7 @@ namespace test004
 
 				cubemapPipelineState.Initialize(device, &rootSignature, &vs, &ps,
 					{ {"POSITION", VertexLayoutFormat::Float3 } ,{"NORMAL",VertexLayoutFormat::Float3 } }, 
-					{ RenderTargetFormat::R8G8B8A8 }, true, &gs);
+					{ Format::R8G8B8A8 }, true, &gs);
 			}
 		}
 
@@ -232,7 +232,7 @@ namespace test004
 
 			pipelineState.Initialize(device, &rootSignature, &vs, &ps,
 				{ {"POSITION", VertexLayoutFormat::Float3 },{"NORMAL",VertexLayoutFormat::Float3 } },
-				{ RenderTargetFormat::R8G8B8A8 }, true);
+				{ Format::R8G8B8A8 }, true);
 		}
 
 		PipelineState& GetPipelineState() noexcept {

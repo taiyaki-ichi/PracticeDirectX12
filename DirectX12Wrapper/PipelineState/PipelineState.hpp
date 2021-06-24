@@ -1,7 +1,7 @@
 #pragma once
 #include"../RootSignature/RootSignature.hpp"
 #include"VertexLayout.hpp"
-#include"RenderTarget.hpp"
+#include"../Format.hpp"
 #include"../Shader.hpp"
 #include"../Device.hpp"
 #include<d3d12.h>
@@ -31,7 +31,7 @@ namespace DX12
 		PipelineState& operator=(PipelineState&&) noexcept;
 
 		void Initialize(Device*, RootSignature*, Shader* vertexShader, Shader* pixcelShader,
-			const std::vector<VertexLayout>&, const std::vector<RenderTargetFormat>&, bool depthEnable,
+			const std::vector<VertexLayout>&, const std::vector<Format>&, bool depthEnable,
 			Shader* geometrtShader = nullptr);
 
 		ID3D12PipelineState* Get() const noexcept;
@@ -61,7 +61,7 @@ namespace DX12
 
 	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, 
 		 Shader* vertexShader, Shader* pixcelShader, const std::vector<VertexLayout>& vertexLayouts, 
-		const std::vector<RenderTargetFormat>& renderTargetFormats,bool depthEnable, Shader* geometrtShader) {
+		const std::vector<Format>& renderTargetFormats,bool depthEnable, Shader* geometrtShader) {
 
 		this->rootSignature = rootSignature->Get();
 
@@ -147,13 +147,8 @@ namespace DX12
 
 
 		graphicsPipelineDesc.NumRenderTargets = renderTargetFormats.size();
-		//数が少ないのでとりあえずのコード
-		for (std::size_t i = 0; i < renderTargetFormats.size(); i++) {
-			if (renderTargetFormats[i] == RenderTargetFormat::R8G8B8A8)
-				graphicsPipelineDesc.RTVFormats[i] = DXGI_FORMAT_R8G8B8A8_UNORM;
-			else if (renderTargetFormats[i] == RenderTargetFormat::R32_FLOAT)
-				graphicsPipelineDesc.RTVFormats[i] = DXGI_FORMAT_R32_FLOAT;
-		}
+		for (std::size_t i = 0; i < renderTargetFormats.size(); i++) 
+			graphicsPipelineDesc.RTVFormats[i] = static_cast<DXGI_FORMAT>(renderTargetFormats[i]);
 
 
 		//デプスステンシル
