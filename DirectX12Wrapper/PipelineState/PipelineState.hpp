@@ -32,7 +32,8 @@ namespace DX12
 
 		void Initialize(Device*, RootSignature*, Shader* vertexShader, Shader* pixcelShader,
 			const std::vector<VertexLayout>&, const std::vector<Format>&, bool depthEnable,
-			Shader* geometrtShader = nullptr);
+			Shader* geometrtShader = nullptr,
+			Shader* hullShader = nullptr, Shader* domainShader = nullptr);
 
 		ID3D12PipelineState* Get() const noexcept;
 		ID3D12RootSignature* GetRootSignature() const noexcept;
@@ -61,7 +62,8 @@ namespace DX12
 
 	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, 
 		 Shader* vertexShader, Shader* pixcelShader, const std::vector<VertexLayout>& vertexLayouts, 
-		const std::vector<Format>& renderTargetFormats,bool depthEnable, Shader* geometrtShader) {
+		const std::vector<Format>& renderTargetFormats,bool depthEnable, Shader* geometrtShader,
+		Shader* hullShader, Shader* domainShader) {
 
 		this->rootSignature = rootSignature->Get();
 
@@ -78,6 +80,15 @@ namespace DX12
 			graphicsPipelineDesc.GS.BytecodeLength = geometrtShader->Get()->GetBufferSize();
 		}
 
+		if (hullShader) {
+			graphicsPipelineDesc.HS.pShaderBytecode = hullShader->Get()->GetBufferPointer();
+			graphicsPipelineDesc.HS.BytecodeLength = hullShader->Get()->GetBufferSize();
+		}
+
+		if (domainShader) {
+			graphicsPipelineDesc.DS.pShaderBytecode = domainShader->Get()->GetBufferPointer();
+			graphicsPipelineDesc.DS.BytecodeLength = domainShader->Get()->GetBufferSize();
+		}
 
 		//頂点シェーダへの入力情報のレイアウト
 		
@@ -106,14 +117,19 @@ namespace DX12
 		graphicsPipelineDesc.InputLayout.pInputElementDescs = inputElementDescs.data();
 		graphicsPipelineDesc.InputLayout.NumElements = inputElementDescs.size();
 
-		//トポロジは三角形固定
-		graphicsPipelineDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		//とりあえず
+		if (hullShader && domainShader)
+			graphicsPipelineDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+		else
+			graphicsPipelineDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
 		//カット値はナシ
 		graphicsPipelineDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
 
 		//ラスタライザの設定
 		D3D12_RASTERIZER_DESC rasterizerDesc{};
 		//中身を塗りつぶす
+		//rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
 		rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
 		//カリングはしない。つまり面の向きが裏でも描写する
 		rasterizerDesc.CullMode = D3D12_CULL_MODE_NONE;

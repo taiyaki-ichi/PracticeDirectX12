@@ -84,7 +84,7 @@ namespace DX12
 		result.MaxLOD = D3D12_FLOAT32_MAX;//ミップマップ最大値
 		result.MinLOD = 0.0f;//ミップマップ最小値
 		result.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;//オーバーサンプリングの際リサンプリングしない？
-		result.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;//ピクセルシェーダからのみ可視
+		result.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 		result.RegisterSpace = registerNum;
 
 		return result;
@@ -101,7 +101,7 @@ namespace DX12
 		result.MaxLOD = D3D12_FLOAT32_MAX;//ミップマップ最大値
 		result.MinLOD = 0.0f;//ミップマップ最小値
 		result.ComparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-		result.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;//ピクセルシェーダからのみ可視
+		result.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 		result.MaxAnisotropy = 1;//深度傾斜を有効に
 		result.RegisterSpace = registerNum;
 
@@ -119,7 +119,7 @@ namespace DX12
 		result.MaxLOD = D3D12_FLOAT32_MAX;//ミップマップ最大値
 		result.MinLOD = 0.0f;//ミップマップ最小値
 		result.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;//オーバーサンプリングの際リサンプリングしない
-		result.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;//ピクセルシェーダからのみ可視
+		result.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 		result.RegisterSpace = registerNum;
 
 		return result;
