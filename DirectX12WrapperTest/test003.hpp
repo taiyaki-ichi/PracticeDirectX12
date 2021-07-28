@@ -136,11 +136,12 @@ namespace test003
 			//ñ ÇÃï`é 
 			{
 				commandList.SetPipelineState(&drawFacePipelineState);
+				commandList.SetGraphicsRootSignature(&rootSignature);
 
 				commandList.SetVertexBuffer(&vertexBufferResource);
 				commandList.SetIndexBuffer(&indexBufferResource);
 				commandList.SetDescriptorHeap(&descriptorHeap);
-				commandList.SetRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+				commandList.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 
 				commandList.DrawIndexedInstanced(face.size() * 3);
 			}
@@ -148,11 +149,12 @@ namespace test003
 			//ñ@ê¸ÇÃï`é 
 			{
 				commandList.SetPipelineState(&drawNormalPipelineState);
+				commandList.SetGraphicsRootSignature(&rootSignature);
 
 				commandList.SetVertexBuffer(&vertexBufferResource);
 				commandList.SetIndexBuffer(&indexBufferResource);
 				commandList.SetDescriptorHeap(&descriptorHeap);
-				commandList.SetRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+				commandList.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 
 				commandList.DrawIndexedInstanced(face.size() * 3);
 			}

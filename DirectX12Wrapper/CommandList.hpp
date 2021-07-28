@@ -38,6 +38,7 @@ namespace DX12
 		std::pair<IDXGIFactory5*, IDXGISwapChain4*> CreateFactryAndSwapChain(HWND);
 
 		void Execute();
+		void Dispatch(std::size_t threadGroupCountX, std::size_t threadGroupCountY, std::size_t threadGroupCountZ);
 
 		//コマンドのクリア
 		//引数は初期設定したいパイプラインステート
@@ -60,9 +61,13 @@ namespace DX12
 		void SetVertexBuffer(VertexBufferResource*);
 		void SetIndexBuffer(IndexBufferResource*);
 
+		void SetGraphicsRootSignature(RootSignature*);
+		void SetComputeRootSignature(RootSignature*);
+
 		template<typename T>
 		void SetDescriptorHeap(DescriptorHeap<T>*);
-		void SetRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE);
+		void SetGraphicsRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE);
+		void SetComputeRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE);
 
 		void DrawInstanced(std::size_t vertexNumPerInstance, std::size_t instanceNum = 1);
 		void DrawIndexedInstanced(std::size_t indexNumPerInstance, std::size_t instanceNum = 1);
@@ -75,7 +80,6 @@ namespace DX12
 		void BarriorToBackBuffer(DoubleBuffer*, ResourceState rs);
 		void ClearBackBuffer(DoubleBuffer*);
 
-		//Closeを呼び出す
 		void Close();
 	};
 
@@ -195,6 +199,11 @@ namespace DX12
 		}
 	}
 
+	inline void CommandList::Dispatch(std::size_t threadGroupCountX, std::size_t threadGroupCountY, std::size_t threadGroupCountZ)
+	{
+		list->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
+	}
+
 	inline void CommandList::Clear()
 	{
 		allocator->Reset();
@@ -204,7 +213,6 @@ namespace DX12
 	inline void CommandList::SetPipelineState(PipelineState* ps)
 	{
 		list->SetPipelineState(ps->Get());
-		list->SetGraphicsRootSignature(ps->GetRootSignature());
 
 		//とりあえず
 		list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -260,15 +268,30 @@ namespace DX12
 		list->IASetIndexBuffer(&ibr->GetView());
 	}
 
+	inline void CommandList::SetGraphicsRootSignature(RootSignature* rootSignature)
+	{
+		list->SetGraphicsRootSignature(rootSignature->Get());
+	}
+
+	inline void CommandList::SetComputeRootSignature(RootSignature* rootSignature)
+	{
+		list->SetComputeRootSignature(rootSignature->Get());
+	}
+
 	template<typename T>
 	inline void CommandList::SetDescriptorHeap(DescriptorHeap<T>* dh)
 	{
 		list->SetDescriptorHeaps(1, &dh->Get());
 	}
 
-	inline void CommandList::SetRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle)
+	inline void CommandList::SetGraphicsRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle)
 	{
 		list->SetGraphicsRootDescriptorTable(index, gpuHandle);
+	}
+
+	inline void CommandList::SetComputeRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle)
+	{
+		list->SetComputeRootDescriptorTable(index, gpuHandle);
 	}
 
 	inline void CommandList::DrawInstanced(std::size_t vertexNumPerInstance, std::size_t instanceNum)

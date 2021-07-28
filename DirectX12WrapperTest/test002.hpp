@@ -101,9 +101,10 @@ namespace test002
 			commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle());
 
 			commandList.SetPipelineState(&pipelineState);
+			commandList.SetGraphicsRootSignature(&rootSignature);
 
 			commandList.SetDescriptorHeap(&descriptorHeap);
-			commandList.SetRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+			commandList.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 			commandList.SetVertexBuffer(&vertexBufferResource);
 			commandList.SetIndexBuffer(&indexBufferResource);
 			commandList.DrawIndexedInstanced(6);

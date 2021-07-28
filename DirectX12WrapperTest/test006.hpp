@@ -49,8 +49,7 @@ namespace test006
 		computePipelineState.Initialize(&device, &computeRootsignature, &cs);
 
 		int textureWidth, textureHeight, n;
-		//std::uint8_t* data = stbi_load("../../Assets/icon.png", &textureWidth, &textureHeight, &n, 0);
-		std::uint8_t* data = stbi_load("../../Assets/1008010101.png", &textureWidth, &textureHeight, &n, 0);
+		std::uint8_t* data = stbi_load("../../Assets/icon.png", &textureWidth, &textureHeight, &n, 0);
 
 		TextureResource textureResource{};
 		textureResource.Initialize(&device, &commandList, data, textureWidth, textureHeight, textureWidth * n);
@@ -70,16 +69,13 @@ namespace test006
 		clearDescriptorHeap.PushBackView(&device, &float4ShaderResource);
 	
 		commandList.Barrior(&float4ShaderResource, ResourceState::UnorderedAccessResource);
-		commandList.Get()->SetComputeRootSignature(computeRootsignature.Get());
+		commandList.SetComputeRootSignature(&computeRootsignature);
 		commandList.SetDescriptorHeap(&computeDescriptorHeap);
-		commandList.Get()->SetComputeRootDescriptorTable(0, computeDescriptorHeap.GetGPUHandle());
-		commandList.Get()->SetPipelineState(computePipelineState.Get());
-		commandList.Get()->Dispatch(textureWidth, textureHeight, 1);
+		commandList.SetComputeRootDescriptorTable(0, computeDescriptorHeap.GetGPUHandle());
+		commandList.SetPipelineState(&computePipelineState);
+		commandList.Dispatch(textureWidth, textureHeight, 1);
 		commandList.Barrior(&float4ShaderResource, ResourceState::PixcelShaderResource);
 		
-
-
-
 
 		DoubleBuffer doubleBuffer{};
 		auto [factry, swapChain] = commandList.CreateFactryAndSwapChain(hwnd);
@@ -140,8 +136,9 @@ namespace test006
 
 			commandList.SetPipelineState(&pipelineState);
 
+			commandList.SetGraphicsRootSignature(&rootSignature);
 			commandList.SetDescriptorHeap(&descriptorHeap);
-			commandList.SetRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+			commandList.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 			commandList.SetVertexBuffer(&vertexBufferResource);
 			commandList.SetIndexBuffer(&indexBufferResource);
 			commandList.DrawIndexedInstanced(6);

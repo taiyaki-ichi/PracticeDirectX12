@@ -69,6 +69,7 @@ namespace test001
 			commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle());
 
 			commandList.SetPipelineState(&pipelineState);
+			commandList.SetGraphicsRootSignature(&rootSignature);
 
 			commandList.SetVertexBuffer(&vertexBufferResource);
 			commandList.DrawInstanced(3);

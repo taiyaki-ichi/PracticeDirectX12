@@ -118,9 +118,9 @@ namespace test004
 		void SetDescriptorHeap(CommandList* cl, std::size_t i)
 		{
 			cl->SetDescriptorHeap(&descriptorHeap);
-			cl->SetRootDescriptorTable(0, descriptorHeap.GetGPUHandle(0));
-			cl->SetRootDescriptorTable(1, descriptorHeap.GetGPUHandle(1 + i));
-			cl->SetRootDescriptorTable(2, descriptorHeap.GetGPUHandle(1 + ColorObjectNum));
+			cl->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle(0));
+			cl->SetGraphicsRootDescriptorTable(1, descriptorHeap.GetGPUHandle(1 + i));
+			cl->SetGraphicsRootDescriptorTable(2, descriptorHeap.GetGPUHandle(1 + ColorObjectNum));
 		}
 	};
 
@@ -172,6 +172,9 @@ namespace test004
 		PipelineState& GetCubemapPipelineState() noexcept {
 			return cubemapPipelineState;
 		}
+		RootSignature& GetRootSignature() noexcept {
+			return rootSignature;
+		}
 
 	};
 
@@ -208,7 +211,7 @@ namespace test004
 		void SetDescriptorHeap(CommandList* cl)
 		{
 			cl->SetDescriptorHeap(&descriptorHeap);
-			cl->SetRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+			cl->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 		}
 	};
 
@@ -239,6 +242,9 @@ namespace test004
 
 		PipelineState& GetPipelineState() noexcept {
 			return pipelineState;
+		}
+		RootSignature& GetRootSignature() noexcept {
+			return rootSignature;
 		}
 	};
 
@@ -401,6 +407,7 @@ namespace test004
 				commandList.SetRenderTarget(cubemapRtvDescriptorHeap.GetCPUHandle(), depthStencilDescriptorHeap.GetCPUHandle(1));
 
 				commandList.SetPipelineState(&colorObjectRenderer.GetCubemapPipelineState());
+				commandList.SetGraphicsRootSignature(&colorObjectRenderer.GetRootSignature());
 				bunnyMesh.SetMesh(&commandList);
 
 				for (std::size_t i = 0; i < ColorObjectNum; i++) {
@@ -427,6 +434,7 @@ namespace test004
 				//ColorBunny
 				{
 					commandList.SetPipelineState(&colorObjectRenderer.GetStanderdPipelineState());
+					commandList.SetGraphicsRootSignature(&colorObjectRenderer.GetRootSignature());
 					bunnyMesh.SetMesh(&commandList);
 
 					for (std::size_t i = 0; i < ColorObjectNum; i++) {
@@ -438,6 +446,7 @@ namespace test004
 				//MirrorSphere
 				{
 					commandList.SetPipelineState(&mirrorObjectRenderer.GetPipelineState());
+					commandList.SetGraphicsRootSignature(&mirrorObjectRenderer.GetRootSignature());
 					mirrorObjectModel.SetDescriptorHeap(&commandList);
 					sphereMesh.SetMesh(&commandList);
 					sphereMesh.Draw(&commandList);
