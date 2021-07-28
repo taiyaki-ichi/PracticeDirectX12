@@ -65,7 +65,8 @@ namespace DX12
 		resdesc.Format = static_cast<DXGI_FORMAT>(F);
 		resdesc.DepthOrArraySize = DepthOrArraySize;
 		resdesc.SampleDesc.Count = 1;
-		resdesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+		//
+		resdesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 		resdesc.MipLevels = 1;
 		resdesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		resdesc.Alignment = 0;

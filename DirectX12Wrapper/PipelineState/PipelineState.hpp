@@ -35,6 +35,9 @@ namespace DX12
 			Shader* geometrtShader = nullptr,
 			Shader* hullShader = nullptr, Shader* domainShader = nullptr);
 
+		//コンピュートシェーダ用のパイプライン生成
+		void Initialize(Device*, RootSignature*, Shader* computeShader);
+
 		ID3D12PipelineState* Get() const noexcept;
 		ID3D12RootSignature* GetRootSignature() const noexcept;
 
@@ -188,6 +191,17 @@ namespace DX12
 		graphicsPipelineDesc.pRootSignature = rootSignature->Get();
 
 		if (FAILED(device->Get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&pipelineState))))
+			throw "";
+	}
+
+	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, Shader* computeShader)
+	{
+		D3D12_COMPUTE_PIPELINE_STATE_DESC computePipelineDesc{};
+		computePipelineDesc.CS.pShaderBytecode = computeShader->Get()->GetBufferPointer();
+		computePipelineDesc.CS.BytecodeLength = computeShader->Get()->GetBufferSize();
+		computePipelineDesc.pRootSignature = rootSignature->Get();
+
+		if (FAILED(device->Get()->CreateComputePipelineState(&computePipelineDesc, IID_PPV_ARGS(&pipelineState))))
 			throw "";
 	}
 

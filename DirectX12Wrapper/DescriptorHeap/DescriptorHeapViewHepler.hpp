@@ -22,6 +22,7 @@ namespace DX12
 		struct FloatShaderResource;
 		struct CubeMapResource;
 		struct CubeMapDepthStencilBuffer;
+		struct UnorderedAccessResource;
 	}
 
 	//ƒrƒ…[‚ðì¬‚·‚éŠÖ”
@@ -82,6 +83,7 @@ namespace DX12
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 		srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		//
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = 1;
 
@@ -103,6 +105,24 @@ namespace DX12
 		resDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
 
 		device->Get()->CreateShaderResourceView(resource, &resDesc, cpuHandle);
+
+		return true;
+	}
+
+	//
+	template<>
+	inline bool CreateView<DescriptorHeapTypeTag::CBV_SRV_UAV, DescriptorHeapViewTag::UnorderedAccessResource>
+		(Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
+	{
+		const auto& desc = resource->GetDesc();
+		D3D12_UNORDERED_ACCESS_VIEW_DESC resDesc{};
+		resDesc.Format = desc.Format;
+		//
+		resDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+		resDesc.Texture2D.MipSlice = 0;
+		resDesc.Texture2D.PlaneSlice = 0;
+
+		device->Get()->CreateUnorderedAccessView(resource, nullptr, &resDesc, cpuHandle);
 
 		return true;
 	}

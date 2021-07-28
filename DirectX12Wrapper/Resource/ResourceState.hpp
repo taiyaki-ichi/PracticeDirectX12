@@ -14,5 +14,6 @@ namespace DX12
 		GenericRead = D3D12_RESOURCE_STATE_GENERIC_READ,//アップロード用のバッファに使用
 		DepthWrite = D3D12_RESOURCE_STATE_DEPTH_WRITE,
 		CopyDest = D3D12_RESOURCE_STATE_COPY_DEST,
+		UnorderedAccessResource = D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
 	};
 }

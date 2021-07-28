@@ -53,7 +53,8 @@ namespace DX12
 			D3D12_RESOURCE_DESC resourceDesc{};
 			resourceDesc.Width = width;
 			resourceDesc.Height = height;
-			resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+			//
+			resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;//D3D12_RESOURCE_FLAG_NONE;
 			resourceDesc.SampleDesc.Count = 1;
 			resourceDesc.SampleDesc.Quality = 0;
 			//ïœçXÇ≈Ç´ÇÈÇÊÇ§Ç…ÇµÇΩï˚Ç™Ç¢Ç¢Ç©Ç‡

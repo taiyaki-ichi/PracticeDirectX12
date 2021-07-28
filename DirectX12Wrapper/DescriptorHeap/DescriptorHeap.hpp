@@ -44,6 +44,11 @@ namespace DX12
 		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>>
 			PushBackView(Device* device, T* resource);
 
+		//仮
+		template<typename T>
+		void PushBackUnorderedAccessView(Device* device, T* resource);
+
+
 		//offsetを0にする
 		void Reset() noexcept;
 
@@ -128,6 +133,33 @@ namespace DX12
 		offset++;
 
 		return std::make_pair(gpuHandle, cpuHandle);
+	}
+
+	template<typename DescriptorHeapTypeTag>
+	template<typename T>
+	inline void DX12::DescriptorHeap<DescriptorHeapTypeTag>::PushBackUnorderedAccessView(Device* device, T* resource)
+	{
+		//空いてるスペースがない場合
+		if (offset >= size)
+			throw"";
+
+		//cpuハンドルの取得
+		auto cpuHandle = GetCPUHandle(offset);
+
+		//Viewを作製したいリソースのポインタを取得
+		auto resourcePtr = resource->Get();
+
+		//viewの生成
+		if (!CreateView<DescriptorHeapTypeTag, DescriptorHeapViewTag::UnorderedAccessResource>(device, resourcePtr, cpuHandle))
+			throw"";
+
+		//戻り値用にgpuハンドルの取得
+		auto gpuHandle = GetGPUHandle(offset);
+
+		//オフセットの更新
+		offset++;
+
+		//return std::make_pair(gpuHandle, cpuHandle);
 	}
 
 	template<typename DescriptorHeapTypeTag>
