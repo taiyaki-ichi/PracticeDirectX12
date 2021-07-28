@@ -29,7 +29,7 @@ namespace DX12
 
 	//namespace DescriptorHeapViewTag ‚ÌŒ^‚ðViewType‚Æ‚µ‚Äusing‚·‚é
 	template<typename T>
-	struct ViewTypeTraits
+	struct DefaultViewTypeTraits
 	{
 		using Type;
 	};

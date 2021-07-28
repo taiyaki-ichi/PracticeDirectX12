@@ -11,7 +11,7 @@ namespace DX12
 	};
 
 	template<>
-	struct ViewTypeTraits<ConstantBufferResource>
+	struct DefaultViewTypeTraits<ConstantBufferResource>
 	{
 		using Type = DescriptorHeapViewTag::ConstantBuffer;
 	};

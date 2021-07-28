@@ -14,7 +14,7 @@ namespace DX12
 
 	//ディスクリプタ用
 	template<>
-	struct ViewTypeTraits<constant_buffer> {
+	struct DefaultViewTypeTraits<constant_buffer> {
 		using view_type = view_type::constant_buffer;
 	};
 	DefineGetResourcePtr(constant_buffer)

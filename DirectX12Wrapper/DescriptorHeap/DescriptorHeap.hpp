@@ -12,7 +12,7 @@ namespace DX12
 {
 
 	template<typename T>
-	struct ViewTypeTraits;
+	struct DefaultViewTypeTraits;
 
 	template<typename T>
 	struct ResourcePtrTraits;
@@ -38,16 +38,15 @@ namespace DX12
 
 		void Initialize(Device* d, unsigned int size);
 
-		//Viewを作り成功した場合はハンドルを返す
-		//TはViewTypeTraitsとGetResourcePtrPolicyを特殊化している必要がある
-		template<typename T,typename ViewType=ViewTypeTraits<T>, typename GetResourcePtrPolicy=ResourcePtrTraits<T>>
+		//ViewTypeを指定してViewを作り成功した場合はハンドルを返す
+		template<typename ViewType, typename T, typename GetResourcePtrPolicy = ResourcePtrTraits<T>>
 		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>>
 			PushBackView(Device* device, T* resource);
 
-		//仮
-		template<typename T>
-		void PushBackUnorderedAccessView(Device* device, T* resource);
-
+		//DefaultViewTypeTraitsを使いViewを作る
+		template<typename T, typename GetResourcePtrPolicy = ResourcePtrTraits<T>>
+		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>>
+			PushBackView(Device* device, T* resource);
 
 		//offsetを0にする
 		void Reset() noexcept;
@@ -108,7 +107,7 @@ namespace DX12
 	}
 
 	template<typename DescriptorHeapTypeTag>
-	template<typename T, typename ViewType,typename GetResourcePtrPolicy>
+	template<typename ViewType, typename T, typename GetResourcePtrPolicy>
 	inline std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>>
 		DescriptorHeap<DescriptorHeapTypeTag>::PushBackView(Device* device, T* resource)
 	{
@@ -123,7 +122,7 @@ namespace DX12
 		auto resourcePtr = GetResourcePtrPolicy::Get(resource);
 
 		//viewの生成
-		if (!CreateView<DescriptorHeapTypeTag, typename ViewType::Type>(device, resourcePtr, cpuHandle))
+		if (!CreateView<DescriptorHeapTypeTag, ViewType>(device, resourcePtr, cpuHandle))
 			return std::nullopt;
 
 		//戻り値用にgpuハンドルの取得
@@ -136,31 +135,13 @@ namespace DX12
 	}
 
 	template<typename DescriptorHeapTypeTag>
-	template<typename T>
-	inline void DX12::DescriptorHeap<DescriptorHeapTypeTag>::PushBackUnorderedAccessView(Device* device, T* resource)
+	template<typename T, typename GetResourcePtrPolicy>
+	inline std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> 
+		DescriptorHeap<DescriptorHeapTypeTag>::PushBackView(Device* device, T* resource)
 	{
-		//空いてるスペースがない場合
-		if (offset >= size)
-			throw"";
-
-		//cpuハンドルの取得
-		auto cpuHandle = GetCPUHandle(offset);
-
-		//Viewを作製したいリソースのポインタを取得
-		auto resourcePtr = resource->Get();
-
-		//viewの生成
-		if (!CreateView<DescriptorHeapTypeTag, DescriptorHeapViewTag::UnorderedAccessResource>(device, resourcePtr, cpuHandle))
-			throw"";
-
-		//戻り値用にgpuハンドルの取得
-		auto gpuHandle = GetGPUHandle(offset);
-
-		//オフセットの更新
-		offset++;
-
-		//return std::make_pair(gpuHandle, cpuHandle);
+		return PushBackView<typename DefaultViewTypeTraits<T>::Type, T, GetResourcePtrPolicy>(device, resource);
 	}
+
 
 	template<typename DescriptorHeapTypeTag>
 	inline void DescriptorHeap<DescriptorHeapTypeTag>::Reset() noexcept

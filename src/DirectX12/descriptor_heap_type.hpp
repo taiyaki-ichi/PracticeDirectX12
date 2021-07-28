@@ -33,7 +33,7 @@ namespace DX12
 	//namespace view_type‚ÌŒ^‚ðusing‚·‚é
 	//descriptor_heap::create_view“à‚ÅŽg—p
 	template<typename T>
-	struct ViewTypeTraits {
+	struct DefaultViewTypeTraits {
 		using view_type;
 	};
 

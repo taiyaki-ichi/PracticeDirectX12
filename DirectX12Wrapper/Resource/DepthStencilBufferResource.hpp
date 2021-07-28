@@ -15,7 +15,7 @@ namespace DX12
 	using DepthStencilBufferResource = DepthStencilBufferResourceBase<1>;
 
 	template<>
-	struct ViewTypeTraits<DepthStencilBufferResource>{
+	struct DefaultViewTypeTraits<DepthStencilBufferResource>{
 		using Type = DescriptorHeapViewTag::DepthStencilBuffer;
 	};
 
@@ -23,7 +23,7 @@ namespace DX12
 	using CubeMapDepthStencilBufferResource = DepthStencilBufferResourceBase<6>;
 
 	template<>
-	struct ViewTypeTraits<CubeMapDepthStencilBufferResource> {
+	struct DefaultViewTypeTraits<CubeMapDepthStencilBufferResource> {
 		using Type = DescriptorHeapViewTag::CubeMapDepthStencilBuffer;
 	};
 

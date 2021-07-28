@@ -8,7 +8,7 @@ namespace DX12
 	class DoubleBufferResource : public ResourceBase {};
 
 	template<>
-	struct ViewTypeTraits<DoubleBufferResource>
+	struct DefaultViewTypeTraits<DoubleBufferResource>
 	{
 		using Type = DescriptorHeapViewTag::Float4ShaderResource;
 	};

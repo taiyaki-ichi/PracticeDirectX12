@@ -28,7 +28,7 @@ namespace DX12
 	//白いテクスチャ
 	using white_texture_resource = simple_color_texture_resource<0xff>;
 	template<>
-	struct ViewTypeTraits<white_texture_resource> {
+	struct DefaultViewTypeTraits<white_texture_resource> {
 		using view_type = view_type::float4_shader_resource;
 	};
 	DefineGetResourcePtr(white_texture_resource)
@@ -37,7 +37,7 @@ namespace DX12
 	//黒いテクスチャ
 	using black_texture_resource = simple_color_texture_resource<0x00>;
 	template<>
-	struct ViewTypeTraits<black_texture_resource> {
+	struct DefaultViewTypeTraits<black_texture_resource> {
 		using view_type = view_type::float4_shader_resource;
 	};
 	DefineGetResourcePtr(black_texture_resource)
@@ -51,7 +51,7 @@ namespace DX12
 	};
 
 	template<>
-	struct ViewTypeTraits<gray_gradation_texture_resource> {
+	struct DefaultViewTypeTraits<gray_gradation_texture_resource> {
 		using view_type = view_type::float4_shader_resource;
 	};
 	DefineGetResourcePtr(gray_gradation_texture_resource)

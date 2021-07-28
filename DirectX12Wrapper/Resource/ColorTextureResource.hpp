@@ -21,7 +21,7 @@ namespace DX12
 	};
 
 	template<>
-	struct ViewTypeTraits<ColorTextureResource>
+	struct DefaultViewTypeTraits<ColorTextureResource>
 	{
 		using Type = DescriptorHeapViewTag::Float4ShaderResource;
 	};
@@ -34,7 +34,7 @@ namespace DX12
 	};
 
 	template<>
-	struct ViewTypeTraits<GrayGradationTextureResource>
+	struct DefaultViewTypeTraits<GrayGradationTextureResource>
 	{
 		using Type = DescriptorHeapViewTag::Float4ShaderResource;
 	};

@@ -14,7 +14,7 @@ namespace DX12
 	};
 	
 	template<>
-	struct ViewTypeTraits<TextureResource>
+	struct DefaultViewTypeTraits<TextureResource>
 	{
 		using Type = DescriptorHeapViewTag::Float4ShaderResource;
 	};

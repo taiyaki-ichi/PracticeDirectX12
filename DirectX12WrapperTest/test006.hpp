@@ -63,7 +63,7 @@ namespace test006
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> computeDescriptorHeap{};
 		computeDescriptorHeap.Initialize(&device, 2);
 		computeDescriptorHeap.PushBackView(&device, &textureResource);
-		computeDescriptorHeap.PushBackUnorderedAccessView(&device, &float4ShaderResource);
+		computeDescriptorHeap.PushBackView<DescriptorHeapViewTag::UnorderedAccessResource>(&device, &float4ShaderResource);
 
 		DescriptorHeap<DescriptorHeapTypeTag::RTV> clearDescriptorHeap{};
 		clearDescriptorHeap.Initialize(&device, 1);

@@ -14,7 +14,7 @@ namespace DX12
 
 	//ディスクリプタ用
 	template<>
-	struct ViewTypeTraits<depth_stencil_buffer> {
+	struct DefaultViewTypeTraits<depth_stencil_buffer> {
 		using view_type = view_type::depth_stencil_buffer;
 	};
 	DefineGetResourcePtr(depth_stencil_buffer)

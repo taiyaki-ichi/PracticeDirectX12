@@ -37,17 +37,17 @@ namespace DX12
 	using CubeMapShaderResource = ShaderResourceBase<Format::R8G8B8A8, 6>;
 
 	template<>
-	struct ViewTypeTraits<Float4ShaderResource> {
+	struct DefaultViewTypeTraits<Float4ShaderResource> {
 		using Type = DescriptorHeapViewTag::Float4ShaderResource;
 	};
 
 	template<>
-	struct ViewTypeTraits<FloatShaderResource> {
+	struct DefaultViewTypeTraits<FloatShaderResource> {
 		using Type = DescriptorHeapViewTag::FloatShaderResource;
 	};
 
 	template<>
-	struct ViewTypeTraits<CubeMapShaderResource> {
+	struct DefaultViewTypeTraits<CubeMapShaderResource> {
 		using Type = DescriptorHeapViewTag::CubeMapResource;
 	};
 

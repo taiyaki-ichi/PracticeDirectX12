@@ -16,7 +16,7 @@ namespace DX12
 
 	//ディスクリプタ用
 	template<>
-	struct ViewTypeTraits<texture_resource> {
+	struct DefaultViewTypeTraits<texture_resource> {
 		using view_type = view_type::float4_shader_resource;
 	};
 	DefineGetResourcePtr(texture_resource)

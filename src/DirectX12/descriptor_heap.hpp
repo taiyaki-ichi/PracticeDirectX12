@@ -45,7 +45,7 @@ namespace DX12
 
 
 		//ViewÇÃê∂ê¨
-		template<typename T,typename ViewType=typename ViewTypeTraits<T>::view_type,typename GetResourcePtr=GetResourcePtrPolicy<T>>
+		template<typename T,typename ViewType=typename DefaultViewTypeTraits<T>::view_type,typename GetResourcePtr=GetResourcePtrPolicy<T>>
 		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>>
 			create_view(device* device, T* resource);
 
