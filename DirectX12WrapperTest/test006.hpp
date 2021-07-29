@@ -11,7 +11,9 @@
 #include"Resource/VertexBufferResource.hpp"
 #include"Resource/IndexBufferResource.hpp"
 
-#define STB_IMAGE_IMPLEMENTATION
+#ifndef STB_IMAGE_IMPLEMENTATION
+	#define STB_IMAGE_IMPLEMENTATION
+#endif
 #include<stb_image.h>
 
 namespace test006
@@ -67,7 +69,9 @@ namespace test006
 		DescriptorHeap<DescriptorHeapTypeTag::RTV> clearDescriptorHeap{};
 		clearDescriptorHeap.Initialize(&device, 1);
 		clearDescriptorHeap.PushBackView(&device, &float4ShaderResource);
-	
+
+
+		//
 		commandList.Barrior(&float4ShaderResource, ResourceState::UnorderedAccessResource);
 		commandList.SetComputeRootSignature(&computeRootsignature);
 		commandList.SetDescriptorHeap(&computeDescriptorHeap);
@@ -125,7 +129,6 @@ namespace test006
 
 		while (UpdateWindow()) {
 	
-
 			commandList.SetViewport(viewport);
 			commandList.SetScissorRect(scissorRect);
 
@@ -135,6 +138,7 @@ namespace test006
 			commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle());
 
 			commandList.SetPipelineState(&pipelineState);
+			commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
 
 			commandList.SetGraphicsRootSignature(&rootSignature);
 			commandList.SetDescriptorHeap(&descriptorHeap);
@@ -150,7 +154,7 @@ namespace test006
 			commandList.Clear();
 
 			doubleBuffer.Flip();
-		};
+		}
 
 		return 0;
 	}

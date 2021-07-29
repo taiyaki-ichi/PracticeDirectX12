@@ -22,6 +22,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Format.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PipelineState\PipelineState.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PipelineState\VertexLayout.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)PrimitiveTopology.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ColorTextureResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ConstantBufferResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\DepthStencilBufferResource.hpp" />

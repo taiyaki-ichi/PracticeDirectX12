@@ -16,7 +16,9 @@
 #include<vector>
 #include<cmath>
 
-#define STB_IMAGE_IMPLEMENTATION
+#ifndef STB_IMAGE_IMPLEMENTATION
+	#define STB_IMAGE_IMPLEMENTATION
+#endif
 #include<stb_image.h>
 
 #include<DirectXMath.h>
@@ -206,6 +208,7 @@ namespace test005
 			commandList.SetViewport(viewport);
 			commandList.SetScissorRect(scissorRect);
 			commandList.SetPipelineState(&pipelineState);
+			commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
 			commandList.SetGraphicsRootSignature(&rootSignature);
 			commandList.SetDescriptorHeap(&descriptorHeap);
 			commandList.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());

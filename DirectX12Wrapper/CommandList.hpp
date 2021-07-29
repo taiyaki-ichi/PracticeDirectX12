@@ -7,6 +7,7 @@
 #include"Resource/IndexBufferResource.hpp"
 #include"DescriptorHeap/DescriptorHeap.hpp"
 #include"Resource/ShaderResource.hpp"
+#include"PrimitiveTopology.hpp"
 
 namespace DX12
 {
@@ -68,6 +69,8 @@ namespace DX12
 		void SetDescriptorHeap(DescriptorHeap<T>*);
 		void SetGraphicsRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE);
 		void SetComputeRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE);
+
+		void SetPrimitiveTopology(PrimitiveTopology);
 
 		void DrawInstanced(std::size_t vertexNumPerInstance, std::size_t instanceNum = 1);
 		void DrawIndexedInstanced(std::size_t indexNumPerInstance, std::size_t instanceNum = 1);
@@ -213,9 +216,6 @@ namespace DX12
 	inline void CommandList::SetPipelineState(PipelineState* ps)
 	{
 		list->SetPipelineState(ps->Get());
-
-		//‚Æ‚è‚ ‚¦‚¸
-		list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 
 	inline void CommandList::SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle)
@@ -292,6 +292,11 @@ namespace DX12
 	inline void CommandList::SetComputeRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle)
 	{
 		list->SetComputeRootDescriptorTable(index, gpuHandle);
+	}
+
+	inline void CommandList::SetPrimitiveTopology(PrimitiveTopology primitiveTopology)
+	{
+		list->IASetPrimitiveTopology(static_cast<D3D12_PRIMITIVE_TOPOLOGY>(primitiveTopology));
 	}
 
 	inline void CommandList::DrawInstanced(std::size_t vertexNumPerInstance, std::size_t instanceNum)

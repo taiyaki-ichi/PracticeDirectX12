@@ -101,6 +101,7 @@ namespace test002
 			commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle());
 
 			commandList.SetPipelineState(&pipelineState);
+			commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
 			commandList.SetGraphicsRootSignature(&rootSignature);
 
 			commandList.SetDescriptorHeap(&descriptorHeap);

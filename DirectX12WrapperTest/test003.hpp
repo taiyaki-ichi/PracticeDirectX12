@@ -136,6 +136,7 @@ namespace test003
 			//ñ ÇÃï`é 
 			{
 				commandList.SetPipelineState(&drawFacePipelineState);
+				commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
 				commandList.SetGraphicsRootSignature(&rootSignature);
 
 				commandList.SetVertexBuffer(&vertexBufferResource);
@@ -149,6 +150,7 @@ namespace test003
 			//ñ@ê¸ÇÃï`é 
 			{
 				commandList.SetPipelineState(&drawNormalPipelineState);
+				commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
 				commandList.SetGraphicsRootSignature(&rootSignature);
 
 				commandList.SetVertexBuffer(&vertexBufferResource);

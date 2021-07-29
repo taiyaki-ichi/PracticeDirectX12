@@ -407,6 +407,7 @@ namespace test004
 				commandList.SetRenderTarget(cubemapRtvDescriptorHeap.GetCPUHandle(), depthStencilDescriptorHeap.GetCPUHandle(1));
 
 				commandList.SetPipelineState(&colorObjectRenderer.GetCubemapPipelineState());
+				commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
 				commandList.SetGraphicsRootSignature(&colorObjectRenderer.GetRootSignature());
 				bunnyMesh.SetMesh(&commandList);
 
@@ -434,6 +435,7 @@ namespace test004
 				//ColorBunny
 				{
 					commandList.SetPipelineState(&colorObjectRenderer.GetStanderdPipelineState());
+					commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
 					commandList.SetGraphicsRootSignature(&colorObjectRenderer.GetRootSignature());
 					bunnyMesh.SetMesh(&commandList);
 
@@ -446,6 +448,7 @@ namespace test004
 				//MirrorSphere
 				{
 					commandList.SetPipelineState(&mirrorObjectRenderer.GetPipelineState());
+					commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
 					commandList.SetGraphicsRootSignature(&mirrorObjectRenderer.GetRootSignature());
 					mirrorObjectModel.SetDescriptorHeap(&commandList);
 					sphereMesh.SetMesh(&commandList);
