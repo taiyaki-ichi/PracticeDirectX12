@@ -2,6 +2,9 @@
 #include"ResourceBase.hpp"
 #include"../Utility.hpp"
 
+#include<iostream>
+#include<typeinfo>
+
 namespace DX12
 {
 
@@ -73,19 +76,6 @@ namespace DX12
 	template<typename T>
 	inline void UploadResource::Map(T&& t)
 	{
-		/*
-		using value_type = std::remove_reference_t<decltype(*std::begin(container))>;
-
-		value_type* target = nullptr;
-		auto result = Get()->Map(0, nullptr, (void**)&target);
-
-		if (FAILED(result))
-			throw "UploadResource::Map is failed\n";
-
-		std::copy(std::begin(container), std::end(container), target);
-		Get()->Unmap(0, nullptr);
-		*/
-
 		if constexpr (HasIterator<T>::value)
 			MapContainer(Get(), std::forward<T>(t));
 		else

@@ -3,7 +3,8 @@
 //#include"test003.hpp"
 //#include"test004.hpp"
 //#include"test005.hpp"
-#include"test006.hpp"
+//#include"test006.hpp"
+#include"test007.hpp"
 
 
 #define _CRTDBG_MAP_ALLOC
@@ -19,5 +20,6 @@ int main()
 	//return test003::main();
 	//return test004::main();
 	//return test005::main();
-	return test006::main();
+	//return test006::main();
+	return test007::main();
 }

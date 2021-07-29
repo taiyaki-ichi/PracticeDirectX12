@@ -25,6 +25,12 @@
     <FxCompile Include="Shader\Ground\DomainShader.hlsl" />
     <FxCompile Include="Shader\Ground\PixelShader.hlsl" />
     <FxCompile Include="Shader\ComputeShader001.hlsl" />
+    <FxCompile Include="Shader\Ground2\DomainShader.hlsl" />
+    <FxCompile Include="Shader\Ground2\HullShader.hlsl" />
+    <FxCompile Include="Shader\Ground2\PixelShader.hlsl" />
+    <FxCompile Include="Shader\Ground2\VertexShader.hlsl" />
+    <FxCompile Include="Shader\ComputeShader002.hlsl" />
+    <FxCompile Include="Shader\ComputeShader003.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test001.hpp" />
@@ -34,6 +40,7 @@
     <ClInclude Include="test004.hpp" />
     <ClInclude Include="test005.hpp" />
     <ClInclude Include="test006.hpp" />
+    <ClInclude Include="test007.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Header002.hlsli" />
@@ -42,5 +49,6 @@
     <None Include="Shader\ColorObjectForCubemap\Header.hlsli" />
     <None Include="Shader\MirrorObject\Header.hlsli" />
     <None Include="Shader\Ground\Header.hlsli" />
+    <None Include="Shader\Ground2\Header.hlsli" />
   </ItemGroup>
 </Project>

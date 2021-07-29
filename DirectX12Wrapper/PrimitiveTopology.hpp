@@ -9,6 +9,7 @@ namespace DX12
 {
 	enum class PrimitiveTopology
 	{
-		TrinagleList= D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		TrinagleList = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		Contorol4PointPatchList = D3D_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST,
 	};
 }

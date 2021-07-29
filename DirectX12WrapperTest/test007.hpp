@@ -12,18 +12,20 @@
 #include"Resource/TextureResource.hpp"
 #include"Resource/VertexBufferResource.hpp"
 #include"Resource/IndexBufferResource.hpp"
+#include"Resource/ShaderResource.hpp"
 
 #include<vector>
 #include<cmath>
 
+
 #ifndef STB_IMAGE_IMPLEMENTATION
-	#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
 #endif
 #include<stb_image.h>
 
 #include<DirectXMath.h>
 
-namespace test005
+namespace test007
 {
 	using namespace DX12;
 	using namespace DirectX;
@@ -45,7 +47,7 @@ namespace test005
 		float uvX, uvY;
 	};
 
-	inline std::pair<std::vector<Vertex>,std::vector<std::uint16_t>> GetGroundPatch()
+	inline std::pair<std::vector<Vertex>, std::vector<std::uint16_t>> GetGroundPatch()
 	{
 		std::vector<Vertex> vertexList{};
 		std::vector<std::uint16_t> indexList{};
@@ -88,6 +90,12 @@ namespace test005
 	}
 
 
+	struct ComputeData {
+		XMFLOAT2 ballPos{};
+		float radius{};
+	};
+
+
 	inline int main()
 	{
 		auto hwnd = CreateSimpleWindow(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -103,20 +111,20 @@ namespace test005
 		doubleBuffer.Initialize(&device, factry, swapChain);
 
 		Shader vs{};
-		vs.Intialize(L"Shader/Ground/VertexShader.hlsl", "main", "vs_5_0");
+		vs.Intialize(L"Shader/Ground2/VertexShader.hlsl", "main", "vs_5_0");
 
 		Shader ps{};
-		ps.Intialize(L"Shader/Ground/PixelShader.hlsl", "main", "ps_5_0");
+		ps.Intialize(L"Shader/Ground2/PixelShader.hlsl", "main", "ps_5_0");
 
 		Shader hs{};
-		hs.Intialize(L"Shader/Ground/HullShader.hlsl", "main", "hs_5_0");
+		hs.Intialize(L"Shader/Ground2/HullShader.hlsl", "main", "hs_5_0");
 
 		Shader ds{};
-		ds.Intialize(L"Shader/Ground/DomainShader.hlsl", "main", "ds_5_0");
+		ds.Intialize(L"Shader/Ground2/DomainShader.hlsl", "main", "ds_5_0");
 
 		RootSignature rootSignature{};
 		rootSignature.Initialize(&device,
-			{ {DescriptorRangeType::CBV,DescriptorRangeType::SRV,DescriptorRangeType::SRV} },
+			{ {DescriptorRangeType::CBV,DescriptorRangeType::SRV,DescriptorRangeType::SRV } },
 			{ StaticSamplerType::Standard }
 		);
 
@@ -137,27 +145,23 @@ namespace test005
 		ConstantBufferResource sceneDataConstantBufferResource{};
 		sceneDataConstantBufferResource.Initialize(&device, sizeof(SceneData));
 
-		TextureResource heightMapTextureResource{};
-		{
-			int x, y, n;
-			std::uint8_t* data = stbi_load("../../Assets/heightmap.png", &x, &y, &n, 4);
-			heightMapTextureResource.Initialize(&device, &commandList, data, x, y, x * 4);
-			stbi_image_free(data);
-		}
 
-		TextureResource normalMapTextureResource{};
-		{
-			int x, y, n;
-			std::uint8_t* data = stbi_load("../../Assets/normalmap.png", &x, &y, &n, 4);
-			normalMapTextureResource.Initialize(&device, &commandList, data, x, y, x * 4);
-			stbi_image_free(data);
-		}
+
+		constexpr std::size_t MAP_RESOURCE_EDGE_SIZE = 512;
+		constexpr float MAP_CENTER = MAP_RESOURCE_EDGE_SIZE / 2.f;
+
+		FloatShaderResource heightMapResource{};
+		heightMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
+
+		Float4ShaderResource normalMapResource{};
+		normalMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
+
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> descriptorHeap{};
 		descriptorHeap.Initialize(&device, 3);
 		descriptorHeap.PushBackView(&device, &sceneDataConstantBufferResource);
-		descriptorHeap.PushBackView(&device, &heightMapTextureResource);
-		descriptorHeap.PushBackView(&device, &normalMapTextureResource);
+		descriptorHeap.PushBackView(&device, &heightMapResource);
+		descriptorHeap.PushBackView(&device, &normalMapResource);
 
 
 		auto [vertexList, indexList] = GetGroundPatch();
@@ -171,12 +175,56 @@ namespace test005
 		indexBufferResource.Map(indexList);
 
 
+		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> computeHeightDescriptorHeap{};
+		computeHeightDescriptorHeap.Initialize(&device, 2);
+
+		ConstantBufferResource computeDataConstantBuffer{};
+		computeDataConstantBuffer.Initialize(&device, sizeof(ComputeData));
+		
+		computeHeightDescriptorHeap.PushBackView(&device, &computeDataConstantBuffer);
+		computeHeightDescriptorHeap.PushBackView<DescriptorHeapViewTag::UnorderedAccessResource>(&device, &heightMapResource);
+
+		Shader cs{};
+		cs.Intialize(L"Shader/ComputeShader002.hlsl", "main", "cs_5_0");
+
+		RootSignature computeHeightRootSignature{};
+		computeHeightRootSignature.Initialize(&device,
+			{ {DescriptorRangeType::CBV,DescriptorRangeType::UAV} },
+			{}
+		);
+
+		PipelineState computeHeightPipelineState{};
+		computeHeightPipelineState.Initialize(&device, &computeHeightRootSignature, &cs);
+
+
+
+		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> computeNormalDescriptorHeap{};
+		computeNormalDescriptorHeap.Initialize(&device, 2);
+
+		computeNormalDescriptorHeap.PushBackView(&device, &heightMapResource);
+		computeNormalDescriptorHeap.PushBackView<DescriptorHeapViewTag::UnorderedAccessResource>(&device, &normalMapResource);
+
+		Shader cs2{};
+		cs2.Intialize(L"Shader/ComputeShader003.hlsl", "main", "cs_5_0");
+
+		RootSignature computeNormalRootSignature{};
+		computeNormalRootSignature.Initialize(&device,
+			{ {DescriptorRangeType::SRV,DescriptorRangeType::UAV} },
+			{}
+		);
+
+		PipelineState computeNormalPipelineState{};
+		computeNormalPipelineState.Initialize(&device, &computeNormalRootSignature, &cs2);
+
+
+
+
+
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
 		D3D12_RECT scissorRect{ 0,0,static_cast<LONG>(WINDOW_WIDTH),static_cast<LONG>(WINDOW_HEIGHT) };
 
-		float len = 50.f;
-		//XMFLOAT3 eye{ len,5,len };
-		XMFLOAT3 eye{ len, 2.f, 0.f };
+
+		XMFLOAT3 eye{ 50, 20.f, 0.f };
 		XMFLOAT3 target{ 0,0,0 };
 		XMFLOAT3 up{ 0,1,0 };
 		auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
@@ -192,11 +240,35 @@ namespace test005
 		std::size_t cnt = 0;
 		while (UpdateWindow())
 		{
-			eye.x = len * std::cos(cnt / 60.0) - len / 3.f * 2.f;
-			//eye.z = len * std::sin(cnt / 600.0);
-			XMFLOAT3 t{ eye.x + 10.f,-1.f,0 };
-			auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&t), XMLoadFloat3(&up));
-			sceneDataConstantBufferResource.Map(SceneData{ view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) });
+
+			//
+			//HeightMap‚ÌŒvŽZ
+			//
+
+			computeDataConstantBuffer.Map(ComputeData{ XMFLOAT2{100.f * std::sin(cnt / 50.f) + MAP_CENTER,100.f * std::cos(cnt / 50.f) + MAP_CENTER},10.f });
+
+			commandList.Barrior(&heightMapResource, ResourceState::UnorderedAccessResource);
+			commandList.SetComputeRootSignature(&computeHeightRootSignature);
+			commandList.SetDescriptorHeap(&computeHeightDescriptorHeap);
+			commandList.SetComputeRootDescriptorTable(0, computeHeightDescriptorHeap.GetGPUHandle());
+			commandList.SetPipelineState(&computeHeightPipelineState);
+			commandList.Dispatch(MAP_RESOURCE_EDGE_SIZE / 8 + 1, MAP_RESOURCE_EDGE_SIZE / 8 + 1, 1);
+			commandList.Barrior(&heightMapResource, ResourceState::PixcelShaderResource);
+
+
+			//
+			//NormalMap‚ÌŒvŽZ
+			//
+
+			commandList.Barrior(&normalMapResource, ResourceState::UnorderedAccessResource);
+			commandList.SetComputeRootSignature(&computeNormalRootSignature);
+			commandList.SetDescriptorHeap(&computeNormalDescriptorHeap);
+			commandList.SetComputeRootDescriptorTable(0, computeNormalDescriptorHeap.GetGPUHandle());
+			commandList.SetPipelineState(&computeNormalPipelineState);
+			commandList.Dispatch(MAP_RESOURCE_EDGE_SIZE / 8 + 1, MAP_RESOURCE_EDGE_SIZE / 8 + 1, 1);
+			commandList.Barrior(&normalMapResource, ResourceState::PixcelShaderResource);
+
+
 			cnt++;
 
 
@@ -214,7 +286,6 @@ namespace test005
 			commandList.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 			commandList.SetVertexBuffer(&vertexBufferResource);
 			commandList.SetIndexBuffer(&indexBufferResource);
-			//commandList.Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
 			commandList.SetPrimitiveTopology(PrimitiveTopology::Contorol4PointPatchList);
 			commandList.DrawIndexedInstanced(indexList.size());
 
