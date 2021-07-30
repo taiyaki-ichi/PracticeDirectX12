@@ -31,6 +31,10 @@
     <FxCompile Include="Shader\Ground2\VertexShader.hlsl" />
     <FxCompile Include="Shader\ComputeShader002.hlsl" />
     <FxCompile Include="Shader\ComputeShader003.hlsl" />
+    <FxCompile Include="Shader\Sphere\DepthVertexShader.hlsl" />
+    <FxCompile Include="Shader\Sphere\DepthPixelShader.hlsl" />
+    <FxCompile Include="Shader\Sphere\VertexShader.hlsl" />
+    <FxCompile Include="Shader\Sphere\PixelShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test001.hpp" />
@@ -50,5 +54,6 @@
     <None Include="Shader\MirrorObject\Header.hlsli" />
     <None Include="Shader\Ground\Header.hlsli" />
     <None Include="Shader\Ground2\Header.hlsli" />
+    <None Include="Shader\Sphere\Header.hlsli" />
   </ItemGroup>
 </Project>

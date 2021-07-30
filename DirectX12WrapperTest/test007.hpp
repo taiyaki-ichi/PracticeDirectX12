@@ -13,6 +13,8 @@
 #include"Resource/VertexBufferResource.hpp"
 #include"Resource/IndexBufferResource.hpp"
 #include"Resource/ShaderResource.hpp"
+#include"OffLoader.hpp"
+#include"utility.hpp"
 
 #include<vector>
 #include<cmath>
@@ -42,26 +44,44 @@ namespace test007
 		XMFLOAT4 tessRange;
 	};
 
+	struct SceneData2 {
+		XMMATRIX view;
+		XMMATRIX proj;
+		XMFLOAT3 eye;
+	};
+
 	struct Vertex {
 		float x, y, z;
 		float uvX, uvY;
 	};
+
+	struct Vertex2 {
+		std::array<float, 3> pos;
+		std::array<float, 3> normal;
+	};
+
+	struct SphereData {
+		std::array<XMMATRIX, 2> world;
+	};
+
+	constexpr std::size_t MAP_RESOURCE_EDGE_SIZE = 1024;
+
+	constexpr float GROUND_EDGE = 128.f;
 
 	inline std::pair<std::vector<Vertex>, std::vector<std::uint16_t>> GetGroundPatch()
 	{
 		std::vector<Vertex> vertexList{};
 		std::vector<std::uint16_t> indexList{};
 
-		constexpr float EDGE = 200.f;
 		constexpr std::size_t DIVIDE = 10;
 		constexpr auto ROWS = DIVIDE + 1;
 
 		vertexList.reserve((DIVIDE + 1) * (DIVIDE + 1));
 		for (std::size_t z = 0; z < DIVIDE + 1; z++) {
 			for (std::size_t x = 0; x < DIVIDE + 1; x++) {
-				auto posX = EDGE * x / DIVIDE;
-				auto posZ = EDGE * z / DIVIDE;
-				vertexList.push_back(Vertex{ posX,0.f,posZ,posX / EDGE,posZ / EDGE });
+				auto posX = GROUND_EDGE * x / DIVIDE;
+				auto posZ = GROUND_EDGE * z / DIVIDE;
+				vertexList.push_back(Vertex{ posX,0.f,posZ,posX / GROUND_EDGE,posZ / GROUND_EDGE });
 			}
 		}
 
@@ -82,18 +102,12 @@ namespace test007
 		}
 
 		for (auto& v : vertexList) {
-			v.x -= EDGE / 2.f;
-			v.z -= EDGE / 2.f;
+			v.x -= GROUND_EDGE / 2.f;
+			v.z -= GROUND_EDGE / 2.f;
 		}
 
 		return { std::move(vertexList),std::move(indexList) };
 	}
-
-
-	struct ComputeData {
-		XMFLOAT2 ballPos{};
-		float radius{};
-	};
 
 
 	inline int main()
@@ -146,10 +160,6 @@ namespace test007
 		sceneDataConstantBufferResource.Initialize(&device, sizeof(SceneData));
 
 
-
-		constexpr std::size_t MAP_RESOURCE_EDGE_SIZE = 512;
-		constexpr float MAP_CENTER = MAP_RESOURCE_EDGE_SIZE / 2.f;
-
 		FloatShaderResource heightMapResource{};
 		heightMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
 
@@ -176,12 +186,8 @@ namespace test007
 
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> computeHeightDescriptorHeap{};
-		computeHeightDescriptorHeap.Initialize(&device, 2);
+		computeHeightDescriptorHeap.Initialize(&device, 3);
 
-		ConstantBufferResource computeDataConstantBuffer{};
-		computeDataConstantBuffer.Initialize(&device, sizeof(ComputeData));
-		
-		computeHeightDescriptorHeap.PushBackView(&device, &computeDataConstantBuffer);
 		computeHeightDescriptorHeap.PushBackView<DescriptorHeapViewTag::UnorderedAccessResource>(&device, &heightMapResource);
 
 		Shader cs{};
@@ -189,7 +195,7 @@ namespace test007
 
 		RootSignature computeHeightRootSignature{};
 		computeHeightRootSignature.Initialize(&device,
-			{ {DescriptorRangeType::CBV,DescriptorRangeType::UAV} },
+			{ {DescriptorRangeType::UAV,DescriptorRangeType::SRV} },
 			{}
 		);
 
@@ -218,13 +224,104 @@ namespace test007
 
 
 
+		VertexBufferResource sphereVertexBufferResource{};
+		IndexBufferResource sphereIndexBufferResource{};
+		std::size_t sphereFaceNum{};
+		{
+			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint16_t, 3>>("../../Assets/sphere.off");
+			auto normalList = GetVertexNormal(vertexList, faceList);
+
+			std::vector<Vertex2> posNormalList{};
+			posNormalList.reserve(vertexList.size());
+			XMFLOAT3 tmpFloat3;
+			for (std::size_t i = 0; i < vertexList.size(); i++) {
+				XMStoreFloat3(&tmpFloat3, normalList[i]);
+				posNormalList.push_back({ vertexList[i],{tmpFloat3.x,tmpFloat3.y,tmpFloat3.z} });
+			}
+
+			sphereFaceNum = faceList.size();
+
+			sphereVertexBufferResource.Initialize(&device, sizeof(Vertex2) * posNormalList.size(), sizeof(Vertex2));
+			sphereVertexBufferResource.Map(std::move(posNormalList));
+
+			sphereIndexBufferResource.Initialize(&device, sizeof(decltype(faceList)::value_type) * faceList.size());
+			sphereIndexBufferResource.Map(std::move(faceList));
+		}
+
+
+
+
+		FloatShaderResource groundDepthShaderResource{};
+		groundDepthShaderResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 0.f);
+
+		computeHeightDescriptorHeap.PushBackView(&device, &groundDepthShaderResource);
+
+		DepthStencilBufferResource groundDepthStencilBufferResource{};
+		groundDepthStencilBufferResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
+
+		DescriptorHeap<DescriptorHeapTypeTag::DSV> groundDepthStencilDescriptorHeap{};
+		groundDepthStencilDescriptorHeap.Initialize(&device, 1);
+		groundDepthStencilDescriptorHeap.PushBackView(&device,&groundDepthStencilBufferResource);
+
+		DescriptorHeap<DescriptorHeapTypeTag::RTV> groundDepthRTVDescriptorHeap{};
+		groundDepthRTVDescriptorHeap.Initialize(&device, 1);
+		groundDepthRTVDescriptorHeap.PushBackView(&device, &groundDepthShaderResource);
+		
+
+		Shader svs{};
+		svs.Intialize(L"Shader/Sphere/VertexShader.hlsl", "main", "vs_5_1");
+
+		Shader sps{};
+		sps.Intialize(L"Shader/Sphere/PixelShader.hlsl", "main", "ps_5_1");
+
+		Shader dvs{};
+		dvs.Intialize(L"Shader/Sphere/DepthVertexShader.hlsl", "main", "vs_5_1");
+
+		Shader dps{};
+		dps.Intialize(L"Shader/Sphere/DepthPixelShader.hlsl", "main", "ps_5_1");
+
+		ConstantBufferResource sphereDataConstantBuffer{};
+		sphereDataConstantBuffer.Initialize(&device, sizeof(SphereData));
+
+		ConstantBufferResource upCameraMatrixConstantBuffer{};
+		upCameraMatrixConstantBuffer.Initialize(&device, sizeof(XMMATRIX));
+
+		RootSignature sphereRootSignature{};
+		sphereRootSignature.Initialize(&device,
+			{ {DescriptorRangeType::CBV,DescriptorRangeType::CBV,DescriptorRangeType::CBV} },
+			{}
+		);
+
+		PipelineState spherePipelineState{};
+		spherePipelineState.Initialize(&device, &sphereRootSignature, &svs, &sps,
+			{ {"POSITION",VertexLayoutFormat::Float3},{"NORMAL",VertexLayoutFormat::Float3} },
+			{ Format::R8G8B8A8 }, true);
+
+		PipelineState sphereDepthPipelineState{};
+		sphereDepthPipelineState.Initialize(&device, &sphereRootSignature, &dvs, &dps,
+			{ {"POSITION",VertexLayoutFormat::Float3},{"NORMAL",VertexLayoutFormat::Float3} },
+			{ Format::R32_FLOAT }, true);
+
+
+		ConstantBufferResource sceneData2ConstantBufferResource{};
+		sceneData2ConstantBufferResource.Initialize(&device, sizeof(SceneData2));
+
+
+		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> sphereDescriptorHeap{};
+		sphereDescriptorHeap.Initialize(&device, 3);
+		sphereDescriptorHeap.PushBackView(&device, &sceneData2ConstantBufferResource);
+		sphereDescriptorHeap.PushBackView(&device, &sphereDataConstantBuffer);
+		sphereDescriptorHeap.PushBackView(&device, &upCameraMatrixConstantBuffer);
 
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
 		D3D12_RECT scissorRect{ 0,0,static_cast<LONG>(WINDOW_WIDTH),static_cast<LONG>(WINDOW_HEIGHT) };
 
+		D3D12_VIEWPORT depthViewport{ 0,0, static_cast<float>(MAP_RESOURCE_EDGE_SIZE),static_cast<float>(MAP_RESOURCE_EDGE_SIZE),0.f,1.f };
+		D3D12_RECT depthScissorRect{ 0,0,static_cast<LONG>(MAP_RESOURCE_EDGE_SIZE),static_cast<LONG>(MAP_RESOURCE_EDGE_SIZE) };
 
-		XMFLOAT3 eye{ 50, 20.f, 0.f };
+
+		XMFLOAT3 eye{ 40, 20.f, 0.f };
 		XMFLOAT3 target{ 0,0,0 };
 		XMFLOAT3 up{ 0,1,0 };
 		auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
@@ -235,17 +332,58 @@ namespace test007
 			500.f
 		);
 
-		sceneDataConstantBufferResource.Map(SceneData{ view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) });
+		sceneDataConstantBufferResource.Map(SceneData{ view,proj,
+			XMMatrixIdentity(),
+			eye,XMFLOAT4(16.f,64.f,4.f,0.f) });
+		sceneData2ConstantBufferResource.Map(SceneData2{ view,proj,eye });
+
+		XMFLOAT3 pos{ 0.f,0.f,0.f };
+		XMFLOAT3 u{ 0,0,-1 };
+		XMFLOAT3 t{ 0,1,0 };
+		//平行投影
+		auto upCamera = XMMatrixLookAtLH(XMLoadFloat3(&pos), XMLoadFloat3(&t), XMLoadFloat3(&u)) * XMMatrixOrthographicLH(GROUND_EDGE, GROUND_EDGE, -100.f, 100.f);
+		upCameraMatrixConstantBuffer.Map(upCamera);
+
 
 		std::size_t cnt = 0;
 		while (UpdateWindow())
 		{
+			//
+			//更新
+			//
+
+			auto m1 = XMMatrixScaling(5.f, 5.f, 5.f) * XMMatrixTranslation(30.f, 0.f, 0.f) * XMMatrixRotationY(cnt / 50.f) * XMMatrixTranslation(0.f, 0.f, 10.f);
+			auto m2 = XMMatrixScaling(5.f, 5.f, 5.f) * XMMatrixTranslation(-30.f, 0.f, 0.f) * XMMatrixRotationY(cnt / 50.f) * XMMatrixTranslation(0.f, 0.f, -10.f);
+			sphereDataConstantBuffer.Map(SphereData{ {m1,m2} });
+
+			cnt++;
+
+
+			//
+			//sphereのdepthの描写
+			//
+
+			commandList.Barrior(&groundDepthShaderResource, ResourceState::RenderTarget);
+			commandList.SetViewport(depthViewport);
+			commandList.SetScissorRect(depthScissorRect);
+			commandList.ClearRenderTargetView(groundDepthRTVDescriptorHeap.GetCPUHandle(), { 0.f });
+			commandList.ClearDepthView(groundDepthStencilDescriptorHeap.GetCPUHandle(), 1.f);
+			commandList.SetGraphicsRootSignature(&sphereRootSignature);
+			commandList.SetDescriptorHeap(&sphereDescriptorHeap);
+			commandList.SetGraphicsRootDescriptorTable(0, sphereDescriptorHeap.GetGPUHandle());
+			commandList.SetPipelineState(&sphereDepthPipelineState);
+			commandList.SetVertexBuffer(&sphereVertexBufferResource);
+			commandList.SetIndexBuffer(&sphereIndexBufferResource);
+			commandList.SetRenderTarget(groundDepthRTVDescriptorHeap.GetCPUHandle(), groundDepthStencilDescriptorHeap.GetCPUHandle());
+			commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
+			commandList.DrawIndexedInstanced(sphereFaceNum * 3, 2);
+			commandList.Barrior(&groundDepthShaderResource, ResourceState::PixcelShaderResource);
+
+
 
 			//
 			//HeightMapの計算
 			//
-
-			computeDataConstantBuffer.Map(ComputeData{ XMFLOAT2{100.f * std::sin(cnt / 50.f) + MAP_CENTER,100.f * std::cos(cnt / 50.f) + MAP_CENTER},10.f });
 
 			commandList.Barrior(&heightMapResource, ResourceState::UnorderedAccessResource);
 			commandList.SetComputeRootSignature(&computeHeightRootSignature);
@@ -269,8 +407,10 @@ namespace test007
 			commandList.Barrior(&normalMapResource, ResourceState::PixcelShaderResource);
 
 
-			cnt++;
 
+			//
+			//バックバッファへの描写
+			//
 
 			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::RenderTarget);
 
@@ -279,8 +419,9 @@ namespace test007
 			commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle(), depthStencilDescriptorHeap.GetCPUHandle());
 			commandList.SetViewport(viewport);
 			commandList.SetScissorRect(scissorRect);
+
+
 			commandList.SetPipelineState(&pipelineState);
-			commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
 			commandList.SetGraphicsRootSignature(&rootSignature);
 			commandList.SetDescriptorHeap(&descriptorHeap);
 			commandList.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
@@ -288,6 +429,15 @@ namespace test007
 			commandList.SetIndexBuffer(&indexBufferResource);
 			commandList.SetPrimitiveTopology(PrimitiveTopology::Contorol4PointPatchList);
 			commandList.DrawIndexedInstanced(indexList.size());
+
+			commandList.SetPipelineState(&spherePipelineState);
+			commandList.SetGraphicsRootSignature(&sphereRootSignature);
+			commandList.SetDescriptorHeap(&sphereDescriptorHeap);
+			commandList.SetGraphicsRootDescriptorTable(0, sphereDescriptorHeap.GetGPUHandle());
+			commandList.SetVertexBuffer(&sphereVertexBufferResource);
+			commandList.SetIndexBuffer(&sphereIndexBufferResource);
+			commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
+			commandList.DrawIndexedInstanced(sphereFaceNum * 3, 2);
 
 			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::Common);
 

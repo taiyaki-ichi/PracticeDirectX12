@@ -17,14 +17,15 @@ PSInput main(
 	float2 c1 = lerp(patch[2].uv, patch[3].uv, domain.x);
 	float2 uv = lerp(c0, c1, domain.y);
 
-	float height = texHeightMap.SampleLevel(smp, uv, 0).x;
-	
-	pos.y = texHeightMap.SampleLevel(smp, uv, 0).x;
-	float3 n = texNormalMap.SampleLevel(smp, uv, 0).xyz;
 
-	output.normal = n;
+	pos.y = texHeightMap.SampleLevel(smp, uv, 0).x;
+	float4 p = mul(world, float4(pos.xyz, 1));
+
+	float3 n = texNormalMap.SampleLevel(smp, uv, 0).xyz;
+	output.normal = mul(world, n);
+
 	output.uv = uv;
-	output.pos = mul(mul(proj, view), mul(world, float4(pos.xyz, 1)));
+	output.pos = mul(mul(proj, view), p);
 
 	return output;
 }

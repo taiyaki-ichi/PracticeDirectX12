@@ -9,10 +9,10 @@ float CalcTessFactor(float4 v)
 	float tessNear = tessRange.x;
 	float tessFar = tessRange.y;
 
-	const float MAX_TESS_FACTOR = 64.f;
+	const float MAX_TESS_FACTOR = 128.f;
 
 	float val = (MAX_TESS_FACTOR - 1) * (dist - tessNear) / (tessFar - tessNear);
-	val = max(1, min(MAX_TESS_FACTOR, val));
+	val = max(64, min(MAX_TESS_FACTOR, val));
 	return  val;
 }
 
