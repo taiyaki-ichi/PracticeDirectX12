@@ -7,7 +7,6 @@ PSInput main(
 	const OutputPatch<DSInput, 4> patch)
 {
 	PSInput output;
-	matrix mtxWVP = mul(mul(proj, view), world);
 
 	float3 p0 = lerp(patch[0].pos, patch[1].pos, domain.x).xyz;
 	float3 p1 = lerp(patch[2].pos, patch[3].pos, domain.x).xyz;
@@ -21,11 +20,13 @@ PSInput main(
 	pos.y = texHeightMap.SampleLevel(smp, uv, 0).x;
 	float4 p = mul(world, float4(pos.xyz, 1));
 
-	float3 n = texNormalMap.SampleLevel(smp, uv, 0).xyz;
+	float4 n = float4(texNormalMap.SampleLevel(smp, uv, 0).xyz, 0.f);
 	output.normal = mul(world, n);
 
 	output.uv = uv;
 	output.pos = mul(mul(proj, view), p);
+
+	output.ray = normalize(p.xyz - eye);
 
 	return output;
 }

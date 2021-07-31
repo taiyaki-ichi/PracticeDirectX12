@@ -8,6 +8,6 @@ PSInput main(float4 pos : POSITION, float4 normal : NORMAL,uint id : SV_Instance
 	output.pos = pos;
 	normal.w = 0.f;
 	output.normal = normalize(mul(world[id], normal));
-	output.ray = normalize(pos.xyz - mul(view, eye));
+	output.ray = normalize(pos.xyz - eye);
 	return output;
 }

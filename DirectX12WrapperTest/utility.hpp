@@ -19,7 +19,7 @@ auto GetVertexNormal(const VertexList& vertexList,const FaceList& faceList)
 			v[i] = XMVectorSet(vertexList[face[i]][0], vertexList[face[i]][1], vertexList[face[i]][2], 0.f);
 
 		auto faceNormal = XMVector3Cross(v[1] - v[0], v[2] - v[0]);
-		
+
 		for (std::size_t i = 0; i < 3; i++) {
 			normal[face[i]] += faceNormal;
 			cnt[face[i]]++;

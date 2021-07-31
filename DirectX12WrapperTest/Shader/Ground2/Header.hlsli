@@ -27,7 +27,8 @@ struct PSInput
 {
 	float4 pos : SV_POSITION;
 	float2 uv : TEXCOOD;
-	float3 normal : NORMAL;
+	float4 normal : NORMAL;
+	float3 ray : RAY;
 };
 
 cbuffer SceneData : register(b0) {

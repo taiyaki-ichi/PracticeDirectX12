@@ -231,6 +231,7 @@ namespace test007
 			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint16_t, 3>>("../../Assets/sphere.off");
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
+
 			std::vector<Vertex2> posNormalList{};
 			posNormalList.reserve(vertexList.size());
 			XMFLOAT3 tmpFloat3;
@@ -320,7 +321,7 @@ namespace test007
 			0.1f,
 			500.f
 		);
-		XMFLOAT3 lightDir{ 1.f,1.f,1.f };
+		XMFLOAT3 lightDir{ -1.f,1.f,0.f };
 		sceneDataConstantBufferResource.Map(SceneData{ view,proj,eye,0.f,lightDir });
 
 		XMFLOAT3 upPos{ 0.f,0.f,0.f };

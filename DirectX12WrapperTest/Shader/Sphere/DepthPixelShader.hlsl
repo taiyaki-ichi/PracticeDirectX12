@@ -3,5 +3,5 @@
 float main(PSInput input) : SV_TARGET
 {
 	//unsigned?
-	return input.pos.y > 0.f ? input.pos.y : 0.f;
+	return input.pos.y < 0.f ? -input.pos.y : 0.f;
 }
