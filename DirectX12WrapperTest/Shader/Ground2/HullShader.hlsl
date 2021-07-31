@@ -5,9 +5,8 @@ float CalcTessFactor(float4 v)
 {
 	float dist = length(mul(world, v).xyz - eye);
 
-	//C++ë§Ç©ÇÁê›íËÇ≈Ç´ÇÈÇÊÇ§Ç…ÇµÇƒÇ†ÇÈ
-	float tessNear = tessRange.x;
-	float tessFar = tessRange.y;
+	const float tessNear = 16.f;
+	const float tessFar = 64.f;
 
 	const float MAX_TESS_FACTOR = 128.f;
 
@@ -21,13 +20,14 @@ float CalcTessFactor(float4 v)
 float CalcNormalBias(float3 p, float3 n)
 {
 	const float NORMAL_THRESHOLD = 0.85f;//ñÒ60ìx
+	const float TESS_FACTOR = 4.f;
 
 	float3 fromEye = normalize(p - eye);
 	float cos2 = dot(n, fromEye);
 	cos2 *= cos2;
 	float normalFactor = 1.0 - cos2;
 	float bias = max(normalFactor - NORMAL_THRESHOLD, 0) / (1.0 - NORMAL_THRESHOLD);
-	return bias * clamp(tessRange.z, 0, 64);
+	return bias * TESS_FACTOR;
 }
 
 

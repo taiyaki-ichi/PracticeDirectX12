@@ -39,15 +39,13 @@ namespace test007
 	{
 		XMMATRIX view;
 		XMMATRIX proj;
-		XMMATRIX world;
 		XMFLOAT3 eye;
-		XMFLOAT4 tessRange;
+		float offset;
+		XMFLOAT3 lightDir;
 	};
 
-	struct SceneData2 {
-		XMMATRIX view;
-		XMMATRIX proj;
-		XMFLOAT3 eye;
+	struct GroundData {
+		XMMATRIX world;
 	};
 
 	struct Vertex {
@@ -124,30 +122,6 @@ namespace test007
 		auto [factry, swapChain] = commandList.CreateFactryAndSwapChain(hwnd);
 		doubleBuffer.Initialize(&device, factry, swapChain);
 
-		Shader vs{};
-		vs.Intialize(L"Shader/Ground2/VertexShader.hlsl", "main", "vs_5_0");
-
-		Shader ps{};
-		ps.Intialize(L"Shader/Ground2/PixelShader.hlsl", "main", "ps_5_0");
-
-		Shader hs{};
-		hs.Intialize(L"Shader/Ground2/HullShader.hlsl", "main", "hs_5_0");
-
-		Shader ds{};
-		ds.Intialize(L"Shader/Ground2/DomainShader.hlsl", "main", "ds_5_0");
-
-		RootSignature rootSignature{};
-		rootSignature.Initialize(&device,
-			{ {DescriptorRangeType::CBV,DescriptorRangeType::SRV,DescriptorRangeType::SRV } },
-			{ StaticSamplerType::Standard }
-		);
-
-		PipelineState pipelineState{};
-		pipelineState.Initialize(&device, &rootSignature, &vs, &ps,
-			{ {"POSITION",VertexLayoutFormat::Float3},{"TEXCOOD",VertexLayoutFormat::Float2} },
-			{ Format::R8G8B8A8 }, true, nullptr, &hs, &ds);
-
-
 		DepthStencilBufferResource depthStencilBufferResource{};
 		depthStencilBufferResource.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
 
@@ -160,19 +134,45 @@ namespace test007
 		sceneDataConstantBufferResource.Initialize(&device, sizeof(SceneData));
 
 
+		Shader groundVS{};
+		groundVS.Intialize(L"Shader/Ground2/VertexShader.hlsl", "main", "vs_5_1");
+
+		Shader grooundPS{};
+		grooundPS.Intialize(L"Shader/Ground2/PixelShader.hlsl", "main", "ps_5_1");
+
+		Shader groundHS{};
+		groundHS.Intialize(L"Shader/Ground2/HullShader.hlsl", "main", "hs_5_1");
+
+		Shader groundDS{};
+		groundDS.Intialize(L"Shader/Ground2/DomainShader.hlsl", "main", "ds_5_1");
+
+		RootSignature groundRootSignature{};
+		groundRootSignature.Initialize(&device,
+			{ {DescriptorRangeType::CBV,DescriptorRangeType::CBV,DescriptorRangeType::SRV,DescriptorRangeType::SRV } },
+			{ StaticSamplerType::Standard }
+		);
+
+		PipelineState groundPipelineState{};
+		groundPipelineState.Initialize(&device, &groundRootSignature, &groundVS, &grooundPS,
+			{ {"POSITION",VertexLayoutFormat::Float3},{"TEXCOOD",VertexLayoutFormat::Float2} },
+			{ Format::R8G8B8A8 }, true, nullptr, &groundHS, &groundDS);
+
+		ConstantBufferResource groundDataConstantBufferResource{};
+		groundDataConstantBufferResource.Initialize(&device, sizeof(GroundData));
+		groundDataConstantBufferResource.Map(GroundData{ XMMatrixIdentity() });
+
 		FloatShaderResource heightMapResource{};
 		heightMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
 
 		Float4ShaderResource normalMapResource{};
 		normalMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
 
-
-		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> descriptorHeap{};
-		descriptorHeap.Initialize(&device, 3);
-		descriptorHeap.PushBackView(&device, &sceneDataConstantBufferResource);
-		descriptorHeap.PushBackView(&device, &heightMapResource);
-		descriptorHeap.PushBackView(&device, &normalMapResource);
-
+		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> groundDescriptorHeap{};
+		groundDescriptorHeap.Initialize(&device, 4);
+		groundDescriptorHeap.PushBackView(&device, &sceneDataConstantBufferResource);
+		groundDescriptorHeap.PushBackView(&device, &groundDataConstantBufferResource);
+		groundDescriptorHeap.PushBackView(&device, &heightMapResource);
+		groundDescriptorHeap.PushBackView(&device, &normalMapResource);
 
 		auto [vertexList, indexList] = GetGroundPatch();
 
@@ -185,13 +185,16 @@ namespace test007
 		indexBufferResource.Map(indexList);
 
 
+		FloatShaderResource groundDepthShaderResource{};
+		groundDepthShaderResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 0.f);
+
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> computeHeightDescriptorHeap{};
-		computeHeightDescriptorHeap.Initialize(&device, 3);
-
+		computeHeightDescriptorHeap.Initialize(&device, 2);
 		computeHeightDescriptorHeap.PushBackView<DescriptorHeapViewTag::UnorderedAccessResource>(&device, &heightMapResource);
+		computeHeightDescriptorHeap.PushBackView(&device, &groundDepthShaderResource);
 
-		Shader cs{};
-		cs.Intialize(L"Shader/ComputeShader002.hlsl", "main", "cs_5_0");
+		Shader computeHeightCS{};
+		computeHeightCS.Intialize(L"Shader/ComputeShader002.hlsl", "main", "cs_5_1");
 
 		RootSignature computeHeightRootSignature{};
 		computeHeightRootSignature.Initialize(&device,
@@ -200,18 +203,15 @@ namespace test007
 		);
 
 		PipelineState computeHeightPipelineState{};
-		computeHeightPipelineState.Initialize(&device, &computeHeightRootSignature, &cs);
-
-
+		computeHeightPipelineState.Initialize(&device, &computeHeightRootSignature, &computeHeightCS);
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> computeNormalDescriptorHeap{};
 		computeNormalDescriptorHeap.Initialize(&device, 2);
-
 		computeNormalDescriptorHeap.PushBackView(&device, &heightMapResource);
 		computeNormalDescriptorHeap.PushBackView<DescriptorHeapViewTag::UnorderedAccessResource>(&device, &normalMapResource);
 
-		Shader cs2{};
-		cs2.Intialize(L"Shader/ComputeShader003.hlsl", "main", "cs_5_0");
+		Shader computeNormalCS{};
+		computeNormalCS.Intialize(L"Shader/ComputeShader003.hlsl", "main", "cs_5_1");
 
 		RootSignature computeNormalRootSignature{};
 		computeNormalRootSignature.Initialize(&device,
@@ -220,7 +220,7 @@ namespace test007
 		);
 
 		PipelineState computeNormalPipelineState{};
-		computeNormalPipelineState.Initialize(&device, &computeNormalRootSignature, &cs2);
+		computeNormalPipelineState.Initialize(&device, &computeNormalRootSignature, &computeNormalCS);
 
 
 
@@ -249,13 +249,6 @@ namespace test007
 		}
 
 
-
-
-		FloatShaderResource groundDepthShaderResource{};
-		groundDepthShaderResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 0.f);
-
-		computeHeightDescriptorHeap.PushBackView(&device, &groundDepthShaderResource);
-
 		DepthStencilBufferResource groundDepthStencilBufferResource{};
 		groundDepthStencilBufferResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
 
@@ -268,17 +261,17 @@ namespace test007
 		groundDepthRTVDescriptorHeap.PushBackView(&device, &groundDepthShaderResource);
 		
 
-		Shader svs{};
-		svs.Intialize(L"Shader/Sphere/VertexShader.hlsl", "main", "vs_5_1");
+		Shader sphereVS{};
+		sphereVS.Intialize(L"Shader/Sphere/VertexShader.hlsl", "main", "vs_5_1");
 
-		Shader sps{};
-		sps.Intialize(L"Shader/Sphere/PixelShader.hlsl", "main", "ps_5_1");
+		Shader spherePS{};
+		spherePS.Intialize(L"Shader/Sphere/PixelShader.hlsl", "main", "ps_5_1");
 
-		Shader dvs{};
-		dvs.Intialize(L"Shader/Sphere/DepthVertexShader.hlsl", "main", "vs_5_1");
+		Shader sphereDepthVS{};
+		sphereDepthVS.Intialize(L"Shader/Sphere/DepthVertexShader.hlsl", "main", "vs_5_1");
 
-		Shader dps{};
-		dps.Intialize(L"Shader/Sphere/DepthPixelShader.hlsl", "main", "ps_5_1");
+		Shader sphereDepthPS{};
+		sphereDepthPS.Intialize(L"Shader/Sphere/DepthPixelShader.hlsl", "main", "ps_5_1");
 
 		ConstantBufferResource sphereDataConstantBuffer{};
 		sphereDataConstantBuffer.Initialize(&device, sizeof(SphereData));
@@ -293,23 +286,19 @@ namespace test007
 		);
 
 		PipelineState spherePipelineState{};
-		spherePipelineState.Initialize(&device, &sphereRootSignature, &svs, &sps,
+		spherePipelineState.Initialize(&device, &sphereRootSignature, &sphereVS, &spherePS,
 			{ {"POSITION",VertexLayoutFormat::Float3},{"NORMAL",VertexLayoutFormat::Float3} },
 			{ Format::R8G8B8A8 }, true);
 
 		PipelineState sphereDepthPipelineState{};
-		sphereDepthPipelineState.Initialize(&device, &sphereRootSignature, &dvs, &dps,
+		sphereDepthPipelineState.Initialize(&device, &sphereRootSignature, &sphereDepthVS, &sphereDepthPS,
 			{ {"POSITION",VertexLayoutFormat::Float3},{"NORMAL",VertexLayoutFormat::Float3} },
 			{ Format::R32_FLOAT }, true);
 
 
-		ConstantBufferResource sceneData2ConstantBufferResource{};
-		sceneData2ConstantBufferResource.Initialize(&device, sizeof(SceneData2));
-
-
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> sphereDescriptorHeap{};
 		sphereDescriptorHeap.Initialize(&device, 3);
-		sphereDescriptorHeap.PushBackView(&device, &sceneData2ConstantBufferResource);
+		sphereDescriptorHeap.PushBackView(&device, &sceneDataConstantBufferResource);
 		sphereDescriptorHeap.PushBackView(&device, &sphereDataConstantBuffer);
 		sphereDescriptorHeap.PushBackView(&device, &upCameraMatrixConstantBuffer);
 
@@ -331,17 +320,14 @@ namespace test007
 			0.1f,
 			500.f
 		);
+		XMFLOAT3 lightDir{ 1.f,1.f,1.f };
+		sceneDataConstantBufferResource.Map(SceneData{ view,proj,eye,0.f,lightDir });
 
-		sceneDataConstantBufferResource.Map(SceneData{ view,proj,
-			XMMatrixIdentity(),
-			eye,XMFLOAT4(16.f,64.f,4.f,0.f) });
-		sceneData2ConstantBufferResource.Map(SceneData2{ view,proj,eye });
-
-		XMFLOAT3 pos{ 0.f,0.f,0.f };
-		XMFLOAT3 u{ 0,0,-1 };
-		XMFLOAT3 t{ 0,1,0 };
+		XMFLOAT3 upPos{ 0.f,0.f,0.f };
+		XMFLOAT3 upTarget{ 0,1,0 };
+		XMFLOAT3 upUp{ 0,0,-1 };
 		//ïΩçsìäâe
-		auto upCamera = XMMatrixLookAtLH(XMLoadFloat3(&pos), XMLoadFloat3(&t), XMLoadFloat3(&u)) * XMMatrixOrthographicLH(GROUND_EDGE, GROUND_EDGE, -100.f, 100.f);
+		auto upCamera = XMMatrixLookAtLH(XMLoadFloat3(&upPos), XMLoadFloat3(&upTarget), XMLoadFloat3(&upUp)) * XMMatrixOrthographicLH(GROUND_EDGE, GROUND_EDGE, -100.f, 100.f);
 		upCameraMatrixConstantBuffer.Map(upCamera);
 
 
@@ -421,10 +407,10 @@ namespace test007
 			commandList.SetScissorRect(scissorRect);
 
 
-			commandList.SetPipelineState(&pipelineState);
-			commandList.SetGraphicsRootSignature(&rootSignature);
-			commandList.SetDescriptorHeap(&descriptorHeap);
-			commandList.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+			commandList.SetPipelineState(&groundPipelineState);
+			commandList.SetGraphicsRootSignature(&groundRootSignature);
+			commandList.SetDescriptorHeap(&groundDescriptorHeap);
+			commandList.SetGraphicsRootDescriptorTable(0, groundDescriptorHeap.GetGPUHandle());
 			commandList.SetVertexBuffer(&vertexBufferResource);
 			commandList.SetIndexBuffer(&indexBufferResource);
 			commandList.SetPrimitiveTopology(PrimitiveTopology::Contorol4PointPatchList);
@@ -450,7 +436,5 @@ namespace test007
 
 		return 0;
 	}
-
-
 
 }

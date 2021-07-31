@@ -4,6 +4,7 @@ cbuffer SceneData : register(b0) {
 	matrix view;
 	matrix proj;
 	float3 eye;
+	float3 lightDir;
 };
 
 cbuffer SphereData : register(b1){

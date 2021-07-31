@@ -33,10 +33,13 @@ struct PSInput
 cbuffer SceneData : register(b0) {
 	matrix view;
 	matrix proj;
-	matrix world;
 	float3 eye;
-	float4 tessRange;
+	float3 lightDir;
 };
+
+cbuffer GroundData :register(b1) {
+	matrix world;
+}
 
 Texture2D<float> texHeightMap : register(t0);
 Texture2D<float4> texNormalMap : register(t1);
