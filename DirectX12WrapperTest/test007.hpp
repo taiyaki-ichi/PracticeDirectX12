@@ -62,7 +62,7 @@ namespace test007
 		std::array<XMMATRIX, 2> world;
 	};
 
-	constexpr std::size_t MAP_RESOURCE_EDGE_SIZE = 1024;
+	constexpr std::size_t MAP_RESOURCE_EDGE_SIZE = 512;
 
 	constexpr float GROUND_EDGE = 128.f;
 
@@ -148,7 +148,9 @@ namespace test007
 
 		RootSignature groundRootSignature{};
 		groundRootSignature.Initialize(&device,
-			{ {DescriptorRangeType::CBV,DescriptorRangeType::CBV,DescriptorRangeType::SRV,DescriptorRangeType::SRV } },
+			{ {DescriptorRangeType::CBV,DescriptorRangeType::CBV,DescriptorRangeType::SRV,DescriptorRangeType::SRV,
+				DescriptorRangeType::SRV,DescriptorRangeType::SRV,
+				DescriptorRangeType::SRV} },
 			{ StaticSamplerType::Standard }
 		);
 
@@ -164,15 +166,39 @@ namespace test007
 		FloatShaderResource heightMapResource{};
 		heightMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
 
+		FloatShaderResource elapsedTimeMapResource{};
+		elapsedTimeMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
+
 		Float4ShaderResource normalMapResource{};
 		normalMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
 
+
+		TextureResource groundDepthTextureResource{};
+		{
+			int textureWidth, textureHeight, n;
+			std::uint8_t* data = stbi_load("../../Assets/Snow_001_SD/Snow_001_DISP.png", &textureWidth, &textureHeight, &n, 4);
+			groundDepthTextureResource.Initialize(&device, &commandList, data, textureWidth, textureHeight, textureWidth * 4);
+			stbi_image_free(data);
+		}
+
+		TextureResource groundNormalTextureResource{};
+		{
+			int textureWidth, textureHeight, n;
+			std::uint8_t* data = stbi_load("../../Assets/Snow_001_SD/Snow_001_NORM.jpg", &textureWidth, &textureHeight, &n, 4);
+			groundNormalTextureResource.Initialize(&device, &commandList, data, textureWidth, textureHeight, textureWidth * 4);
+			stbi_image_free(data);
+		}
+
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> groundDescriptorHeap{};
-		groundDescriptorHeap.Initialize(&device, 4);
+		groundDescriptorHeap.Initialize(&device, 7);
 		groundDescriptorHeap.PushBackView(&device, &sceneDataConstantBufferResource);
 		groundDescriptorHeap.PushBackView(&device, &groundDataConstantBufferResource);
 		groundDescriptorHeap.PushBackView(&device, &heightMapResource);
 		groundDescriptorHeap.PushBackView(&device, &normalMapResource);
+		groundDescriptorHeap.PushBackView(&device, &groundDepthTextureResource);
+		groundDescriptorHeap.PushBackView(&device, &groundNormalTextureResource);
+		groundDescriptorHeap.PushBackView(&device, &elapsedTimeMapResource);
+
 
 		auto [vertexList, indexList] = GetGroundPatch();
 
@@ -189,8 +215,9 @@ namespace test007
 		groundDepthShaderResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 0.f);
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> computeHeightDescriptorHeap{};
-		computeHeightDescriptorHeap.Initialize(&device, 2);
+		computeHeightDescriptorHeap.Initialize(&device, 3);
 		computeHeightDescriptorHeap.PushBackView<DescriptorHeapViewTag::UnorderedAccessResource>(&device, &heightMapResource);
+		computeHeightDescriptorHeap.PushBackView<DescriptorHeapViewTag::UnorderedAccessResource>(&device, &elapsedTimeMapResource);
 		computeHeightDescriptorHeap.PushBackView(&device, &groundDepthShaderResource);
 
 		Shader computeHeightCS{};
@@ -198,7 +225,7 @@ namespace test007
 
 		RootSignature computeHeightRootSignature{};
 		computeHeightRootSignature.Initialize(&device,
-			{ {DescriptorRangeType::UAV,DescriptorRangeType::SRV} },
+			{ {DescriptorRangeType::UAV,DescriptorRangeType::UAV,DescriptorRangeType::SRV} },
 			{}
 		);
 
@@ -311,7 +338,7 @@ namespace test007
 		D3D12_RECT depthScissorRect{ 0,0,static_cast<LONG>(MAP_RESOURCE_EDGE_SIZE),static_cast<LONG>(MAP_RESOURCE_EDGE_SIZE) };
 
 
-		XMFLOAT3 eye{ 40, 20.f, 0.f };
+		XMFLOAT3 eye{ 50, 40.f, 0.f };
 		XMFLOAT3 target{ 0,0,0 };
 		XMFLOAT3 up{ 0,1,0 };
 		auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
@@ -339,8 +366,8 @@ namespace test007
 			//çXêV
 			//
 
-			auto m1 = XMMatrixScaling(5.f, 5.f, 5.f) * XMMatrixTranslation(30.f, 0.f, 0.f) * XMMatrixRotationY(cnt / 50.f) * XMMatrixTranslation(0.f, 0.f, 10.f);
-			auto m2 = XMMatrixScaling(5.f, 5.f, 5.f) * XMMatrixTranslation(-30.f, 0.f, 0.f) * XMMatrixRotationY(cnt / 50.f) * XMMatrixTranslation(0.f, 0.f, -10.f);
+			auto m1 = XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(30.f, 0.f, 0.f) * XMMatrixRotationY(cnt /60.f) * XMMatrixTranslation(0.f, 0.f, 15.f);
+			auto m2 = XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(-30.f, 0.f, 0.f) * XMMatrixRotationY(cnt /60.f) * XMMatrixTranslation(0.f, 0.f, -15.f);
 			sphereDataConstantBuffer.Map(SphereData{ {m1,m2} });
 
 			cnt++;

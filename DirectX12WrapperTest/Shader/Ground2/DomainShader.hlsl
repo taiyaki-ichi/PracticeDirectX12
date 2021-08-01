@@ -16,13 +16,19 @@ PSInput main(
 	float2 c1 = lerp(patch[2].uv, patch[3].uv, domain.x);
 	float2 uv = lerp(c0, c1, domain.y);
 
+	float2 textureUV = uv * 10.f;
 
-	pos.y = texHeightMap.SampleLevel(smp, uv, 0).x;
+	float timeBias = 1.f - elapsedTimeMap.SampleLevel(smp, uv, 0).x * 0.01f;
+
+	//
+	float h = texHeightMap.SampleLevel(smp, uv, 0).x + depthTexture.SampleLevel(smp, textureUV, 0).x * timeBias * 1.5f;
+
+	float4 n = float4(texNormalMap.SampleLevel(smp, uv, 0).xyz, 0.f) + float4(normalTexture.SampleLevel(smp, textureUV, 0).xyz, 0.f) * timeBias;
+
+	pos.y = h;
 	float4 p = mul(world, float4(pos.xyz, 1));
 
-	float4 n = float4(texNormalMap.SampleLevel(smp, uv, 0).xyz, 0.f);
-	output.normal = mul(world, n);
-
+	output.normal = normalize(mul(world, n));
 	output.uv = uv;
 	output.pos = mul(mul(proj, view), p);
 

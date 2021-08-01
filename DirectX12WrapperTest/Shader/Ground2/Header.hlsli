@@ -44,6 +44,9 @@ cbuffer GroundData :register(b1) {
 
 Texture2D<float> texHeightMap : register(t0);
 Texture2D<float4> texNormalMap : register(t1);
+Texture2D<float4> depthTexture : register(t2);
+Texture2D<float4> normalTexture : register(t3);
+Texture2D<float> elapsedTimeMap : register(t4);
 
 SamplerState smp : register(s0);
 
