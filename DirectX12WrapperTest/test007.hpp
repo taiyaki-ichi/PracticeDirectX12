@@ -18,6 +18,8 @@
 
 #include<vector>
 #include<cmath>
+#include<random>
+#include<chrono>
 
 
 #ifndef STB_IMAGE_IMPLEMENTATION
@@ -60,6 +62,14 @@ namespace test007
 
 	struct SphereData {
 		std::array<XMMATRIX, 2> world;
+	};
+
+	struct SnowData {
+		XMFLOAT4 move;//ê·ÇÃà⁄ìÆó 
+		XMFLOAT4 center;//ê·ÇêUÇÁÇπÇÈîÕàÕÇÃíÜêS
+		float range;//ê·ÇÃîÕàÕ
+		float rangeR;//rangeÇÃãtêî
+		float size;//ê·ÇÃëÂÇ´Ç≥
 	};
 
 	constexpr std::size_t MAP_RESOURCE_EDGE_SIZE = 512;
@@ -282,12 +292,12 @@ namespace test007
 
 		DescriptorHeap<DescriptorHeapTypeTag::DSV> groundDepthStencilDescriptorHeap{};
 		groundDepthStencilDescriptorHeap.Initialize(&device, 1);
-		groundDepthStencilDescriptorHeap.PushBackView(&device,&groundDepthStencilBufferResource);
+		groundDepthStencilDescriptorHeap.PushBackView(&device, &groundDepthStencilBufferResource);
 
 		DescriptorHeap<DescriptorHeapTypeTag::RTV> groundDepthRTVDescriptorHeap{};
 		groundDepthRTVDescriptorHeap.Initialize(&device, 1);
 		groundDepthRTVDescriptorHeap.PushBackView(&device, &groundDepthShaderResource);
-		
+
 
 		Shader sphereVS{};
 		sphereVS.Intialize(L"Shader/Sphere/VertexShader.hlsl", "main", "vs_5_1");
@@ -331,6 +341,65 @@ namespace test007
 		sphereDescriptorHeap.PushBackView(&device, &upCameraMatrixConstantBuffer);
 
 
+		constexpr std::size_t SNOW_NUM = 8000;
+		constexpr float SNOW_RANGE = 8.f;
+		VertexBufferResource snowVertexBufferResource{};
+		{
+			std::random_device seed_gen;
+			std::default_random_engine engine(seed_gen());
+			std::uniform_real_distribution<float> dist(-SNOW_RANGE, SNOW_RANGE);
+			std::vector<std::array<float, 3>> v{};
+			v.reserve(SNOW_NUM);
+			for (std::size_t i = 0; i < SNOW_NUM; i++)
+				v.emplace_back(std::array<float, 3>{dist(engine), dist(engine), dist(engine)});
+			snowVertexBufferResource.Initialize(&device, sizeof(float) * 3 * SNOW_NUM, sizeof(float) * 3);
+			snowVertexBufferResource.Map(std::move(v));
+		}
+
+		ConstantBufferResource snowDataConstantBufferResource{};
+		snowDataConstantBufferResource.Initialize(&device, sizeof(SnowData));
+
+
+		TextureResource snowTextureShaderResource{};
+		{
+			int textureWidth, textureHeight, n;
+			std::uint8_t* data = stbi_load("../../Assets/snow.png", &textureWidth, &textureHeight, &n, 4);
+			snowTextureShaderResource.Initialize(&device, &commandList, data, textureWidth, textureHeight, textureWidth * 4);
+			stbi_image_free(data);
+		}
+
+
+		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> snowDescriptorHeap{};
+		snowDescriptorHeap.Initialize(&device, 3);
+		snowDescriptorHeap.PushBackView(&device, &sceneDataConstantBufferResource);
+		snowDescriptorHeap.PushBackView(&device, &snowDataConstantBufferResource);
+		snowDescriptorHeap.PushBackView(&device, &snowTextureShaderResource);
+
+		RootSignature snowRootSignature{};
+		snowRootSignature.Initialize(&device,
+			{ {DescriptorRangeType::CBV,DescriptorRangeType::CBV,DescriptorRangeType::SRV} },
+			{ StaticSamplerType::Standard }
+		);
+
+		Shader snowVS{};
+		snowVS.Intialize(L"Shader/Snow/VertexShader.hlsl", "main", "vs_5_1");
+
+		Shader snowPS{};
+		snowPS.Intialize(L"Shader/Snow/PixelShader.hlsl", "main", "ps_5_1");
+
+		Shader snowGS{};
+		snowGS.Intialize(L"Shader/Snow/GeometryShader.hlsl", "main", "gs_5_1");
+
+		PipelineState snowPipelineState{};
+		snowPipelineState.Initialize(&device, &snowRootSignature, &snowVS, &snowPS,
+			{ {"POSITION",VertexLayoutFormat::Float3} }, PrimitiveTopology::PointList,
+			{ Format::R8G8B8A8 },
+			false,//
+			&snowGS
+		);
+
+
+
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
 		D3D12_RECT scissorRect{ 0,0,static_cast<LONG>(WINDOW_WIDTH),static_cast<LONG>(WINDOW_HEIGHT) };
 
@@ -338,7 +407,7 @@ namespace test007
 		D3D12_RECT depthScissorRect{ 0,0,static_cast<LONG>(MAP_RESOURCE_EDGE_SIZE),static_cast<LONG>(MAP_RESOURCE_EDGE_SIZE) };
 
 
-		XMFLOAT3 eye{ 50, 40.f, 0.f };
+		XMFLOAT3 eye{ 50, 20.f, 0.f };
 		XMFLOAT3 target{ 0,0,0 };
 		XMFLOAT3 up{ 0,1,0 };
 		auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
@@ -358,17 +427,30 @@ namespace test007
 		auto upCamera = XMMatrixLookAtLH(XMLoadFloat3(&upPos), XMLoadFloat3(&upTarget), XMLoadFloat3(&upUp)) * XMMatrixOrthographicLH(GROUND_EDGE, GROUND_EDGE, -100.f, 100.f);
 		upCameraMatrixConstantBuffer.Map(upCamera);
 
+		XMFLOAT4 snowMove{};
 
 		std::size_t cnt = 0;
+		auto time = std::chrono::system_clock::now();
 		while (UpdateWindow())
 		{
 			//
 			//çXêV
 			//
 
+			if (cnt % 60 == 0) {
+				auto now = std::chrono::system_clock::now();
+				//std::cout << 60.f / static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(now - time).count()) * 1000.f << "\n";
+				time = now;
+			}
+			
 			auto m1 = XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(30.f, 0.f, 0.f) * XMMatrixRotationY(cnt /60.f) * XMMatrixTranslation(0.f, 0.f, 15.f);
 			auto m2 = XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(-30.f, 0.f, 0.f) * XMMatrixRotationY(cnt /60.f) * XMMatrixTranslation(0.f, 0.f, -15.f);
 			sphereDataConstantBuffer.Map(SphereData{ {m1,m2} });
+
+			snowMove.y -= 0.02f;
+			if (snowMove.y < -SNOW_RANGE)
+				snowMove.y += SNOW_RANGE * 2.f;
+			snowDataConstantBufferResource.Map(SnowData{ snowMove,XMFLOAT4{},SNOW_RANGE,1 / SNOW_RANGE,0.05f });
 
 			cnt++;
 
@@ -434,7 +516,6 @@ namespace test007
 			commandList.SetViewport(viewport);
 			commandList.SetScissorRect(scissorRect);
 
-
 			commandList.SetPipelineState(&groundPipelineState);
 			commandList.SetGraphicsRootSignature(&groundRootSignature);
 			commandList.SetDescriptorHeap(&groundDescriptorHeap);
@@ -452,6 +533,15 @@ namespace test007
 			commandList.SetIndexBuffer(&sphereIndexBufferResource);
 			commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
 			commandList.DrawIndexedInstanced(sphereFaceNum * 3, 2);
+
+			commandList.SetPipelineState(&snowPipelineState);
+			commandList.SetGraphicsRootSignature(&snowRootSignature);
+			commandList.SetDescriptorHeap(&snowDescriptorHeap);
+			commandList.SetGraphicsRootDescriptorTable(0, snowDescriptorHeap.GetGPUHandle());
+			commandList.SetVertexBuffer(&snowVertexBufferResource);
+			commandList.SetPrimitiveTopology(PrimitiveTopology::PointList);
+			commandList.DrawInstanced(SNOW_NUM);
+
 
 			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::Common);
 
