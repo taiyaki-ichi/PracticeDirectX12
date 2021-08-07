@@ -165,9 +165,11 @@ namespace test007
 		);
 
 		PipelineState groundPipelineState{};
-		groundPipelineState.Initialize(&device, &groundRootSignature, &groundVS, &grooundPS,
+		groundPipelineState.Initialize(&device, &groundRootSignature, { &groundVS, &grooundPS ,nullptr,&groundHS, &groundDS },
 			{ {"POSITION",VertexLayoutFormat::Float3},{"TEXCOOD",VertexLayoutFormat::Float2} },
-			{ Format::R8G8B8A8 }, true, nullptr, &groundHS, &groundDS);
+			{ Format::R8G8B8A8 }, true,false, PrimitiveTopology::Patch);
+			
+
 
 		ConstantBufferResource groundDataConstantBufferResource{};
 		groundDataConstantBufferResource.Initialize(&device, sizeof(GroundData));
@@ -324,14 +326,18 @@ namespace test007
 		);
 
 		PipelineState spherePipelineState{};
-		spherePipelineState.Initialize(&device, &sphereRootSignature, &sphereVS, &spherePS,
+		spherePipelineState.Initialize(&device, &sphereRootSignature, { &sphereVS, &spherePS },
 			{ {"POSITION",VertexLayoutFormat::Float3},{"NORMAL",VertexLayoutFormat::Float3} },
-			{ Format::R8G8B8A8 }, true);
+			{ Format::R8G8B8A8 }, true,false, PrimitiveTopology::Triangle
+		);
+			
 
 		PipelineState sphereDepthPipelineState{};
-		sphereDepthPipelineState.Initialize(&device, &sphereRootSignature, &sphereDepthVS, &sphereDepthPS,
+		sphereDepthPipelineState.Initialize(&device, &sphereRootSignature, { &sphereDepthVS, &sphereDepthPS },
 			{ {"POSITION",VertexLayoutFormat::Float3},{"NORMAL",VertexLayoutFormat::Float3} },
-			{ Format::R32_FLOAT }, true);
+			{ Format::R32_FLOAT }, true,false, PrimitiveTopology::Triangle
+		);
+	
 
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> sphereDescriptorHeap{};
@@ -391,13 +397,10 @@ namespace test007
 		snowGS.Intialize(L"Shader/Snow/GeometryShader.hlsl", "main", "gs_5_1");
 
 		PipelineState snowPipelineState{};
-		snowPipelineState.Initialize(&device, &snowRootSignature, &snowVS, &snowPS,
-			{ {"POSITION",VertexLayoutFormat::Float3} }, PrimitiveTopology::PointList,
-			{ Format::R8G8B8A8 },
-			false,//
-			&snowGS
+		snowPipelineState.Initialize(&device, &snowRootSignature, { &snowVS, &snowPS,&snowGS },
+			{ {"POSITION", VertexLayoutFormat::Float3} }, { Format::R8G8B8A8 },
+			false, true, PrimitiveTopology::PointList
 		);
-
 
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };

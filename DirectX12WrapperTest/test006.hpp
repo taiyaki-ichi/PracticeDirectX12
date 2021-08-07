@@ -119,9 +119,10 @@ namespace test006
 		pixelShader.Intialize(L"Shader/PixelShader002.hlsl", "main", "ps_5_0");
 
 		PipelineState pipelineState{};
-		pipelineState.Initialize(&device, &rootSignature, &vertexShader, &pixelShader,
+		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
 			{ {"POSITION", VertexLayoutFormat::Float3} ,{"TEXCOOD",VertexLayoutFormat::Float2} },
-			{ Format::R8G8B8A8 }, false);
+			{ Format::R8G8B8A8 }, false, false, PrimitiveTopology::Triangle
+		);
 
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };

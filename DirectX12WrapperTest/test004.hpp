@@ -145,9 +145,9 @@ namespace test004
 				Shader ps{};
 				ps.Intialize(L"Shader/ColorObject/PixelShader.hlsl", "main", "ps_5_0");
 
-				standerdPipelineState.Initialize(device, &rootSignature, &vs, &ps,
-					{ {"POSITION", VertexLayoutFormat::Float3 },{"NORMAL",VertexLayoutFormat::Float3 } }, 
-					{ Format::R8G8B8A8 }, true);
+				standerdPipelineState.Initialize(device, &rootSignature, { &vs, &ps },
+					{ {"POSITION", VertexLayoutFormat::Float3 },{"NORMAL",VertexLayoutFormat::Float3 } },
+					{ Format::R8G8B8A8 }, true, false, PrimitiveTopology::Triangle);
 			}
 
 			{
@@ -160,9 +160,9 @@ namespace test004
 				Shader ps{};
 				ps.Intialize(L"Shader/ColorObjectForCubemap/PixelShader.hlsl", "main", "ps_5_0");
 
-				cubemapPipelineState.Initialize(device, &rootSignature, &vs, &ps,
-					{ {"POSITION", VertexLayoutFormat::Float3 } ,{"NORMAL",VertexLayoutFormat::Float3 } }, 
-					{ Format::R8G8B8A8 }, true, &gs);
+				cubemapPipelineState.Initialize(device, &rootSignature, { &vs, &ps,&gs },
+					{ {"POSITION", VertexLayoutFormat::Float3 } ,{"NORMAL",VertexLayoutFormat::Float3 } },
+					{ Format::R8G8B8A8 }, true, false, PrimitiveTopology::Triangle);
 			}
 		}
 
@@ -235,9 +235,9 @@ namespace test004
 			Shader ps{};
 			ps.Intialize(L"Shader/MirrorObject/PixelShader.hlsl", "main", "ps_5_0");
 
-			pipelineState.Initialize(device, &rootSignature, &vs, &ps,
+			pipelineState.Initialize(device, &rootSignature, { &vs, &ps },
 				{ {"POSITION", VertexLayoutFormat::Float3 },{"NORMAL",VertexLayoutFormat::Float3 } },
-				{ Format::R8G8B8A8 }, true);
+				{ Format::R8G8B8A8 }, true, false, PrimitiveTopology::Triangle);
 		}
 
 		PipelineState& GetPipelineState() noexcept {
