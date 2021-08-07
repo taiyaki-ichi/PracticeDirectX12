@@ -122,9 +122,9 @@ namespace test005
 
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vs, &ps,nullptr,&hs, &ds },
-			{ {"POSITION",VertexLayoutFormat::Float3},{"TEXCOOD",VertexLayoutFormat::Float2} },
-			{ Format::R8G8B8A8 }, true, false, PrimitiveTopology::Patch);
-
+			{ {"POSITION",{Type::Float32,3}},{"TEXCOOD",{Type::Float32,2}} },
+			{ {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Patch
+		);
 
 		DepthStencilBufferResource depthStencilBufferResource{};
 		depthStencilBufferResource.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);

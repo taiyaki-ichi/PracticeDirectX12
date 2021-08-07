@@ -7,34 +7,41 @@
 
 namespace DX12
 {
-	template<Format F>
-	struct ClearValueTraits {
-		using Type;
-	};
 
-	template<>
-	struct ClearValueTraits<Format::R8G8B8A8> {
-		using Type = std::array<float, 4>;
-	};
-
-	template<>
-	struct ClearValueTraits<Format::R32_FLOAT> {
-		using Type = float;
-	};
-
-
-	template<Format F,std::size_t DepthOrArraySize>
-	class ShaderResourceBase : public ResourceBase
+	class ShaderResource : public ResourceBase
 	{
 	public:
-		void Initialize(Device*, std::size_t width, std::size_t height, std::optional<typename ClearValueTraits<F>::Type> = std::nullopt);
+		void Initialize(Device*, std::size_t width, std::size_t height, FFormat,std::uint16_t depthOrArraySize);
+		void Initialize(Device*, std::size_t width, std::size_t height, FFormat,std::uint16_t depthOrArraySize, std::array<float, 4> clearValue);
+		void Initialize(Device*, std::size_t width, std::size_t height, FFormat, std::uint16_t depthOrArraySize, float depthClearValue);
+
+	private:
+		void InitializeImpl(Device*, std::size_t width, std::size_t height, FFormat, std::uint16_t depthOrArraySize, D3D12_CLEAR_VALUE*);
 	};
 
+	class Float4ShaderResource : public ShaderResource
+	{
+	public:
+		void Initialize(Device* device, std::size_t width, std::size_t height, std::array<float, 4> clearValue = {0,0,0,0}) {
+			ShaderResource::Initialize(device, width, height, { Type::UnsignedNormalizedInt8,4 }, 1, clearValue);
+		}
+	};
 
+	class FloatShaderResource : public ShaderResource
+	{
+	public:
+		void Initialize(Device* device, std::size_t width, std::size_t height,float depth=0.f) {
+			ShaderResource::Initialize(device, width, height, { Type::Float32,1 }, 1, depth);
+		}
+	};
 
-	using Float4ShaderResource = ShaderResourceBase<Format::R8G8B8A8, 1>;
-	using FloatShaderResource = ShaderResourceBase<Format::R32_FLOAT, 1>;
-	using CubeMapShaderResource = ShaderResourceBase<Format::R8G8B8A8, 6>;
+	class CubeMapShaderResource : public ShaderResource
+	{
+	public:
+		void Initialize(Device* device, std::size_t width, std::size_t height,std::array<float, 4> clearValue = { 0,0,0,0 }) {
+			ShaderResource::Initialize(device, width, height, { Type::UnsignedNormalizedInt8,4 }, 6, clearValue);
+		}
+	};
 
 	template<>
 	struct DefaultViewTypeTraits<Float4ShaderResource> {
@@ -51,19 +58,41 @@ namespace DX12
 		using Type = DescriptorHeapViewTag::CubeMapResource;
 	};
 
+
+
 	//
 	//
 	//
 
-	template<Format F, std::size_t DepthOrArraySize>
-	inline void ShaderResourceBase<F, DepthOrArraySize>::Initialize(Device* device, std::size_t width, std::size_t height, std::optional<typename ClearValueTraits<F>::Type> cv)
+	inline void ShaderResource::Initialize(Device* device, std::size_t width, std::size_t height, FFormat format, std::uint16_t depthOrArraySize)
+	{
+		InitializeImpl(device, width, height, format, depthOrArraySize, nullptr);
+	}
+
+	inline void ShaderResource::Initialize(Device* device, std::size_t width, std::size_t height, FFormat format, std::uint16_t depthOrArraySize, std::array<float, 4> clearValue)
+	{
+		D3D12_CLEAR_VALUE cv{};
+		cv.Format = format.value;
+		std::copy(std::begin(clearValue), std::end(clearValue), std::begin(cv.Color));
+		InitializeImpl(device, width, height, format, depthOrArraySize, &cv);
+	}
+
+	inline void ShaderResource::Initialize(Device* device, std::size_t width, std::size_t height, FFormat format, std::uint16_t depthOrArraySize, float depthClearValue)
+	{
+		D3D12_CLEAR_VALUE cv{};
+		cv.Format = format.value;
+		cv.DepthStencil.Depth = depthClearValue;
+		InitializeImpl(device, width, height, format, depthOrArraySize, &cv);
+	}
+
+	inline void ShaderResource::InitializeImpl(Device* device, std::size_t width, std::size_t height, FFormat format, std::uint16_t depthOrArraySize, D3D12_CLEAR_VALUE* clearValuePtr)
 	{
 		D3D12_RESOURCE_DESC resdesc{};
 		resdesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 		resdesc.Width = width;
 		resdesc.Height = height;
-		resdesc.Format = static_cast<DXGI_FORMAT>(F);
-		resdesc.DepthOrArraySize = DepthOrArraySize;
+		resdesc.Format = format.value;
+		resdesc.DepthOrArraySize = depthOrArraySize;
 		resdesc.SampleDesc.Count = 1;
 		//
 		resdesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
@@ -75,26 +104,13 @@ namespace DX12
 		heapprop.Type = D3D12_HEAP_TYPE_DEFAULT;
 		heapprop.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
 		heapprop.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	
-		D3D12_CLEAR_VALUE clearValue{};
-		clearValue.Format = static_cast<DXGI_FORMAT>(F);
-
-		//‚Æ‚è‚ ‚¦‚¸
-		if (cv)
-		{
-			if constexpr (F == Format::R8G8B8A8) 
-				std::copy(std::begin(cv.value()), std::end(cv.value()), std::begin(clearValue.Color));
-			if constexpr (F == Format::R32_FLOAT)
-				clearValue.DepthStencil.Depth = cv.value();
-		}
 
 		return ResourceBase::Initialize(device,
 			&heapprop,
 			D3D12_HEAP_FLAG_NONE,
 			&resdesc,
-			ResourceState::PixcelShaderResource, 
-			&clearValue
+			ResourceState::PixcelShaderResource,
+			clearValuePtr
 		);
 	}
-
 }

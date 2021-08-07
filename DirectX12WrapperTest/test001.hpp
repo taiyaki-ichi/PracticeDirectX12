@@ -51,7 +51,7 @@ namespace test001
 
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
-			{ {"POSITION", VertexLayoutFormat::Float3} }, { Format::R8G8B8A8 }, false, false, PrimitiveTopology::Triangle
+			{ {"POSITION", {Type::Float32,3}} }, { {Type::UnsignedNormalizedInt8,4} }, false, false, PrimitiveTopology::Triangle
 		);
 
 

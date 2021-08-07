@@ -120,8 +120,8 @@ namespace test006
 
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
-			{ {"POSITION", VertexLayoutFormat::Float3} ,{"TEXCOOD",VertexLayoutFormat::Float2} },
-			{ Format::R8G8B8A8 }, false, false, PrimitiveTopology::Triangle
+			{ {"POSITION", {Type::Float32,3}} ,{"TEXCOOD",{Type::Float32,2}} },
+			{ {Type::UnsignedNormalizedInt8,4} }, false, false, PrimitiveTopology::Triangle
 		);
 
 

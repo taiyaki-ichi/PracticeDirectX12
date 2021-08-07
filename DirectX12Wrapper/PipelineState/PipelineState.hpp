@@ -39,10 +39,9 @@ namespace DX12
 		PipelineState& operator=(PipelineState&&) noexcept;
 
 		void Initialize(Device*, RootSignature*, ShaderDesc,
-			const std::vector<VertexLayout>& vertexLayouts, const std::vector<Format>& renderTargetFormats,
-			bool depthEnable,bool alphaBlend, PrimitiveTopology primitiveTopology
+			const std::vector<std::pair<std::string,FFormat>>& vertexLayouts, const std::vector<FFormat>& renderTargetFormats,
+			bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology
 		);
-
 
 		//コンピュートシェーダ用のパイプライン生成
 		void Initialize(Device*, RootSignature*, Shader* computeShader);
@@ -71,9 +70,9 @@ namespace DX12
 		rhs.pipelineState = nullptr;
 		return *this;
 	}
-
-	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, ShaderDesc shaderDesc, 
-		const std::vector<VertexLayout>& vertexLayouts, const std::vector<Format>& renderTargetFormats, bool depthEnable,bool alphaBlend, PrimitiveTopology primitiveTopology)
+	
+	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, ShaderDesc shaderDesc, const std::vector<std::pair<std::string, FFormat>>& vertexLayouts, 
+		const std::vector<FFormat>& renderTargetFormats, bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology)
 	{
 		this->rootSignature = rootSignature->Get();
 
@@ -103,22 +102,10 @@ namespace DX12
 		std::uint32_t alignedByteOffset = 0;
 		for (std::size_t i = 0; i < vertexLayouts.size(); i++)
 		{
-			inputElementDescs[i].SemanticName = vertexLayouts[i].name;
-			inputElementDescs[i].AlignedByteOffset = alignedByteOffset;
+			inputElementDescs[i].SemanticName = vertexLayouts[i].first.data();
+			inputElementDescs[i].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
 			inputElementDescs[i].InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-
-			if (vertexLayouts[i].format == VertexLayoutFormat::Float2) {
-				inputElementDescs[i].Format = DXGI_FORMAT_R32G32_FLOAT;
-				alignedByteOffset += sizeof(float) * 2;
-			}
-			else if (vertexLayouts[i].format == VertexLayoutFormat::Float3) {
-				inputElementDescs[i].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-				alignedByteOffset += sizeof(float) * 3;
-			}
-			else if (vertexLayouts[i].format == VertexLayoutFormat::Float4) {
-				inputElementDescs[i].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-				alignedByteOffset += sizeof(float) * 4;
-			}
+			inputElementDescs[i].Format = vertexLayouts[i].second.value;
 		}
 
 		graphicsPipelineDesc.InputLayout.pInputElementDescs = inputElementDescs.data();
@@ -147,7 +134,6 @@ namespace DX12
 
 
 		//ブレンドステート
-		
 		D3D12_RENDER_TARGET_BLEND_DESC renderTagetBlendDesc{};
 		if (alphaBlend)
 		{
@@ -161,7 +147,8 @@ namespace DX12
 			renderTagetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 			renderTagetBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
 			renderTagetBlendDesc.LogicOpEnable = FALSE;
-		}else {
+		}
+		else {
 			renderTagetBlendDesc.BlendEnable = FALSE;//とりあえず
 			renderTagetBlendDesc.LogicOpEnable = FALSE;
 			renderTagetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
@@ -178,7 +165,7 @@ namespace DX12
 
 		graphicsPipelineDesc.NumRenderTargets = renderTargetFormats.size();
 		for (std::size_t i = 0; i < renderTargetFormats.size(); i++)
-			graphicsPipelineDesc.RTVFormats[i] = static_cast<DXGI_FORMAT>(renderTargetFormats[i]);
+			graphicsPipelineDesc.RTVFormats[i] = renderTargetFormats[i].value;
 
 
 		//デプスステンシル
@@ -204,8 +191,8 @@ namespace DX12
 		if (FAILED(device->Get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&pipelineState))))
 			throw "";
 
-
 	}
+	
 
 	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, Shader* computeShader)
 	{

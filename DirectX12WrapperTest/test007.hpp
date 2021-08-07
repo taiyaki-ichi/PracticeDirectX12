@@ -166,10 +166,10 @@ namespace test007
 
 		PipelineState groundPipelineState{};
 		groundPipelineState.Initialize(&device, &groundRootSignature, { &groundVS, &grooundPS ,nullptr,&groundHS, &groundDS },
-			{ {"POSITION",VertexLayoutFormat::Float3},{"TEXCOOD",VertexLayoutFormat::Float2} },
-			{ Format::R8G8B8A8 }, true,false, PrimitiveTopology::Patch);
+			{ {"POSITION",{Type::Float32,3}},{"TEXCOOD",{Type::Float32,2}} },
+			{ {Type::UnsignedNormalizedInt8,4 } }, true, false, PrimitiveTopology::Patch
+		);
 			
-
 
 		ConstantBufferResource groundDataConstantBufferResource{};
 		groundDataConstantBufferResource.Initialize(&device, sizeof(GroundData));
@@ -327,17 +327,15 @@ namespace test007
 
 		PipelineState spherePipelineState{};
 		spherePipelineState.Initialize(&device, &sphereRootSignature, { &sphereVS, &spherePS },
-			{ {"POSITION",VertexLayoutFormat::Float3},{"NORMAL",VertexLayoutFormat::Float3} },
-			{ Format::R8G8B8A8 }, true,false, PrimitiveTopology::Triangle
+			{ {"POSITION",{Type::Float32,3}},{"NORMAL",{Type::Float32,3}} },
+			{ {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Triangle
 		);
-			
 
 		PipelineState sphereDepthPipelineState{};
 		sphereDepthPipelineState.Initialize(&device, &sphereRootSignature, { &sphereDepthVS, &sphereDepthPS },
-			{ {"POSITION",VertexLayoutFormat::Float3},{"NORMAL",VertexLayoutFormat::Float3} },
-			{ Format::R32_FLOAT }, true,false, PrimitiveTopology::Triangle
+			{ {"POSITION",{Type::Float32,3}},{"NORMAL",{Type::Float32,3} } },
+			{ {Type::Float32,1} }, true, false, PrimitiveTopology::Triangle
 		);
-	
 
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> sphereDescriptorHeap{};
@@ -398,7 +396,7 @@ namespace test007
 
 		PipelineState snowPipelineState{};
 		snowPipelineState.Initialize(&device, &snowRootSignature, { &snowVS, &snowPS,&snowGS },
-			{ {"POSITION", VertexLayoutFormat::Float3} }, { Format::R8G8B8A8 },
+			{ {"POSITION",{Type::Float32,3}} }, { {Type::UnsignedNormalizedInt8,4} },
 			false, true, PrimitiveTopology::PointList
 		);
 
