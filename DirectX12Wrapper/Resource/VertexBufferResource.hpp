@@ -8,7 +8,7 @@ namespace DX12
 		D3D12_VERTEX_BUFFER_VIEW bufferView{};
 
 	public:
-		void Initialize(Device*, std::size_t size, std::size_t stride);
+		void Initialize(Device*, std::uint32_t size, std::uint32_t stride);
 
 		const D3D12_VERTEX_BUFFER_VIEW& GetView() const noexcept;
 	};
@@ -17,7 +17,7 @@ namespace DX12
 	//
 	//
 
-	inline void VertexBufferResource::Initialize(Device* device, std::size_t size, std::size_t stride)
+	inline void VertexBufferResource::Initialize(Device* device, std::uint32_t size, std::uint32_t stride)
 	{
 		UploadResource::Initialize(device, size);
 

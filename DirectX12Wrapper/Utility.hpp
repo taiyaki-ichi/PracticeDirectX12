@@ -3,7 +3,7 @@
 
 namespace DX12
 {
-	inline constexpr std::size_t AlignmentSize(std::size_t size, std::size_t alignment) {
+	inline constexpr std::uint32_t AlignmentSize(std::uint32_t size, std::uint32_t alignment) {
 		return size + alignment - size % alignment;
 	}
 

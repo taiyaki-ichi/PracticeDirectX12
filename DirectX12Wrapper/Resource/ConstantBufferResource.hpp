@@ -7,7 +7,7 @@ namespace DX12
 	class ConstantBufferResource : public UploadResource
 	{
 	public:
-		void Initialize(Device*, std::size_t size);
+		void Initialize(Device*, std::uint32_t size);
 	};
 
 	template<>
@@ -20,7 +20,7 @@ namespace DX12
 	//
 	//
 
-	inline void ConstantBufferResource::Initialize(Device* device, std::size_t size)
+	inline void ConstantBufferResource::Initialize(Device* device, std::uint32_t size)
 	{
 		//サイズは16の倍数じゃあないといけないのでアライメント
 		size = (size + 0xff) & ~0xff;

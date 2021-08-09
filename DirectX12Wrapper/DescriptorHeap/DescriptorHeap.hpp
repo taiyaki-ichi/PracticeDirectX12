@@ -53,8 +53,8 @@ namespace DX12
 
 		ID3D12DescriptorHeap*& Get() noexcept;
 
-		D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle(std::size_t index = 0);
-		D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(std::size_t index = 0);
+		D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle(std::uint32_t index = 0);
+		D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(std::uint32_t index = 0);
 
 	};
 
@@ -156,7 +156,7 @@ namespace DX12
 	}
 
 	template<typename DescriptorHeapTypeTag>
-	inline D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeap<DescriptorHeapTypeTag>::GetGPUHandle(std::size_t index)
+	inline D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeap<DescriptorHeapTypeTag>::GetGPUHandle(std::uint32_t index)
 	{
 		auto gpuHandle = descriptorHeap->GetGPUDescriptorHandleForHeapStart();
 		gpuHandle.ptr += static_cast<UINT64>(incrementSize) * static_cast<UINT64>(index);
@@ -164,10 +164,10 @@ namespace DX12
 	}
 
 	template<typename DescriptorHeapTypeTag>
-	inline D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap<DescriptorHeapTypeTag>::GetCPUHandle(std::size_t index)
+	inline D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap<DescriptorHeapTypeTag>::GetCPUHandle(std::uint32_t index)
 	{
 		auto cpuHandle = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
-		cpuHandle.ptr += static_cast<SIZE_T>(incrementSize) * static_cast<SIZE_T>(index);
+		cpuHandle.ptr += static_cast<uint32_t>(incrementSize) * static_cast<uint32_t>(index);
 		return cpuHandle;
 	}
 

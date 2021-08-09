@@ -11,18 +11,18 @@ namespace DX12
 	class ShaderResource : public ResourceBase
 	{
 	public:
-		void Initialize(Device*, std::size_t width, std::size_t height, FFormat,std::uint16_t depthOrArraySize);
-		void Initialize(Device*, std::size_t width, std::size_t height, FFormat,std::uint16_t depthOrArraySize, std::array<float, 4> clearValue);
-		void Initialize(Device*, std::size_t width, std::size_t height, FFormat, std::uint16_t depthOrArraySize, float depthClearValue);
+		void Initialize(Device*, std::uint32_t width, std::uint32_t height, FFormat,std::uint16_t depthOrArraySize);
+		void Initialize(Device*, std::uint32_t width, std::uint32_t height, FFormat,std::uint16_t depthOrArraySize, std::array<float, 4> clearValue);
+		void Initialize(Device*, std::uint32_t width, std::uint32_t height, FFormat, std::uint16_t depthOrArraySize, float depthClearValue);
 
 	private:
-		void InitializeImpl(Device*, std::size_t width, std::size_t height, FFormat, std::uint16_t depthOrArraySize, D3D12_CLEAR_VALUE*);
+		void InitializeImpl(Device*, std::uint32_t width, std::uint32_t height, FFormat, std::uint16_t depthOrArraySize, D3D12_CLEAR_VALUE*);
 	};
 
 	class Float4ShaderResource : public ShaderResource
 	{
 	public:
-		void Initialize(Device* device, std::size_t width, std::size_t height, std::array<float, 4> clearValue = {0,0,0,0}) {
+		void Initialize(Device* device, std::uint32_t width, std::uint32_t height, std::array<float, 4> clearValue = {0,0,0,0}) {
 			ShaderResource::Initialize(device, width, height, { Type::UnsignedNormalizedInt8,4 }, 1, clearValue);
 		}
 	};
@@ -30,7 +30,7 @@ namespace DX12
 	class FloatShaderResource : public ShaderResource
 	{
 	public:
-		void Initialize(Device* device, std::size_t width, std::size_t height,float depth=0.f) {
+		void Initialize(Device* device, std::uint32_t width, std::uint32_t height,float depth=0.f) {
 			ShaderResource::Initialize(device, width, height, { Type::Float32,1 }, 1, depth);
 		}
 	};
@@ -38,7 +38,7 @@ namespace DX12
 	class CubeMapShaderResource : public ShaderResource
 	{
 	public:
-		void Initialize(Device* device, std::size_t width, std::size_t height,std::array<float, 4> clearValue = { 0,0,0,0 }) {
+		void Initialize(Device* device, std::uint32_t width, std::uint32_t height,std::array<float, 4> clearValue = { 0,0,0,0 }) {
 			ShaderResource::Initialize(device, width, height, { Type::UnsignedNormalizedInt8,4 }, 6, clearValue);
 		}
 	};
@@ -64,12 +64,12 @@ namespace DX12
 	//
 	//
 
-	inline void ShaderResource::Initialize(Device* device, std::size_t width, std::size_t height, FFormat format, std::uint16_t depthOrArraySize)
+	inline void ShaderResource::Initialize(Device* device, std::uint32_t width, std::uint32_t height, FFormat format, std::uint16_t depthOrArraySize)
 	{
 		InitializeImpl(device, width, height, format, depthOrArraySize, nullptr);
 	}
 
-	inline void ShaderResource::Initialize(Device* device, std::size_t width, std::size_t height, FFormat format, std::uint16_t depthOrArraySize, std::array<float, 4> clearValue)
+	inline void ShaderResource::Initialize(Device* device, std::uint32_t width, std::uint32_t height, FFormat format, std::uint16_t depthOrArraySize, std::array<float, 4> clearValue)
 	{
 		D3D12_CLEAR_VALUE cv{};
 		cv.Format = format.value;
@@ -77,7 +77,7 @@ namespace DX12
 		InitializeImpl(device, width, height, format, depthOrArraySize, &cv);
 	}
 
-	inline void ShaderResource::Initialize(Device* device, std::size_t width, std::size_t height, FFormat format, std::uint16_t depthOrArraySize, float depthClearValue)
+	inline void ShaderResource::Initialize(Device* device, std::uint32_t width, std::uint32_t height, FFormat format, std::uint16_t depthOrArraySize, float depthClearValue)
 	{
 		D3D12_CLEAR_VALUE cv{};
 		cv.Format = format.value;
@@ -85,7 +85,7 @@ namespace DX12
 		InitializeImpl(device, width, height, format, depthOrArraySize, &cv);
 	}
 
-	inline void ShaderResource::InitializeImpl(Device* device, std::size_t width, std::size_t height, FFormat format, std::uint16_t depthOrArraySize, D3D12_CLEAR_VALUE* clearValuePtr)
+	inline void ShaderResource::InitializeImpl(Device* device, std::uint32_t width, std::uint32_t height, FFormat format, std::uint16_t depthOrArraySize, D3D12_CLEAR_VALUE* clearValuePtr)
 	{
 		D3D12_RESOURCE_DESC resdesc{};
 		resdesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;

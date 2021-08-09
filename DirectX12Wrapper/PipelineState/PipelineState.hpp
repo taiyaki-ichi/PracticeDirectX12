@@ -100,7 +100,7 @@ namespace DX12
 
 		std::vector<D3D12_INPUT_ELEMENT_DESC> inputElementDescs(vertexLayouts.size(), D3D12_INPUT_ELEMENT_DESC{});
 		std::uint32_t alignedByteOffset = 0;
-		for (std::size_t i = 0; i < vertexLayouts.size(); i++)
+		for (std::uint32_t i = 0; i < vertexLayouts.size(); i++)
 		{
 			inputElementDescs[i].SemanticName = vertexLayouts[i].first.data();
 			inputElementDescs[i].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
@@ -164,7 +164,7 @@ namespace DX12
 
 
 		graphicsPipelineDesc.NumRenderTargets = renderTargetFormats.size();
-		for (std::size_t i = 0; i < renderTargetFormats.size(); i++)
+		for (std::uint32_t i = 0; i < renderTargetFormats.size(); i++)
 			graphicsPipelineDesc.RTVFormats[i] = renderTargetFormats[i].value;
 
 

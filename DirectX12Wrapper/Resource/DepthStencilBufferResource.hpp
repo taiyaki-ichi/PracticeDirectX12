@@ -4,11 +4,11 @@
 
 namespace DX12
 {
-	template<std::size_t DepthOrArraySize>
+	template<std::uint32_t DepthOrArraySize>
 	class DepthStencilBufferResourceBase : public ResourceBase
 	{
 	public:
-		void Initialize(Device*, std::size_t width, std::size_t height);
+		void Initialize(Device*, std::uint32_t width, std::uint32_t height);
 	};
 
 
@@ -31,8 +31,8 @@ namespace DX12
 	//
 	//
 
-	template<std::size_t DepthOrArraySize>
-	inline void DepthStencilBufferResourceBase<DepthOrArraySize>::Initialize(Device* device, std::size_t width, std::size_t height)
+	template<std::uint32_t DepthOrArraySize>
+	inline void DepthStencilBufferResourceBase<DepthOrArraySize>::Initialize(Device* device, std::uint32_t width, std::uint32_t height)
 	{
 		D3D12_RESOURCE_DESC depthResDesc{};
 		depthResDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;

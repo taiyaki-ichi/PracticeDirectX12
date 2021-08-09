@@ -10,7 +10,7 @@ namespace DX12
 	{
 	public:
 		void Initialize(Device* device, CommandList* cl, 
-			std::uint8_t* imagePtr, std::size_t width, std::size_t height, std::size_t rowPitch);
+			std::uint8_t* imagePtr, std::uint32_t width, std::uint32_t height, std::uint32_t rowPitch);
 	};
 	
 	template<>
@@ -24,7 +24,7 @@ namespace DX12
 	//
 
 	inline void TextureResource::Initialize(Device* device, CommandList* cl,
-		std::uint8_t* imagePtr, std::size_t width, std::size_t height, std::size_t rowPitch)
+		std::uint8_t* imagePtr, std::uint32_t width, std::uint32_t height, std::uint32_t rowPitch)
 	{
 		//いったんアップロードする用のバッファ
 		UploadResource uploadResource{};
@@ -39,7 +39,7 @@ namespace DX12
 			if (FAILED(uploadResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&uploadResourceImagePtr))))
 				throw "";
 
-			for (std::size_t i = 0; i < height; i++) {
+			for (std::uint32_t i = 0; i < height; i++) {
 				std::copy_n(imagePtr, rowPitch, uploadResourceImagePtr);
 				imagePtr += rowPitch;
 				uploadResourceImagePtr += uploadResourceRowPitch;

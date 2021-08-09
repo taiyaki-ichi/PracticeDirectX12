@@ -39,7 +39,7 @@ namespace DX12
 		std::pair<IDXGIFactory5*, IDXGISwapChain4*> CreateFactryAndSwapChain(HWND);
 
 		void Execute();
-		void Dispatch(std::size_t threadGroupCountX, std::size_t threadGroupCountY, std::size_t threadGroupCountZ);
+		void Dispatch(std::uint32_t threadGroupCountX, std::uint32_t threadGroupCountY, std::uint32_t threadGroupCountZ);
 
 		//コマンドのクリア
 		//引数は初期設定したいパイプラインステート
@@ -67,13 +67,13 @@ namespace DX12
 
 		template<typename T>
 		void SetDescriptorHeap(DescriptorHeap<T>*);
-		void SetGraphicsRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE);
-		void SetComputeRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE);
+		void SetGraphicsRootDescriptorTable(std::uint32_t index, D3D12_GPU_DESCRIPTOR_HANDLE);
+		void SetComputeRootDescriptorTable(std::uint32_t index, D3D12_GPU_DESCRIPTOR_HANDLE);
 
 		void SetPrimitiveTopology(PrimitiveTopology);
 
-		void DrawInstanced(std::size_t vertexNumPerInstance, std::size_t instanceNum = 1);
-		void DrawIndexedInstanced(std::size_t indexNumPerInstance, std::size_t instanceNum = 1);
+		void DrawInstanced(std::uint32_t vertexNumPerInstance, std::uint32_t instanceNum = 1);
+		void DrawIndexedInstanced(std::uint32_t indexNumPerInstance, std::uint32_t instanceNum = 1);
 
 		void Barrior(ResourceBase*, ResourceState);
 
@@ -202,7 +202,7 @@ namespace DX12
 		}
 	}
 
-	inline void CommandList::Dispatch(std::size_t threadGroupCountX, std::size_t threadGroupCountY, std::size_t threadGroupCountZ)
+	inline void CommandList::Dispatch(std::uint32_t threadGroupCountX, std::uint32_t threadGroupCountY, std::uint32_t threadGroupCountZ)
 	{
 		list->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
 	}
@@ -284,12 +284,12 @@ namespace DX12
 		list->SetDescriptorHeaps(1, &dh->Get());
 	}
 
-	inline void CommandList::SetGraphicsRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle)
+	inline void CommandList::SetGraphicsRootDescriptorTable(std::uint32_t index, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle)
 	{
 		list->SetGraphicsRootDescriptorTable(index, gpuHandle);
 	}
 
-	inline void CommandList::SetComputeRootDescriptorTable(std::size_t index, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle)
+	inline void CommandList::SetComputeRootDescriptorTable(std::uint32_t index, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle)
 	{
 		list->SetComputeRootDescriptorTable(index, gpuHandle);
 	}
@@ -299,12 +299,12 @@ namespace DX12
 		list->IASetPrimitiveTopology(static_cast<D3D12_PRIMITIVE_TOPOLOGY>(primitiveTopology));
 	}
 
-	inline void CommandList::DrawInstanced(std::size_t vertexNumPerInstance, std::size_t instanceNum)
+	inline void CommandList::DrawInstanced(std::uint32_t vertexNumPerInstance, std::uint32_t instanceNum)
 	{
 		list->DrawInstanced(vertexNumPerInstance, instanceNum, 0, 0);
 	}
 
-	inline void CommandList::DrawIndexedInstanced(std::size_t indexNumPerInstance, std::size_t instanceNum)
+	inline void CommandList::DrawIndexedInstanced(std::uint32_t indexNumPerInstance, std::uint32_t instanceNum)
 	{
 		list->DrawIndexedInstanced(indexNumPerInstance, instanceNum, 0, 0, 0);
 	}

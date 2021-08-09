@@ -15,7 +15,7 @@ namespace DX12
 	}
 
 	//ウィンドウの作製
-	inline HWND CreateSimpleWindow(const wchar_t* window_name, std::size_t width, std::size_t height)
+	inline HWND CreateSimpleWindow(const wchar_t* window_name, std::uint32_t width, std::uint32_t height)
 	{
 		HINSTANCE hInstance = GetModuleHandle(nullptr);
 

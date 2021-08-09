@@ -12,14 +12,14 @@ namespace DX12
 
 	inline std::vector<D3D12_ROOT_PARAMETER> GetDescriptorTables(const std::vector<std::vector<D3D12_DESCRIPTOR_RANGE>>& ranges);
 
-	inline D3D12_STATIC_SAMPLER_DESC GetStanderdStaticSampler(std::size_t registerNum);
-	inline D3D12_STATIC_SAMPLER_DESC GetToonStaticSampler(std::size_t registerNum);
-	inline D3D12_STATIC_SAMPLER_DESC GetSadowMappingStaticSampler(std::size_t registerNum);
+	inline D3D12_STATIC_SAMPLER_DESC GetStanderdStaticSampler(std::uint32_t registerNum);
+	inline D3D12_STATIC_SAMPLER_DESC GetToonStaticSampler(std::uint32_t registerNum);
+	inline D3D12_STATIC_SAMPLER_DESC GetSadowMappingStaticSampler(std::uint32_t registerNum);
 
 	inline std::vector<D3D12_STATIC_SAMPLER_DESC> GetStaticSamplers(const std::vector<StaticSamplerType>& staticSamplerTypes);
 
 	template<typename Container>
-	std::pair<const typename Container::value_type*, std::size_t> GetContainerDataAndSize(const Container&);
+	std::pair<const typename Container::value_type*, std::uint32_t> GetContainerDataAndSize(const Container&);
 
 
 	//
@@ -32,7 +32,7 @@ namespace DX12
 		std::vector<std::vector<D3D12_DESCRIPTOR_RANGE>> result{};
 		result.reserve(descriptorRangeTypes.size());
 
-		std::array<std::size_t, 4> registerNums{};
+		std::array<std::uint32_t, 4> registerNums{};
 
 		for (auto& rangeTypes : descriptorRangeTypes) {
 			std::vector<D3D12_DESCRIPTOR_RANGE> ranges{};
@@ -73,7 +73,7 @@ namespace DX12
 		return result;
 	}
 
-	inline D3D12_STATIC_SAMPLER_DESC GetStanderdStaticSampler(std::size_t registerNum) 
+	inline D3D12_STATIC_SAMPLER_DESC GetStanderdStaticSampler(std::uint32_t registerNum) 
 	{
 		D3D12_STATIC_SAMPLER_DESC result{};
 		result.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;//‰¡ŒJ‚è•Ô‚µ
@@ -90,7 +90,7 @@ namespace DX12
 		return result;
 	}
 
-	inline D3D12_STATIC_SAMPLER_DESC GetToonStaticSampler(std::size_t registerNum)
+	inline D3D12_STATIC_SAMPLER_DESC GetToonStaticSampler(std::uint32_t registerNum)
 	{
 		D3D12_STATIC_SAMPLER_DESC result{};
 		result.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
@@ -108,7 +108,7 @@ namespace DX12
 		return result;
 	}
 
-	inline D3D12_STATIC_SAMPLER_DESC GetSadowMappingStaticSampler(std::size_t registerNum)
+	inline D3D12_STATIC_SAMPLER_DESC GetSadowMappingStaticSampler(std::uint32_t registerNum)
 	{
 		D3D12_STATIC_SAMPLER_DESC result{};
 		result.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
@@ -125,7 +125,7 @@ namespace DX12
 		return result;
 	}
 
-	inline D3D12_STATIC_SAMPLER_DESC GetCubemapStaticSampler(std::size_t registerNum)
+	inline D3D12_STATIC_SAMPLER_DESC GetCubemapStaticSampler(std::uint32_t registerNum)
 	{
 		D3D12_STATIC_SAMPLER_DESC result{};
 		result.Filter = D3D12_FILTER_ANISOTROPIC;
@@ -149,19 +149,19 @@ namespace DX12
 		std::vector<D3D12_STATIC_SAMPLER_DESC> result{};
 		result.reserve(staticSamplerTypes.size());
 
-		D3D12_STATIC_SAMPLER_DESC(*getStaticSamplerFuncs[])(std::size_t) = {
+		D3D12_STATIC_SAMPLER_DESC(*getStaticSamplerFuncs[])(std::uint32_t) = {
 			GetStanderdStaticSampler ,GetToonStaticSampler,GetSadowMappingStaticSampler ,GetCubemapStaticSampler
 		};
 
-		for (std::size_t i = 0; i < staticSamplerTypes.size(); i++) {
-			result.push_back(getStaticSamplerFuncs[static_cast<std::size_t>(staticSamplerTypes[i])](i));
+		for (std::uint32_t i = 0; i < staticSamplerTypes.size(); i++) {
+			result.push_back(getStaticSamplerFuncs[static_cast<std::uint32_t>(staticSamplerTypes[i])](i));
 		}
 
 		return result;
 	}
 
 	template<typename Container>
-	std::pair<const typename Container::value_type*, std::size_t> GetContainerDataAndSize(const Container& c) {
+	std::pair<const typename Container::value_type*, std::uint32_t> GetContainerDataAndSize(const Container& c) {
 		if (c.size() > 0)
 			return { c.data(),c.size() };
 		else

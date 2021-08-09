@@ -76,12 +76,12 @@ namespace DX12
 
 	inline void ColorTextureResource::Initialize(Device* device, std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a)
 	{
-		constexpr std::size_t EDGE_LENGTH = 4;
+		constexpr std::uint32_t EDGE_LENGTH = 4;
 
 		ColorTextureResourceBase::Initialize(device, EDGE_LENGTH, EDGE_LENGTH);
 
 		std::array<std::uint8_t, 4 * EDGE_LENGTH * EDGE_LENGTH> data{};
-		for (std::size_t i = 0; i < EDGE_LENGTH * EDGE_LENGTH; i++) {
+		for (std::uint32_t i = 0; i < EDGE_LENGTH * EDGE_LENGTH; i++) {
 			data[4 * i] = r;
 			data[4 * i + 1] = g;
 			data[4 * i + 2] = b;
@@ -94,8 +94,8 @@ namespace DX12
 
 	inline void GrayGradationTextureResource::Initialize(Device* device)
 	{
-		constexpr std::size_t WIDTH = 4;
-		constexpr std::size_t HEIGHT = 256;
+		constexpr std::uint32_t WIDTH = 4;
+		constexpr std::uint32_t HEIGHT = 256;
 
 		ColorTextureResourceBase::Initialize(device, WIDTH, HEIGHT);
 

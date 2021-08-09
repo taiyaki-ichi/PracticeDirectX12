@@ -19,14 +19,14 @@ namespace DX12
 		UploadResource(UploadResource&&) noexcept = default;
 		UploadResource& operator=(UploadResource&&) noexcept = default;
 
-		void Initialize(Device*, std::size_t size);
+		void Initialize(Device*, std::uint32_t size);
 
 		//コンテナ、配列用
 		template<typename T>
 		void Map(T&&);
 
 		//テクスチャデータ用
-		void Map(uint8_t* data, std::size_t rowPitch, std::size_t height);
+		void Map(uint8_t* data, std::uint32_t rowPitch, std::uint32_t height);
 	};
 
 	//ヘルパ
@@ -46,7 +46,7 @@ namespace DX12
 	//
 	//
 
-	void UploadResource::Initialize(Device* device, std::size_t size)
+	void UploadResource::Initialize(Device* device, std::uint32_t size)
 	{
 		D3D12_HEAP_PROPERTIES heapprop{};
 		heapprop.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -82,15 +82,15 @@ namespace DX12
 			MapStruct(Get(), std::forward<T>(t));
 	}
 
-	void UploadResource::Map(uint8_t* data, std::size_t rowPitch, std::size_t height)
+	void UploadResource::Map(uint8_t* data, std::uint32_t rowPitch, std::uint32_t height)
 	{
 		uint8_t* target = nullptr;
 		if (FAILED(Get()->Map(0, nullptr, (void**)&target)))
 			throw "UploadResource is failed\n";
 
-		std::size_t targetRowPitch = AlignmentSize(rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+		std::uint32_t targetRowPitch = AlignmentSize(rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 
-		for (std::size_t i = 0; i < height; i++)
+		for (std::uint32_t i = 0; i < height; i++)
 		{
 			std::copy_n(data, rowPitch, target);
 			data += rowPitch;

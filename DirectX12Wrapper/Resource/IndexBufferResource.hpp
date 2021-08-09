@@ -8,7 +8,7 @@ namespace DX12
 		D3D12_INDEX_BUFFER_VIEW indexBufferView{};
 
 	public:
-		void Initialize(Device*, std::size_t size);
+		void Initialize(Device*, std::uint32_t size);
 
 		const D3D12_INDEX_BUFFER_VIEW& GetView() const noexcept;
 	};
@@ -17,7 +17,7 @@ namespace DX12
 	//
 	//
 
-	inline void IndexBufferResource::Initialize(Device* device, std::size_t size)
+	inline void IndexBufferResource::Initialize(Device* device, std::uint32_t size)
 	{
 		UploadResource::Initialize(device, size);
 

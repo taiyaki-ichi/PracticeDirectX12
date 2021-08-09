@@ -83,7 +83,7 @@ namespace DX12
 
 		descriptorHeap.Initialize(device, 2);
 
-		for (size_t i = 0; i < doubleBufferResources.size(); i++) {
+		for (uint32_t i = 0; i < doubleBufferResources.size(); i++) {
 
 			ID3D12Resource* resourcePtr;
 
