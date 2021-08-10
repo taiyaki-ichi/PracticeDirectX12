@@ -14,6 +14,7 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Command.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CommandList.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescripotrHeapViewTag.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeap.hpp" />
@@ -35,6 +36,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\TextureResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\UploadResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\VertexBufferResource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)SwapChain.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Window.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Utility.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Shader.hpp" />

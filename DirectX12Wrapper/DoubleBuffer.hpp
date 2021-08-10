@@ -8,6 +8,8 @@
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
 
+#include<iostream>
+
 namespace DX12
 {
 	class DoubleBuffer
@@ -35,6 +37,8 @@ namespace DX12
 		void Flip();
 
 		DoubleBufferResource& GetBackBufferResource();
+
+
 	};
 
 	//
@@ -94,7 +98,6 @@ namespace DX12
 			doubleBufferResources[i].Initialize(resourcePtr);
 			auto result = descriptorHeap.PushBackView(device, &doubleBufferResources[i]);
 		}
-
 	}
 
 	inline D3D12_CPU_DESCRIPTOR_HANDLE DoubleBuffer::GetBackbufferCpuHandle()
