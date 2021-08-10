@@ -16,9 +16,9 @@ namespace DX12
 		IDXGISwapChain3* const swapChain;
 		std::array<FrameBufferResource, FrameBufferNum> frameBuffer{};
 
-
 	public:
 		SwapChain(IDXGISwapChain3*);
+		~SwapChain();
 
 		//レンダリングされた画像を表示する
 		//また、GetCurrentBackBufferIndexの戻り値が更新される
@@ -46,6 +46,13 @@ namespace DX12
 				throw "GetBuffer is failed\n";
 			frameBuffer[i].Initialize(resourcePtr);
 		}
+	}
+
+	template<std::size_t FrameBufferNum>
+	inline SwapChain<FrameBufferNum>::~SwapChain()
+	{
+		if (swapChain)
+			swapChain->Release();
 	}
 
 	template<std::size_t FrameBufferNum>

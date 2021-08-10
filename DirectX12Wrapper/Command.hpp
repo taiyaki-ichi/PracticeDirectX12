@@ -52,6 +52,9 @@ namespace DX12
 
 		//index番目のコマンドの終了を待つ
 		void Wait(std::uint64_t index);
+		//現在発行されている全てのコマンドの処理を待つ
+		//いらないかも
+		void WaitAll(Device*);
 
 		//indexはアロケータのインデックス
 		void Reset(std::size_t index);
@@ -105,13 +108,13 @@ namespace DX12
 	template<std::size_t FrameLatencyNum>
 	inline Command<FrameLatencyNum>::~Command()
 	{
+		for (auto a : allocator)
+			if (a)
+				a->Release();
 		if (queue)
 			queue->Release();
 		if (list)
 			list->Release();
-		for (auto a : allocator)
-			if (a)
-				a->Release();
 		for (auto f : fence)
 			if (f)
 				f->Release();
@@ -241,6 +244,24 @@ namespace DX12
 			fence[index]->SetEventOnCompletion(fenceValue[index], fenceEventHandle);
 			WaitForSingleObject(fenceEventHandle, INFINITE);
 		}
+	}
+
+	template<std::size_t FrameLatencyNum>
+	inline void Command<FrameLatencyNum>::WaitAll(Device* device)
+	{
+		ID3D12Fence* fence = nullptr;
+		device->Get()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+		
+		constexpr std::uint64_t expectValue = 1;
+
+		queue->Signal(fence, expectValue);
+		if (fence->GetCompletedValue() != expectValue)
+		{
+			fence->SetEventOnCompletion(expectValue, fenceEventHandle);
+			WaitForSingleObject(fenceEventHandle, INFINITE);
+		}
+
+		fence->Release();
 	}
 
 	template<std::size_t FrameLatencyNum>

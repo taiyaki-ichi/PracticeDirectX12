@@ -61,13 +61,11 @@ namespace test008
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
 		D3D12_RECT scissorRect{ 0,0,static_cast<LONG>(WINDOW_WIDTH),static_cast<LONG>(WINDOW_HEIGHT) };
-
-
+		
+		std::size_t cnt = 0;
 		while (UpdateWindow()) {
 
 			auto backBufferIndex = swapChain.GetCurrentBackBufferIndex();
-
-			command.Reset(backBufferIndex);
 
 			command.SetViewport(viewport);
 			command.SetScissorRect(scissorRect);
@@ -92,11 +90,12 @@ namespace test008
 			swapChain.Present();
 			command.Fence(backBufferIndex);
 			command.Wait(swapChain.GetCurrentBackBufferIndex());
-			
-		};
 
-		command.Wait(0);
-		command.Wait(1);
+			command.Reset(swapChain.GetCurrentBackBufferIndex());
+		};
+		
+		
+		command.WaitAll(&device);
 		return 0;
 	}
 }
