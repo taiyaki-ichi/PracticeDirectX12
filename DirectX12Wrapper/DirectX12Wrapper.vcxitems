@@ -29,6 +29,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\DepthStencilBufferResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DoubleBuffer.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\DoubleBufferResource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\FrameBufferResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ShaderResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\IndexBufferResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ResourceBase.hpp" />

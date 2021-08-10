@@ -54,8 +54,9 @@ namespace DX12
 		void Wait(std::uint64_t index);
 
 		//indexはアロケータのインデックス
-		void Clear(std::size_t index);
+		void Reset(std::size_t index);
 
+		void Close();
 
 
 		void SetPipelineState(PipelineState*);
@@ -114,8 +115,8 @@ namespace DX12
 		for (auto f : fence)
 			if (f)
 				f->Release();
-		if (fenceEventHandle)
-			fenceEventHandle->Release();
+		//if (fenceEventHandle)
+			//fenceEventHandle->Release();
 	}
 
 	template<std::size_t FrameLatencyNum>
@@ -183,7 +184,7 @@ namespace DX12
 	template<std::size_t FrameBufferNum>
 	inline SwapChain<FrameBufferNum> Command<FrameLatencyNum>::CreateSwapChain(Device* device, HWND hwnd)
 	{
-		IDXGIFactory1* factory = nullptr;
+		IDXGIFactory3* factory = nullptr;
 		IDXGISwapChain4* swapChain = nullptr;
 
 		if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))))
@@ -243,10 +244,16 @@ namespace DX12
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::Clear(std::size_t index)
+	inline void Command<FrameLatencyNum>::Reset(std::size_t index)
 	{
 		allocator[index]->Reset();
 		list->Reset(allocator[index], nullptr);
+	}
+
+	template<std::size_t FrameLatencyNum>
+	inline void DX12::Command<FrameLatencyNum>::Close()
+	{
+		list->Close();
 	}
 
 	template<std::size_t FrameLatencyNum>
