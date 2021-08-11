@@ -17,9 +17,6 @@ namespace DX12
 		//キューブマップ用
 		struct CubeMap {};
 
-		//キューブマップ用のデプスステンシル
-		struct CubeMapDepthStencilBuffer {};
-
 		//アンオーダ用のタグ
 		struct UnorderedAccessResource {};
 	}

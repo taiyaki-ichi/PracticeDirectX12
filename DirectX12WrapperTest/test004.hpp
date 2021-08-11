@@ -342,8 +342,8 @@ namespace test004
 		mirrorObjectRenderer.Initialize(&device);
 
 
-		CubeMapDepthStencilBufferResource cubemapDepthStencilBufferResource{};
-		cubemapDepthStencilBufferResource.Initialize(&device, CUBE_MAP_EDGE, CUBE_MAP_EDGE);
+		DepthStencilBufferResource cubemapDepthStencilBufferResource{};
+		cubemapDepthStencilBufferResource.Initialize(&device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, 6);
 
 		DescriptorHeap<DescriptorHeapTypeTag::RTV> cubemapRtvDescriptorHeap{};
 		cubemapRtvDescriptorHeap.Initialize(&device, 1);

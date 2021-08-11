@@ -4,41 +4,28 @@
 
 namespace DX12
 {
-	template<std::uint32_t DepthOrArraySize>
-	class DepthStencilBufferResourceBase : public ResourceBase
+	class DepthStencilBufferResource : public ResourceBase
 	{
 	public:
-		void Initialize(Device*, std::uint32_t width, std::uint32_t height);
+		void Initialize(Device*, std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize = 1);
 	};
 
-
-	using DepthStencilBufferResource = DepthStencilBufferResourceBase<1>;
-
 	template<>
-	struct DefaultViewTypeTraits<DepthStencilBufferResource>{
+	struct DefaultViewTypeTraits<DepthStencilBufferResource> {
 		using Type = DescriptorHeapViewTag::DepthStencilBuffer;
 	};
 
-
-	using CubeMapDepthStencilBufferResource = DepthStencilBufferResourceBase<6>;
-
-	template<>
-	struct DefaultViewTypeTraits<CubeMapDepthStencilBufferResource> {
-		using Type = DescriptorHeapViewTag::CubeMapDepthStencilBuffer;
-	};
-
 	//
 	//
 	//
 
-	template<std::uint32_t DepthOrArraySize>
-	inline void DepthStencilBufferResourceBase<DepthOrArraySize>::Initialize(Device* device, std::uint32_t width, std::uint32_t height)
+	inline void DepthStencilBufferResource::Initialize(Device* device, std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize)
 	{
 		D3D12_RESOURCE_DESC depthResDesc{};
 		depthResDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 		depthResDesc.Width = width;
 		depthResDesc.Height = height;
-		depthResDesc.DepthOrArraySize = DepthOrArraySize;
+		depthResDesc.DepthOrArraySize = depthOrArraySize;
 		depthResDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 		depthResDesc.SampleDesc.Count = 1;
 		depthResDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
@@ -59,7 +46,7 @@ namespace DX12
 		depthClearValue.Color[2] = 1.f;
 		depthClearValue.Color[3] = 1.f;
 
-		return ResourceBase::Initialize(device,
+		ResourceBase::Initialize(device,
 			&depthHeapProp,
 			D3D12_HEAP_FLAG_NONE,
 			&depthResDesc,
@@ -67,5 +54,4 @@ namespace DX12
 			&depthClearValue
 		);
 	}
-
 }
