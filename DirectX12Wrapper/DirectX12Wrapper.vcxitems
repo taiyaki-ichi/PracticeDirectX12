@@ -15,7 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)Command.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)CommandList.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescripotrHeapViewTag.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeap.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeapTypeTag.hpp" />
@@ -27,14 +26,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ColorTextureResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ConstantBufferResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\DepthBufferResource.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)DoubleBuffer.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\DoubleBufferResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\FrameBufferResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ShaderResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\IndexBufferResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ResourceBase.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ResourceState.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\TextureResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\UploadResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\VertexBufferResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SwapChain.hpp" />
