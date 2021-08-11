@@ -72,7 +72,7 @@ namespace test010
 		float size;//雪の大きさ
 	};
 
-	constexpr std::size_t MAP_RESOURCE_EDGE_SIZE = 512;
+	constexpr std::size_t MAP_RESOURCE_EDGE_SIZE = 1024;
 
 	constexpr float GROUND_EDGE = 128.f;
 
@@ -125,16 +125,16 @@ namespace test010
 		Device device{};
 		device.Initialize();
 
-		Command command{};
+		Command<3> command{};
 		command.Initialize(&device);
 
 		auto swapChain = command.CreateSwapChain(&device, hwnd);
 
 		DescriptorHeap<DescriptorHeapTypeTag::RTV> rtvDescriptorHeap{};
-		rtvDescriptorHeap.Initialize(&device, 2);
+		rtvDescriptorHeap.Initialize(&device, 3);
 		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(0));
-		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(1)
-		);
+		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(1));
+		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(2));
 
 		DepthStencilBufferResource depthStencilBufferResource{};
 		depthStencilBufferResource.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -170,7 +170,7 @@ namespace test010
 
 		PipelineState groundPipelineState{};
 		groundPipelineState.Initialize(&device, &groundRootSignature, { &groundVS, &grooundPS ,nullptr,&groundHS, &groundDS },
-			{ {"POSITION",{Type::Float32,3}},{"TEXCOOD",{Type::Float32,2}} },
+			{ {"POSITION",{Type::Float,3}},{"TEXCOOD",{Type::Float,2}} },
 			{ {Type::UnsignedNormalizedInt8,4 } }, true, false, PrimitiveTopology::Patch
 		);
 
@@ -189,12 +189,10 @@ namespace test010
 		normalMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
 
 
-		//TextureResource groundDepthTextureResource{};
 		Float4ShaderResource groundDepthTextureResource{};
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/Snow_001_SD/Snow_001_DISP.png", &textureWidth, &textureHeight, &n, 4);
-			//groundDepthTextureResource.Initialize(&device, &commandList, data, textureWidth, textureHeight, textureWidth * 4);
 			UploadResource uploadResource{};
 			uploadResource.Initialize(&device, AlignmentSize(textureWidth * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
@@ -208,16 +206,28 @@ namespace test010
 			command.Execute();
 			command.Fence(0);
 			command.Wait(0);
-			command.Reset(0);
 
 			stbi_image_free(data);
 		}
 
-		TextureResource groundNormalTextureResource{};
+		Float4ShaderResource groundNormalTextureResource{};
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/Snow_001_SD/Snow_001_NORM.jpg", &textureWidth, &textureHeight, &n, 4);
-			//groundNormalTextureResource.Initialize(&device, &commandList, data, textureWidth, textureHeight, textureWidth * 4);
+			UploadResource uploadResource{};
+			uploadResource.Initialize(&device, AlignmentSize(textureWidth * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * textureHeight);
+			uploadResource.Map(data, textureWidth * 4, textureHeight);
+			groundNormalTextureResource.Initialize(&device, textureWidth, textureHeight);
+
+			command.Reset(0);
+			command.Barrior(&groundNormalTextureResource, ResourceState::CopyDest);
+			command.CopyTexture(&device, &uploadResource, &groundNormalTextureResource);
+			command.Barrior(&groundNormalTextureResource, ResourceState::PixcelShaderResource);
+			command.Close();
+			command.Execute();
+			command.Fence(0);
+			command.Wait(0);
+
 			stbi_image_free(data);
 		}
 
@@ -346,14 +356,14 @@ namespace test010
 
 		PipelineState spherePipelineState{};
 		spherePipelineState.Initialize(&device, &sphereRootSignature, { &sphereVS, &spherePS },
-			{ {"POSITION",{Type::Float32,3}},{"NORMAL",{Type::Float32,3}} },
+			{ {"POSITION",{Type::Float,3}},{"NORMAL",{Type::Float,3}} },
 			{ {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Triangle
 		);
 
 		PipelineState sphereDepthPipelineState{};
 		sphereDepthPipelineState.Initialize(&device, &sphereRootSignature, { &sphereDepthVS, &sphereDepthPS },
-			{ {"POSITION",{Type::Float32,3}},{"NORMAL",{Type::Float32,3} } },
-			{ {Type::Float32,1} }, true, false, PrimitiveTopology::Triangle
+			{ {"POSITION",{Type::Float,3}},{"NORMAL",{Type::Float,3} } },
+			{ {Type::Float,1} }, true, false, PrimitiveTopology::Triangle
 		);
 
 
@@ -383,11 +393,24 @@ namespace test010
 		snowDataConstantBufferResource.Initialize(&device, sizeof(SnowData));
 
 
-		TextureResource snowTextureShaderResource{};
+		Float4ShaderResource snowTextureShaderResource{};
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/snow.png", &textureWidth, &textureHeight, &n, 4);
-			//snowTextureShaderResource.Initialize(&device, &commandList, data, textureWidth, textureHeight, textureWidth * 4);
+			UploadResource uploadResource{};
+			uploadResource.Initialize(&device, AlignmentSize(textureWidth * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT)* textureHeight);
+			uploadResource.Map(data, textureWidth * 4, textureHeight);
+			snowTextureShaderResource.Initialize(&device, textureWidth, textureHeight);
+
+			command.Reset(0);
+			command.Barrior(&snowTextureShaderResource, ResourceState::CopyDest);
+			command.CopyTexture(&device, &uploadResource, &snowTextureShaderResource);
+			command.Barrior(&snowTextureShaderResource, ResourceState::PixcelShaderResource);
+			command.Close();
+			command.Execute();
+			command.Fence(0);
+			command.Wait(0);
+
 			stbi_image_free(data);
 		}
 
@@ -415,7 +438,7 @@ namespace test010
 
 		PipelineState snowPipelineState{};
 		snowPipelineState.Initialize(&device, &snowRootSignature, { &snowVS, &snowPS,&snowGS },
-			{ {"POSITION",{Type::Float32,3}} }, { {Type::UnsignedNormalizedInt8,4} },
+			{ {"POSITION",{Type::Float,3}} }, { {Type::UnsignedNormalizedInt8,4} },
 			false, true, PrimitiveTopology::PointList
 		);
 
@@ -451,7 +474,7 @@ namespace test010
 
 		std::size_t cnt = 0;
 		auto time = std::chrono::system_clock::now();
-		/*
+		
 		while (UpdateWindow())
 		{
 			//
@@ -476,25 +499,28 @@ namespace test010
 			cnt++;
 
 
+			auto backBufferIndex = swapChain.GetCurrentBackBufferIndex();
+			command.Reset(backBufferIndex);
+
 			//
 			//sphereのdepthの描写
 			//
 
-			commandList.Barrior(&groundDepthShaderResource, ResourceState::RenderTarget);
-			commandList.SetViewport(depthViewport);
-			commandList.SetScissorRect(depthScissorRect);
-			commandList.ClearRenderTargetView(groundDepthRTVDescriptorHeap.GetCPUHandle(), { 0.f });
-			commandList.ClearDepthView(groundDepthStencilDescriptorHeap.GetCPUHandle(), 1.f);
-			commandList.SetGraphicsRootSignature(&sphereRootSignature);
-			commandList.SetDescriptorHeap(&sphereDescriptorHeap);
-			commandList.SetGraphicsRootDescriptorTable(0, sphereDescriptorHeap.GetGPUHandle());
-			commandList.SetPipelineState(&sphereDepthPipelineState);
-			commandList.SetVertexBuffer(&sphereVertexBufferResource);
-			commandList.SetIndexBuffer(&sphereIndexBufferResource);
-			commandList.SetRenderTarget(groundDepthRTVDescriptorHeap.GetCPUHandle(), groundDepthStencilDescriptorHeap.GetCPUHandle());
-			commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
-			commandList.DrawIndexedInstanced(sphereFaceNum * 3, 2);
-			commandList.Barrior(&groundDepthShaderResource, ResourceState::PixcelShaderResource);
+			command.Barrior(&groundDepthShaderResource, ResourceState::RenderTarget);
+			command.SetViewport(depthViewport);
+			command.SetScissorRect(depthScissorRect);
+			command.ClearRenderTargetView(groundDepthRTVDescriptorHeap.GetCPUHandle(), { 0.f });
+			command.ClearDepthView(groundDepthStencilDescriptorHeap.GetCPUHandle(), 1.f);
+			command.SetGraphicsRootSignature(&sphereRootSignature);
+			command.SetDescriptorHeap(&sphereDescriptorHeap);
+			command.SetGraphicsRootDescriptorTable(0, sphereDescriptorHeap.GetGPUHandle());
+			command.SetPipelineState(&sphereDepthPipelineState);
+			command.SetVertexBuffer(&sphereVertexBufferResource);
+			command.SetIndexBuffer(&sphereIndexBufferResource);
+			command.SetRenderTarget(groundDepthRTVDescriptorHeap.GetCPUHandle(), groundDepthStencilDescriptorHeap.GetCPUHandle());
+			command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
+			command.DrawIndexedInstanced(sphereFaceNum * 3, 2);
+			command.Barrior(&groundDepthShaderResource, ResourceState::PixcelShaderResource);
 
 
 
@@ -502,26 +528,26 @@ namespace test010
 			//HeightMapの計算
 			//
 
-			commandList.Barrior(&heightMapResource, ResourceState::UnorderedAccessResource);
-			commandList.SetComputeRootSignature(&computeHeightRootSignature);
-			commandList.SetDescriptorHeap(&computeHeightDescriptorHeap);
-			commandList.SetComputeRootDescriptorTable(0, computeHeightDescriptorHeap.GetGPUHandle());
-			commandList.SetPipelineState(&computeHeightPipelineState);
-			commandList.Dispatch(MAP_RESOURCE_EDGE_SIZE / 8 + 1, MAP_RESOURCE_EDGE_SIZE / 8 + 1, 1);
-			commandList.Barrior(&heightMapResource, ResourceState::PixcelShaderResource);
+			command.Barrior(&heightMapResource, ResourceState::UnorderedAccessResource);
+			command.SetComputeRootSignature(&computeHeightRootSignature);
+			command.SetDescriptorHeap(&computeHeightDescriptorHeap);
+			command.SetComputeRootDescriptorTable(0, computeHeightDescriptorHeap.GetGPUHandle());
+			command.SetPipelineState(&computeHeightPipelineState);
+			command.Dispatch(MAP_RESOURCE_EDGE_SIZE / 8 + 1, MAP_RESOURCE_EDGE_SIZE / 8 + 1, 1);
+			command.Barrior(&heightMapResource, ResourceState::PixcelShaderResource);
 
 
 			//
 			//NormalMapの計算
 			//
 
-			commandList.Barrior(&normalMapResource, ResourceState::UnorderedAccessResource);
-			commandList.SetComputeRootSignature(&computeNormalRootSignature);
-			commandList.SetDescriptorHeap(&computeNormalDescriptorHeap);
-			commandList.SetComputeRootDescriptorTable(0, computeNormalDescriptorHeap.GetGPUHandle());
-			commandList.SetPipelineState(&computeNormalPipelineState);
-			commandList.Dispatch(MAP_RESOURCE_EDGE_SIZE / 8 + 1, MAP_RESOURCE_EDGE_SIZE / 8 + 1, 1);
-			commandList.Barrior(&normalMapResource, ResourceState::PixcelShaderResource);
+			command.Barrior(&normalMapResource, ResourceState::UnorderedAccessResource);
+			command.SetComputeRootSignature(&computeNormalRootSignature);
+			command.SetDescriptorHeap(&computeNormalDescriptorHeap);
+			command.SetComputeRootDescriptorTable(0, computeNormalDescriptorHeap.GetGPUHandle());
+			command.SetPipelineState(&computeNormalPipelineState);
+			command.Dispatch(MAP_RESOURCE_EDGE_SIZE / 8 + 1, MAP_RESOURCE_EDGE_SIZE / 8 + 1, 1);
+			command.Barrior(&normalMapResource, ResourceState::PixcelShaderResource);
 
 
 
@@ -529,51 +555,53 @@ namespace test010
 			//バックバッファへの描写
 			//
 
-			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::RenderTarget);
+			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::RenderTarget);
 
-			commandList.ClearBackBuffer(&doubleBuffer);
-			commandList.ClearDepthView(depthStencilDescriptorHeap.GetCPUHandle(), 1.f);
-			commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle(), depthStencilDescriptorHeap.GetCPUHandle());
-			commandList.SetViewport(viewport);
-			commandList.SetScissorRect(scissorRect);
+			command.ClearRenderTargetView(rtvDescriptorHeap.GetCPUHandle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
+			command.ClearDepthView(depthStencilDescriptorHeap.GetCPUHandle(), 1.f);
+			command.SetRenderTarget(rtvDescriptorHeap.GetCPUHandle(backBufferIndex), depthStencilDescriptorHeap.GetCPUHandle());
+			command.SetViewport(viewport);
+			command.SetScissorRect(scissorRect);
 
-			commandList.SetPipelineState(&groundPipelineState);
-			commandList.SetGraphicsRootSignature(&groundRootSignature);
-			commandList.SetDescriptorHeap(&groundDescriptorHeap);
-			commandList.SetGraphicsRootDescriptorTable(0, groundDescriptorHeap.GetGPUHandle());
-			commandList.SetVertexBuffer(&vertexBufferResource);
-			commandList.SetIndexBuffer(&indexBufferResource);
-			commandList.SetPrimitiveTopology(PrimitiveTopology::Contorol4PointPatchList);
-			commandList.DrawIndexedInstanced(indexList.size());
+			command.SetPipelineState(&groundPipelineState);
+			command.SetGraphicsRootSignature(&groundRootSignature);
+			command.SetDescriptorHeap(&groundDescriptorHeap);
+			command.SetGraphicsRootDescriptorTable(0, groundDescriptorHeap.GetGPUHandle());
+			command.SetVertexBuffer(&vertexBufferResource);
+			command.SetIndexBuffer(&indexBufferResource);
+			command.SetPrimitiveTopology(PrimitiveTopology::Contorol4PointPatchList);
+			command.DrawIndexedInstanced(indexList.size());
 
-			commandList.SetPipelineState(&spherePipelineState);
-			commandList.SetGraphicsRootSignature(&sphereRootSignature);
-			commandList.SetDescriptorHeap(&sphereDescriptorHeap);
-			commandList.SetGraphicsRootDescriptorTable(0, sphereDescriptorHeap.GetGPUHandle());
-			commandList.SetVertexBuffer(&sphereVertexBufferResource);
-			commandList.SetIndexBuffer(&sphereIndexBufferResource);
-			commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
-			commandList.DrawIndexedInstanced(sphereFaceNum * 3, 2);
+			command.SetPipelineState(&spherePipelineState);
+			command.SetGraphicsRootSignature(&sphereRootSignature);
+			command.SetDescriptorHeap(&sphereDescriptorHeap);
+			command.SetGraphicsRootDescriptorTable(0, sphereDescriptorHeap.GetGPUHandle());
+			command.SetVertexBuffer(&sphereVertexBufferResource);
+			command.SetIndexBuffer(&sphereIndexBufferResource);
+			command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
+			command.DrawIndexedInstanced(sphereFaceNum * 3, 2);
 
-			commandList.SetPipelineState(&snowPipelineState);
-			commandList.SetGraphicsRootSignature(&snowRootSignature);
-			commandList.SetDescriptorHeap(&snowDescriptorHeap);
-			commandList.SetGraphicsRootDescriptorTable(0, snowDescriptorHeap.GetGPUHandle());
-			commandList.SetVertexBuffer(&snowVertexBufferResource);
-			commandList.SetPrimitiveTopology(PrimitiveTopology::PointList);
-			commandList.DrawInstanced(SNOW_NUM);
+			command.SetPipelineState(&snowPipelineState);
+			command.SetGraphicsRootSignature(&snowRootSignature);
+			command.SetDescriptorHeap(&snowDescriptorHeap);
+			command.SetGraphicsRootDescriptorTable(0, snowDescriptorHeap.GetGPUHandle());
+			command.SetVertexBuffer(&snowVertexBufferResource);
+			command.SetPrimitiveTopology(PrimitiveTopology::PointList);
+			command.DrawInstanced(SNOW_NUM);
 
 
-			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::Common);
+			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::Common);
 
-			commandList.Close();
-			commandList.Execute();
-			commandList.Clear();
+			command.Close();
+			command.Execute();
 
-			doubleBuffer.Flip();
+			swapChain.Present();
+			command.Fence(backBufferIndex);
+
+			command.Wait(swapChain.GetCurrentBackBufferIndex());
 		}
-		*/
-
+		
+		command.WaitAll(&device);
 		return 0;
 	}
 

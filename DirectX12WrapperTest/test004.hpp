@@ -146,7 +146,7 @@ namespace test004
 				ps.Intialize(L"Shader/ColorObject/PixelShader.hlsl", "main", "ps_5_0");
 
 				standerdPipelineState.Initialize(device, &rootSignature, { &vs, &ps },
-					{ {"POSITION", {Type::Float32,3} },{"NORMAL",{Type::Float32,3} } },
+					{ {"POSITION", {Type::Float,3} },{"NORMAL",{Type::Float,3} } },
 					{ {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Triangle
 				);
 			}
@@ -162,7 +162,7 @@ namespace test004
 				ps.Intialize(L"Shader/ColorObjectForCubemap/PixelShader.hlsl", "main", "ps_5_0");
 
 				cubemapPipelineState.Initialize(device, &rootSignature, { &vs, &ps,&gs },
-					{ {"POSITION", {Type::Float32,3} } ,{"NORMAL",{Type::Float32,3} } },
+					{ {"POSITION", {Type::Float,3} } ,{"NORMAL",{Type::Float,3} } },
 					{ {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Triangle
 				);
 			}
@@ -238,7 +238,7 @@ namespace test004
 			ps.Intialize(L"Shader/MirrorObject/PixelShader.hlsl", "main", "ps_5_0");
 
 			pipelineState.Initialize(device, &rootSignature, { &vs, &ps },
-				{ {"POSITION", {Type::Float32,3} },{"NORMAL",{Type::Float32,3} } },
+				{ {"POSITION", {Type::Float,3} },{"NORMAL",{Type::Float,3} } },
 				{ {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Triangle
 			);
 		}

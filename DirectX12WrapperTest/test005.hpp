@@ -122,7 +122,7 @@ namespace test005
 
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vs, &ps,nullptr,&hs, &ds },
-			{ {"POSITION",{Type::Float32,3}},{"TEXCOOD",{Type::Float32,2}} },
+			{ {"POSITION",{Type::Float,3}},{"TEXCOOD",{Type::Float,2}} },
 			{ {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Patch
 		);
 

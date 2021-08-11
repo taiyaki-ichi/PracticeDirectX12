@@ -31,7 +31,7 @@ namespace DX12
 	{
 	public:
 		void Initialize(Device* device, std::uint32_t width, std::uint32_t height,float depth=0.f) {
-			ShaderResource::Initialize(device, width, height, { Type::Float32,1 }, 1, depth);
+			ShaderResource::Initialize(device, width, height, { Type::Float,1 }, 1, depth);
 		}
 	};
 

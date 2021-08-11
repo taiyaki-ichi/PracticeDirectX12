@@ -82,7 +82,7 @@ namespace test002
 
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
-			{ {"POSITION", {Type::Float32,3}} ,{"TEXCOOD",{Type::Float32,2}} },
+			{ {"POSITION", {Type::Float,3}} ,{"TEXCOOD",{Type::Float,2}} },
 			{ {Type::UnsignedNormalizedInt8,4} }, false, false, PrimitiveTopology::Triangle
 		);
 

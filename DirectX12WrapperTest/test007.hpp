@@ -72,7 +72,7 @@ namespace test007
 		float size;//ê·ÇÃëÂÇ´Ç≥
 	};
 
-	constexpr std::size_t MAP_RESOURCE_EDGE_SIZE = 512;
+	constexpr std::size_t MAP_RESOURCE_EDGE_SIZE = 1024;
 
 	constexpr float GROUND_EDGE = 128.f;
 
@@ -166,7 +166,7 @@ namespace test007
 
 		PipelineState groundPipelineState{};
 		groundPipelineState.Initialize(&device, &groundRootSignature, { &groundVS, &grooundPS ,nullptr,&groundHS, &groundDS },
-			{ {"POSITION",{Type::Float32,3}},{"TEXCOOD",{Type::Float32,2}} },
+			{ {"POSITION",{Type::Float,3}},{"TEXCOOD",{Type::Float,2}} },
 			{ {Type::UnsignedNormalizedInt8,4 } }, true, false, PrimitiveTopology::Patch
 		);
 			
@@ -327,14 +327,14 @@ namespace test007
 
 		PipelineState spherePipelineState{};
 		spherePipelineState.Initialize(&device, &sphereRootSignature, { &sphereVS, &spherePS },
-			{ {"POSITION",{Type::Float32,3}},{"NORMAL",{Type::Float32,3}} },
+			{ {"POSITION",{Type::Float,3}},{"NORMAL",{Type::Float,3}} },
 			{ {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Triangle
 		);
 
 		PipelineState sphereDepthPipelineState{};
 		sphereDepthPipelineState.Initialize(&device, &sphereRootSignature, { &sphereDepthVS, &sphereDepthPS },
-			{ {"POSITION",{Type::Float32,3}},{"NORMAL",{Type::Float32,3} } },
-			{ {Type::Float32,1} }, true, false, PrimitiveTopology::Triangle
+			{ {"POSITION",{Type::Float,3}},{"NORMAL",{Type::Float,3} } },
+			{ {Type::Float,1} }, true, false, PrimitiveTopology::Triangle
 		);
 
 
@@ -396,7 +396,7 @@ namespace test007
 
 		PipelineState snowPipelineState{};
 		snowPipelineState.Initialize(&device, &snowRootSignature, { &snowVS, &snowPS,&snowGS },
-			{ {"POSITION",{Type::Float32,3}} }, { {Type::UnsignedNormalizedInt8,4} },
+			{ {"POSITION",{Type::Float,3}} }, { {Type::UnsignedNormalizedInt8,4} },
 			false, true, PrimitiveTopology::PointList
 		);
 
