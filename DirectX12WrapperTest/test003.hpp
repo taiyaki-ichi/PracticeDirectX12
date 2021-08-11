@@ -7,7 +7,7 @@
 #include"RootSignature/RootSignature.hpp"
 #include"PipelineState/PipelineState.hpp"
 #include"Resource/IndexBufferResource.hpp"
-#include"Resource/DepthStencilBufferResource.hpp"
+#include"Resource/DepthBufferResource.hpp"
 #include"Resource/ConstantBufferResource.hpp"
 
 #include"OffLoader.hpp"
@@ -83,7 +83,7 @@ namespace test003
 		);
 
 
-		DepthStencilBufferResource depthStencilBufferResource{};
+		DepthBufferResource depthStencilBufferResource{};
 		depthStencilBufferResource.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		DescriptorHeap<DescriptorHeapTypeTag::DSV> depthStencilDescriptorHeap{};

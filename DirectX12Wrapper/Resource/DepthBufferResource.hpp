@@ -4,14 +4,14 @@
 
 namespace DX12
 {
-	class DepthStencilBufferResource : public ResourceBase
+	class DepthBufferResource : public ResourceBase
 	{
 	public:
 		void Initialize(Device*, std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize = 1);
 	};
 
 	template<>
-	struct DefaultViewTypeTraits<DepthStencilBufferResource> {
+	struct DefaultViewTypeTraits<DepthBufferResource> {
 		using Type = DescriptorHeapViewTag::DepthStencilBuffer;
 	};
 
@@ -19,7 +19,7 @@ namespace DX12
 	//
 	//
 
-	inline void DepthStencilBufferResource::Initialize(Device* device, std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize)
+	inline void DepthBufferResource::Initialize(Device* device, std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize)
 	{
 		D3D12_RESOURCE_DESC depthResDesc{};
 		depthResDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;

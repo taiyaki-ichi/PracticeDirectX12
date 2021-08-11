@@ -6,7 +6,7 @@
 #include"Shader.hpp"
 #include"RootSignature/RootSignature.hpp"
 #include"PipelineState/PipelineState.hpp"
-#include"Resource/DepthStencilBufferResource.hpp"
+#include"Resource/DepthBufferResource.hpp"
 #include"DescriptorHeap/DescriptorHeap.hpp"
 #include"Resource/ConstantBufferResource.hpp"
 #include"Resource/TextureResource.hpp"
@@ -136,7 +136,7 @@ namespace test010
 		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(1));
 		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(2));
 
-		DepthStencilBufferResource depthStencilBufferResource{};
+		DepthBufferResource depthStencilBufferResource{};
 		depthStencilBufferResource.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		DescriptorHeap<DescriptorHeapTypeTag::DSV> depthStencilDescriptorHeap{};
@@ -318,7 +318,7 @@ namespace test010
 		}
 
 
-		DepthStencilBufferResource groundDepthStencilBufferResource{};
+		DepthBufferResource groundDepthStencilBufferResource{};
 		groundDepthStencilBufferResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
 
 		DescriptorHeap<DescriptorHeapTypeTag::DSV> groundDepthStencilDescriptorHeap{};

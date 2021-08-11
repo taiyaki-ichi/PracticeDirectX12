@@ -6,7 +6,7 @@
 #include"Shader.hpp"
 #include"RootSignature/RootSignature.hpp"
 #include"PipelineState/PipelineState.hpp"
-#include"Resource/DepthStencilBufferResource.hpp"
+#include"Resource/DepthBufferResource.hpp"
 #include"DescriptorHeap/DescriptorHeap.hpp"
 #include"Resource/ConstantBufferResource.hpp"
 #include"Resource/TextureResource.hpp"
@@ -126,7 +126,7 @@ namespace test005
 			{ {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Patch
 		);
 
-		DepthStencilBufferResource depthStencilBufferResource{};
+		DepthBufferResource depthStencilBufferResource{};
 		depthStencilBufferResource.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		DescriptorHeap<DescriptorHeapTypeTag::DSV> depthStencilDescriptorHeap{};

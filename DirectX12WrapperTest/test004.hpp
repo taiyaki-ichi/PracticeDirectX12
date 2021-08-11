@@ -10,7 +10,7 @@
 #include"Resource/IndexBufferResource.hpp"
 #include"Resource/ShaderResource.hpp"
 #include"Resource/ConstantBufferResource.hpp"
-#include"Resource/DepthStencilBufferResource.hpp"
+#include"Resource/DepthBufferResource.hpp"
 
 #include<array>
 #include<DirectXMath.h>
@@ -342,7 +342,7 @@ namespace test004
 		mirrorObjectRenderer.Initialize(&device);
 
 
-		DepthStencilBufferResource cubemapDepthStencilBufferResource{};
+		DepthBufferResource cubemapDepthStencilBufferResource{};
 		cubemapDepthStencilBufferResource.Initialize(&device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, 6);
 
 		DescriptorHeap<DescriptorHeapTypeTag::RTV> cubemapRtvDescriptorHeap{};
@@ -350,7 +350,7 @@ namespace test004
 		cubemapRtvDescriptorHeap.PushBackView(&device, &mirrorObjectModel.GetCubemapShaderResource());
 
 
-		DepthStencilBufferResource depthStencilBufferResource{};
+		DepthBufferResource depthStencilBufferResource{};
 		depthStencilBufferResource.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		DescriptorHeap<DescriptorHeapTypeTag::DSV> depthStencilDescriptorHeap{};

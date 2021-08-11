@@ -26,7 +26,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)PrimitiveTopology.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ColorTextureResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ConstantBufferResource.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\DepthStencilBufferResource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\DepthBufferResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DoubleBuffer.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\DoubleBufferResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\FrameBufferResource.hpp" />
