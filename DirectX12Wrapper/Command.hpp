@@ -5,6 +5,7 @@
 #include"Resource/VertexBufferResource.hpp"
 #include"Resource/IndexBufferResource.hpp"
 #include"DescriptorHeap/DescriptorHeap.hpp"
+#include"Resource/TextureResource.hpp"
 #include<array>
 #include<algorithm>
 #include<d3d12.h>
@@ -41,7 +42,7 @@ namespace DX12
 		template<std::size_t FrameBufferNum=FrameLatencyNum>
 		SwapChain<FrameBufferNum> CreateSwapChain(Device*, HWND);
 
-
+		void CopyTexture(Device*,ResourceBase* srcResource, ResourceBase* dstResource);
 
 		void Execute();
 		void Dispatch(std::uint32_t threadGroupCountX, std::uint32_t threadGroupCountY, std::uint32_t threadGroupCountZ);
@@ -118,8 +119,6 @@ namespace DX12
 		for (auto f : fence)
 			if (f)
 				f->Release();
-		//if (fenceEventHandle)
-			//fenceEventHandle->Release();
 	}
 
 	template<std::size_t FrameLatencyNum>
@@ -180,6 +179,8 @@ namespace DX12
 				throw "CreateFence is failed\n";
 
 		fenceEventHandle = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+		Close();//•K—v
 	}
 
 
@@ -215,6 +216,40 @@ namespace DX12
 		factory->Release();
 
 		return { swapChain };
+	}
+
+	template<std::size_t FrameLatencyNum>
+	inline void Command<FrameLatencyNum>::CopyTexture(Device* device,ResourceBase* srcResource, ResourceBase* dstResource)
+	{
+		D3D12_TEXTURE_COPY_LOCATION srcLocation{};
+		D3D12_TEXTURE_COPY_LOCATION dstLocation{};
+
+		const auto dstDesc = dstResource->Get()->GetDesc();
+		const auto width = dstDesc.Width;
+		const auto height = dstDesc.Height;
+		const auto uploadResourceRowPitch = srcResource->Get()->GetDesc().Width / height;
+
+		srcLocation.pResource = srcResource->Get();
+		srcLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+		{
+			D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
+			UINT nrow;
+			UINT64 rowsize, size;
+			device->Get()->GetCopyableFootprints(&dstDesc, 0, 1, 0, &footprint, &nrow, &rowsize, &size);
+			srcLocation.PlacedFootprint = footprint;
+		}
+		srcLocation.PlacedFootprint.Offset = 0;
+		srcLocation.PlacedFootprint.Footprint.Width = width;
+		srcLocation.PlacedFootprint.Footprint.Height = height;
+		srcLocation.PlacedFootprint.Footprint.Depth = 1;
+		srcLocation.PlacedFootprint.Footprint.RowPitch = uploadResourceRowPitch;
+		srcLocation.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+		dstLocation.pResource = dstResource->Get();
+		dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+		dstLocation.SubresourceIndex = 0;
+
+		list->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
 	}
 
 	template<std::size_t FrameLatencyNum>

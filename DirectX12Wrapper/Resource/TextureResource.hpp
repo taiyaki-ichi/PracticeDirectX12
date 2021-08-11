@@ -2,6 +2,7 @@
 #include"ResourceBase.hpp"
 #include"../DescriptorHeap/DescripotrHeapViewTag.hpp"
 #include"UploadResource.hpp"
+#include"../CommandList.hpp"
 #include"../Utility.hpp"
 
 namespace DX12
@@ -11,6 +12,8 @@ namespace DX12
 	public:
 		void Initialize(Device* device, CommandList* cl, 
 			std::uint8_t* imagePtr, std::uint32_t width, std::uint32_t height, std::uint32_t rowPitch);
+
+		void Initialize(Device*, std::uint32_t width, std::uint32_t height);
 	};
 	
 	template<>
@@ -102,7 +105,7 @@ namespace DX12
 			srcLocation.PlacedFootprint.Footprint.Depth = 1;
 			srcLocation.PlacedFootprint.Footprint.RowPitch = uploadResourceRowPitch;
 			srcLocation.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
+			
 			dstLocation.pResource = Get();
 			dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
 			dstLocation.SubresourceIndex = 0;
@@ -113,8 +116,37 @@ namespace DX12
 			cl->Execute();
 			cl->Clear();
 		}
-
 	}
 
+	inline void TextureResource::Initialize(Device* device, std::uint32_t width, std::uint32_t height)
+	{
+		D3D12_RESOURCE_DESC resourceDesc{};
+		resourceDesc.Width = width;
+		resourceDesc.Height = height;
+		//
+		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+		resourceDesc.SampleDesc.Count = 1;
+		resourceDesc.SampleDesc.Quality = 0;
+		//ïœçXÇ≈Ç´ÇÈÇÊÇ§Ç…ÇµÇΩï˚Ç™Ç¢Ç¢Ç©Ç‡
+		resourceDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		resourceDesc.DepthOrArraySize = 1;
+		resourceDesc.MipLevels = 1;
+		resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
+		D3D12_HEAP_PROPERTIES heapProperties{};
+		heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+		heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+		heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+		heapProperties.CreationNodeMask = 0;
+		heapProperties.VisibleNodeMask = 0;
+
+		ResourceBase::Initialize(
+			device,
+			&heapProperties,
+			D3D12_HEAP_FLAG_NONE,
+			&resourceDesc,
+			ResourceState::CopyDest,
+			nullptr
+		);
+	}
 }
