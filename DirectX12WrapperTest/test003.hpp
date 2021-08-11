@@ -1,8 +1,8 @@
 #pragma once
 #include"Window.hpp"
 #include"Device.hpp"
-#include"CommandList.hpp"
-#include"DoubleBuffer.hpp"
+#include"Command.hpp"
+#include"SwapChain.hpp"
 #include"Resource/VertexBufferResource.hpp"
 #include"RootSignature/RootSignature.hpp"
 #include"PipelineState/PipelineState.hpp"
@@ -37,12 +37,15 @@ namespace test003
 		Device device{};
 		device.Initialize();
 
-		CommandList commandList{};
-		commandList.Initialize(&device);
+		Command command{};
+		command.Initialize(&device);
 
-		DoubleBuffer doubleBuffer{};
-		auto [factry, swapChain] = commandList.CreateFactryAndSwapChain(hwnd);
-		doubleBuffer.Initialize(&device, factry, swapChain);
+		auto swapChain = command.CreateSwapChain(&device, hwnd);
+
+		DescriptorHeap<DescriptorHeapTypeTag::RTV> rtvDescriptorHeap{};
+		rtvDescriptorHeap.Initialize(&device, 2);
+		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(0));
+		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(1));
 
 		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint16_t, 3>>("../../Assets/bunny.off");
 		
@@ -123,52 +126,59 @@ namespace test003
 			sceneDataConstantBufferResource.Map(SceneData{ view,proj });
 			cnt++;
 
-			commandList.SetViewport(viewport);
-			commandList.SetScissorRect(scissorRect);
+			auto backBufferIndex = swapChain.GetCurrentBackBufferIndex();
+			command.Reset(backBufferIndex);
 
-			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::RenderTarget);
-			commandList.ClearBackBuffer(&doubleBuffer);
+			command.SetViewport(viewport);
+			command.SetScissorRect(scissorRect);
 
-			commandList.ClearDepthView(depthStencilDescriptorHeap.GetCPUHandle(), 1.f);
+			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::RenderTarget);
+			command.ClearRenderTargetView(rtvDescriptorHeap.GetCPUHandle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
 
-			commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle(),depthStencilDescriptorHeap.GetCPUHandle());
+			command.ClearDepthView(depthStencilDescriptorHeap.GetCPUHandle(), 1.f);
+
+			command.SetRenderTarget(rtvDescriptorHeap.GetCPUHandle(backBufferIndex),depthStencilDescriptorHeap.GetCPUHandle());
 
 			//ñ ÇÃï`é 
 			{
-				commandList.SetPipelineState(&drawFacePipelineState);
-				commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
-				commandList.SetGraphicsRootSignature(&rootSignature);
+				command.SetPipelineState(&drawFacePipelineState);
+				command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
+				command.SetGraphicsRootSignature(&rootSignature);
 
-				commandList.SetVertexBuffer(&vertexBufferResource);
-				commandList.SetIndexBuffer(&indexBufferResource);
-				commandList.SetDescriptorHeap(&descriptorHeap);
-				commandList.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+				command.SetVertexBuffer(&vertexBufferResource);
+				command.SetIndexBuffer(&indexBufferResource);
+				command.SetDescriptorHeap(&descriptorHeap);
+				command.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 
-				commandList.DrawIndexedInstanced(face.size() * 3);
+				command.DrawIndexedInstanced(face.size() * 3);
 			}
 
 			//ñ@ê¸ÇÃï`é 
 			{
-				commandList.SetPipelineState(&drawNormalPipelineState);
-				commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
-				commandList.SetGraphicsRootSignature(&rootSignature);
+				command.SetPipelineState(&drawNormalPipelineState);
+				command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
+				command.SetGraphicsRootSignature(&rootSignature);
 
-				commandList.SetVertexBuffer(&vertexBufferResource);
-				commandList.SetIndexBuffer(&indexBufferResource);
-				commandList.SetDescriptorHeap(&descriptorHeap);
-				commandList.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+				command.SetVertexBuffer(&vertexBufferResource);
+				command.SetIndexBuffer(&indexBufferResource);
+				command.SetDescriptorHeap(&descriptorHeap);
+				command.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 
-				commandList.DrawIndexedInstanced(face.size() * 3);
+				command.DrawIndexedInstanced(face.size() * 3);
 			}
 
-			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::Common);
+			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::Common);
 
-			commandList.Close();
-			commandList.Execute();
-			commandList.Clear();
+			command.Close();
+			command.Execute();
 
-			doubleBuffer.Flip();
+			swapChain.Present();
+			command.Fence(backBufferIndex);
+
+			command.Wait(swapChain.GetCurrentBackBufferIndex());
 		};
+
+		command.WaitAll(&device);
 
 		return 0;
 	}

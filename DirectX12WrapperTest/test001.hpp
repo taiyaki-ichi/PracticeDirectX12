@@ -1,8 +1,9 @@
 #pragma once
 #include"Window.hpp"
 #include"Device.hpp"
-#include"CommandList.hpp"
-#include"DoubleBuffer.hpp"
+#include"Command.hpp"
+#include"SwapChain.hpp"
+#include"DescriptorHeap/DescriptorHeap.hpp"
 #include"Resource/VertexBufferResource.hpp"
 #include"RootSignature/RootSignature.hpp"
 #include"PipelineState/PipelineState.hpp"
@@ -12,8 +13,8 @@
 //ƒ|ƒŠƒSƒ“‚Ì•`ŽÊ‚Ì•`ŽÊ‚ð‚·‚é
 namespace test001
 {
-	
-	inline int main() 
+
+	inline int main()
 	{
 		using namespace DX12;
 
@@ -25,12 +26,15 @@ namespace test001
 		Device device{};
 		device.Initialize();
 
-		CommandList commandList{};
-		commandList.Initialize(&device);
+		Command command{};
+		command.Initialize(&device);
 
-		DoubleBuffer doubleBuffer{};
-		auto [factry, swapChain] = commandList.CreateFactryAndSwapChain(hwnd);
-		doubleBuffer.Initialize(&device, factry, swapChain);
+		auto swapChain = command.CreateSwapChain(&device, hwnd);
+
+		DescriptorHeap<DescriptorHeapTypeTag::RTV> rtvDescriptorHeap{};
+		rtvDescriptorHeap.Initialize(&device, 2);
+		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(0));
+		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(1));
 
 		std::array<std::array<float, 3>, 3> vertex{
 			{{-0.8f,-0.8f,0.f},{-0.8f,0.8f,0.f},{0.8f,-0.8f,0.f}}
@@ -58,33 +62,40 @@ namespace test001
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
 		D3D12_RECT scissorRect{ 0,0,static_cast<LONG>(WINDOW_WIDTH),static_cast<LONG>(WINDOW_HEIGHT) };
 
-
+		std::size_t cnt = 0;
 		while (UpdateWindow()) {
 
-			commandList.SetViewport(viewport);
-			commandList.SetScissorRect(scissorRect);
+			auto backBufferIndex = swapChain.GetCurrentBackBufferIndex();
+			command.Reset(backBufferIndex);
 
-			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::RenderTarget);
-			commandList.ClearBackBuffer(&doubleBuffer);
+			command.SetViewport(viewport);
+			command.SetScissorRect(scissorRect);
 
-			commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle());
+			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::RenderTarget);
+			command.ClearRenderTargetView(rtvDescriptorHeap.GetCPUHandle(backBufferIndex), { 0.5f,0.5f,0.5f,1.0f });
 
-			commandList.SetPipelineState(&pipelineState);
-			commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
-			commandList.SetGraphicsRootSignature(&rootSignature);
+			command.SetRenderTarget(rtvDescriptorHeap.GetCPUHandle(backBufferIndex));
 
-			commandList.SetVertexBuffer(&vertexBufferResource);
-			commandList.DrawInstanced(3);
+			command.SetPipelineState(&pipelineState);
+			command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
+			command.SetGraphicsRootSignature(&rootSignature);
 
-			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::Common);
+			command.SetVertexBuffer(&vertexBufferResource);
+			command.DrawInstanced(3);
 
-			commandList.Close();
-			commandList.Execute();
-			commandList.Clear();
+			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::Common);
 
-			doubleBuffer.Flip();
+			command.Close();
+			command.Execute();
+
+			swapChain.Present();
+			command.Fence(backBufferIndex);
+
+			command.Wait(swapChain.GetCurrentBackBufferIndex());
 		};
 
+
+		command.WaitAll(&device);
 		return 0;
 	}
 }

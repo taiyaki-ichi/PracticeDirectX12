@@ -2,8 +2,8 @@
 #include"Window.hpp"
 #include"Device.hpp"
 #include"PipelineState/PipelineState.hpp"
-#include"CommandList.hpp"
-#include"DoubleBuffer.hpp"
+#include"Command.hpp"
+#include"SwapChain.hpp"
 #include"OffLoader.hpp"
 #include"utility.hpp"
 #include"Resource/VertexBufferResource.hpp"
@@ -43,6 +43,8 @@ namespace test004
 		XMMATRIX proj;
 	};
 
+	constexpr std::size_t FRAME_LATENCY_NUM = 2;
+
 	class Mesh
 	{
 		std::size_t faceNum{};
@@ -78,13 +80,13 @@ namespace test004
 			indexBufferResource.Map(std::move(faceList));
 		}
 
-		void SetMesh(CommandList* cl)
+		void SetMesh(Command<FRAME_LATENCY_NUM>* cl)
 		{
 			cl->SetVertexBuffer(&vertexBufferResource);
 			cl->SetIndexBuffer(&indexBufferResource);
 		}
 
-		void Draw(CommandList* cl)
+		void Draw(Command<FRAME_LATENCY_NUM>* cl)
 		{
 			cl->DrawIndexedInstanced(faceNum * 3);
 		}
@@ -115,7 +117,7 @@ namespace test004
 			colorBunnyDataConstantBufferResource[i].Map(std::forward<T>(t));
 		}
 
-		void SetDescriptorHeap(CommandList* cl, std::size_t i)
+		void SetDescriptorHeap(Command<FRAME_LATENCY_NUM>* cl, std::size_t i)
 		{
 			cl->SetDescriptorHeap(&descriptorHeap);
 			cl->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle(0));
@@ -210,7 +212,7 @@ namespace test004
 			return cubemapShaderResource;
 		}
 
-		void SetDescriptorHeap(CommandList* cl)
+		void SetDescriptorHeap(Command<FRAME_LATENCY_NUM>* cl)
 		{
 			cl->SetDescriptorHeap(&descriptorHeap);
 			cl->SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
@@ -290,12 +292,15 @@ namespace test004
 		Device device{};
 		device.Initialize();
 
-		CommandList commandList{};
-		commandList.Initialize(&device);
+		Command command{};
+		command.Initialize(&device);
 
-		DoubleBuffer doubleBuffer{};
-		auto [factry, swapChain] = commandList.CreateFactryAndSwapChain(hwnd);
-		doubleBuffer.Initialize(&device, factry, swapChain);
+		auto swapChain = command.CreateSwapChain(&device, hwnd);
+
+		DescriptorHeap<DescriptorHeapTypeTag::RTV> rtvDescriptorHeap{};
+		rtvDescriptorHeap.Initialize(&device, 2);
+		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(0));
+		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(1));
 
 
 		ConstantBufferResource sceneDataConstantBufferResource{};
@@ -397,77 +402,85 @@ namespace test004
 			mirrorObjectModel.MapWorld(XMMatrixScaling(3.f, 3.f, 3.f) * XMMatrixTranslation(mirrorPos.x, mirrorPos.y, mirrorPos.z));
 
 
+			auto backBufferIndex = swapChain.GetCurrentBackBufferIndex();
+			command.Reset(backBufferIndex);
+
+
 			//Cubemap
 			{
-				commandList.SetViewport(cubemapViewport);
-				commandList.SetScissorRect(cubemapScissorRect);
+				command.SetViewport(cubemapViewport);
+				command.SetScissorRect(cubemapScissorRect);
 
-				commandList.Barrior(&mirrorObjectModel.GetCubemapShaderResource(), ResourceState::RenderTarget);
+				command.Barrior(&mirrorObjectModel.GetCubemapShaderResource(), ResourceState::RenderTarget);
 
-				commandList.ClearRenderTargetView(cubemapRtvDescriptorHeap.GetCPUHandle(), MirrorObjectModel::CUBEMAP_CLEAR_VALUE);
-				commandList.ClearDepthView(depthStencilDescriptorHeap.GetCPUHandle(1), 1.f);
+				command.ClearRenderTargetView(cubemapRtvDescriptorHeap.GetCPUHandle(), MirrorObjectModel::CUBEMAP_CLEAR_VALUE);
+				command.ClearDepthView(depthStencilDescriptorHeap.GetCPUHandle(1), 1.f);
 
-				commandList.SetRenderTarget(cubemapRtvDescriptorHeap.GetCPUHandle(), depthStencilDescriptorHeap.GetCPUHandle(1));
+				command.SetRenderTarget(cubemapRtvDescriptorHeap.GetCPUHandle(), depthStencilDescriptorHeap.GetCPUHandle(1));
 
-				commandList.SetPipelineState(&colorObjectRenderer.GetCubemapPipelineState());
-				commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
-				commandList.SetGraphicsRootSignature(&colorObjectRenderer.GetRootSignature());
-				bunnyMesh.SetMesh(&commandList);
+				command.SetPipelineState(&colorObjectRenderer.GetCubemapPipelineState());
+				command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
+				command.SetGraphicsRootSignature(&colorObjectRenderer.GetRootSignature());
+				bunnyMesh.SetMesh(&command);
 
 				for (std::size_t i = 0; i < ColorObjectNum; i++) {
-					colorObjectModel.SetDescriptorHeap(&commandList, i);
-					bunnyMesh.Draw(&commandList);
+					colorObjectModel.SetDescriptorHeap(&command, i);
+					bunnyMesh.Draw(&command);
 				}
 
-				commandList.Barrior(&mirrorObjectModel.GetCubemapShaderResource(), ResourceState::PixcelShaderResource);
+				command.Barrior(&mirrorObjectModel.GetCubemapShaderResource(), ResourceState::PixcelShaderResource);
 			}
 
 			//BackBuffer
 			{
-				commandList.SetViewport(viewport);
-				commandList.SetScissorRect(scissorRect);
+				command.SetViewport(viewport);
+				command.SetScissorRect(scissorRect);
 
-				commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::RenderTarget);
-				commandList.ClearBackBuffer(&doubleBuffer);
+				command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::RenderTarget);
+				command.ClearRenderTargetView(rtvDescriptorHeap.GetCPUHandle(backBufferIndex), { 0.5f,0.5f,0.5f,1.f });
 
-				commandList.ClearDepthView(depthStencilDescriptorHeap.GetCPUHandle(), 1.f);
+				command.ClearDepthView(depthStencilDescriptorHeap.GetCPUHandle(), 1.f);
 
-				commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle(), depthStencilDescriptorHeap.GetCPUHandle());
+				command.SetRenderTarget(rtvDescriptorHeap.GetCPUHandle(backBufferIndex), depthStencilDescriptorHeap.GetCPUHandle());
 
 
 				//ColorBunny
 				{
-					commandList.SetPipelineState(&colorObjectRenderer.GetStanderdPipelineState());
-					commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
-					commandList.SetGraphicsRootSignature(&colorObjectRenderer.GetRootSignature());
-					bunnyMesh.SetMesh(&commandList);
+					command.SetPipelineState(&colorObjectRenderer.GetStanderdPipelineState());
+					command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
+					command.SetGraphicsRootSignature(&colorObjectRenderer.GetRootSignature());
+					bunnyMesh.SetMesh(&command);
 
 					for (std::size_t i = 0; i < ColorObjectNum; i++) {
-						colorObjectModel.SetDescriptorHeap(&commandList, i);
-						bunnyMesh.Draw(&commandList);
+						colorObjectModel.SetDescriptorHeap(&command, i);
+						bunnyMesh.Draw(&command);
 					}
 				}
 
 				//MirrorSphere
 				{
-					commandList.SetPipelineState(&mirrorObjectRenderer.GetPipelineState());
-					commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
-					commandList.SetGraphicsRootSignature(&mirrorObjectRenderer.GetRootSignature());
-					mirrorObjectModel.SetDescriptorHeap(&commandList);
-					sphereMesh.SetMesh(&commandList);
-					sphereMesh.Draw(&commandList);
+					command.SetPipelineState(&mirrorObjectRenderer.GetPipelineState());
+					command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
+					command.SetGraphicsRootSignature(&mirrorObjectRenderer.GetRootSignature());
+					mirrorObjectModel.SetDescriptorHeap(&command);
+					sphereMesh.SetMesh(&command);
+					sphereMesh.Draw(&command);
 				}
 
-				commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::Common);
+				command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::Common);
 			}
 
 
-			commandList.Close();
-			commandList.Execute();
-			commandList.Clear();
+			command.Close();
+			command.Execute();
+			
+			swapChain.Present();
+			command.Fence(backBufferIndex);
 
-			doubleBuffer.Flip();
+			command.Wait(swapChain.GetCurrentBackBufferIndex());
 		}
+
+		command.WaitAll(&device);
 
 		return 0;
 	}

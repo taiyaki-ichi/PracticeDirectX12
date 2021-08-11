@@ -1,13 +1,14 @@
 #pragma once
 #include"Window.hpp"
 #include"Device.hpp"
-#include"CommandList.hpp"
-#include"DoubleBuffer.hpp"
+#include"Command.hpp"
+#include"SwapChain.hpp"
+#include"DescriptorHeap/DescriptorHeap.hpp"
 #include"Resource/VertexBufferResource.hpp"
 #include"RootSignature/RootSignature.hpp"
 #include"PipelineState/PipelineState.hpp"
 #include"Resource/IndexBufferResource.hpp"
-#include"Resource/TextureResource.hpp"
+#include"Resource/ShaderResource.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include<stb_image.h>
@@ -34,12 +35,15 @@ namespace test002
 		Device device{};
 		device.Initialize();
 
-		CommandList commandList{};
-		commandList.Initialize(&device);
+		Command command{};
+		command.Initialize(&device);
 
-		DoubleBuffer doubleBuffer{};
-		auto [factry, swapChain] = commandList.CreateFactryAndSwapChain(hwnd);
-		doubleBuffer.Initialize(&device, factry, swapChain);
+		auto swapChain = command.CreateSwapChain(&device, hwnd);
+
+		DescriptorHeap<DescriptorHeapTypeTag::RTV> rtvDescriptorHeap{};
+		rtvDescriptorHeap.Initialize(&device, 2);
+		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(0));
+		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(1));
 
 		std::array<Vertex, 4> vertex{ {
 			{-0.8f,-0.8f,0.f,0.f,1.f},
@@ -63,14 +67,28 @@ namespace test002
 		int x, y, n;
 		std::uint8_t* data = stbi_load("../../Assets/icon.png", &x, &y, &n, 0);
 
-		TextureResource textureResource{};
-		textureResource.Initialize(&device, &commandList, data, x, y, x * n);
+		Float4ShaderResource textureResource{};
+		{
+			UploadResource uploadResource{};
+			uploadResource.Initialize(&device, AlignmentSize(x * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * y);
+			uploadResource.Map(data, x * 4, y);
+			textureResource.Initialize(&device, x, y);
+
+			command.Reset(0);
+			command.Barrior(&textureResource, ResourceState::CopyDest);
+			command.CopyTexture(&device, &uploadResource, &textureResource);
+			command.Barrior(&textureResource, ResourceState::PixcelShaderResource);
+			command.Close();
+			command.Execute();
+			command.Fence(0);
+			command.Wait(0);
+		}
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> descriptorHeap{};
 		descriptorHeap.Initialize(&device, 1);
 
 		descriptorHeap.PushBackView(&device, &textureResource);
-		
+
 		RootSignature rootSignature{};
 		rootSignature.Initialize(&device, { {DescriptorRangeType::SRV} }, { StaticSamplerType::Standard });
 
@@ -92,35 +110,40 @@ namespace test002
 
 
 		while (UpdateWindow()) {
+			auto backBufferIndex = swapChain.GetCurrentBackBufferIndex();
+			command.Reset(backBufferIndex);
 
-			commandList.SetViewport(viewport);
-			commandList.SetScissorRect(scissorRect);
+			command.SetViewport(viewport);
+			command.SetScissorRect(scissorRect);
 
-			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::RenderTarget);
-			commandList.ClearBackBuffer(&doubleBuffer);
+			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::RenderTarget);
+			command.ClearRenderTargetView(rtvDescriptorHeap.GetCPUHandle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
 
-			commandList.SetRenderTarget(doubleBuffer.GetBackbufferCpuHandle());
+			command.SetRenderTarget(rtvDescriptorHeap.GetCPUHandle(backBufferIndex));
 
-			commandList.SetPipelineState(&pipelineState);
-			commandList.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
-			commandList.SetGraphicsRootSignature(&rootSignature);
+			command.SetPipelineState(&pipelineState);
+			command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
+			command.SetGraphicsRootSignature(&rootSignature);
 
-			commandList.SetDescriptorHeap(&descriptorHeap);
-			commandList.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
-			commandList.SetVertexBuffer(&vertexBufferResource);
-			commandList.SetIndexBuffer(&indexBufferResource);
-			commandList.DrawIndexedInstanced(6);
+			command.SetDescriptorHeap(&descriptorHeap);
+			command.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+			command.SetVertexBuffer(&vertexBufferResource);
+			command.SetIndexBuffer(&indexBufferResource);
+			command.DrawIndexedInstanced(6);
 
-			commandList.BarriorToBackBuffer(&doubleBuffer, ResourceState::Common);
+			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::Common);
 
-			commandList.Close();
-			commandList.Execute();
-			commandList.Clear();
+			command.Close();
+			command.Execute();
 
-			doubleBuffer.Flip();
+			swapChain.Present();
+			command.Fence(backBufferIndex);
+
+			command.Wait(swapChain.GetCurrentBackBufferIndex());
 		};
 
 		stbi_image_free(data);
+		command.WaitAll(&device);
 
 		return 0;
 	}

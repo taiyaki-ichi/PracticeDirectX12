@@ -48,9 +48,6 @@
     <ClInclude Include="test005.hpp" />
     <ClInclude Include="test006.hpp" />
     <ClInclude Include="test007.hpp" />
-    <ClInclude Include="test008.hpp" />
-    <ClInclude Include="test010.hpp" />
-    <ClInclude Include="test009.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Header002.hlsli" />
