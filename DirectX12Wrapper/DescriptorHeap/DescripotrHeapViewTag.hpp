@@ -33,15 +33,4 @@ namespace DX12
 	{
 		using Type;
 	};
-
-	template<typename T>
-	struct ResourcePtrTraits
-	{
-		//デフォルト実装
-		static ID3D12Resource* Get(T* t) {
-			return t->Get();
-		}
-	};
-
-
 }

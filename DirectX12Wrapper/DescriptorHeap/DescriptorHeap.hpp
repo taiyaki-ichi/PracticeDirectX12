@@ -14,9 +14,6 @@ namespace DX12
 	template<typename T>
 	struct DefaultViewTypeTraits;
 
-	template<typename T>
-	struct ResourcePtrTraits;
-
 	template<typename DescriptorHeapTypeTag>
 	class DescriptorHeap
 	{
@@ -39,12 +36,12 @@ namespace DX12
 		void Initialize(Device* d, unsigned int size);
 
 		//ViewTypeを指定してViewを作り成功した場合はハンドルを返す
-		template<typename ViewType, typename T, typename GetResourcePtrPolicy = ResourcePtrTraits<T>>
+		template<typename ViewType>
 		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>>
-			PushBackView(Device* device, T* resource);
+			PushBackView(Device* device, ResourceBase* resource);
 
 		//DefaultViewTypeTraitsを使いViewを作る
-		template<typename T, typename GetResourcePtrPolicy = ResourcePtrTraits<T>>
+		template<typename T>
 		std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>>
 			PushBackView(Device* device, T* resource);
 
@@ -53,8 +50,8 @@ namespace DX12
 
 		ID3D12DescriptorHeap*& Get() noexcept;
 
-		D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle(std::uint32_t index = 0);
-		D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(std::uint32_t index = 0);
+		D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle(std::size_t index = 0);
+		D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(std::size_t index = 0);
 
 	};
 
@@ -107,9 +104,9 @@ namespace DX12
 	}
 
 	template<typename DescriptorHeapTypeTag>
-	template<typename ViewType, typename T, typename GetResourcePtrPolicy>
+	template<typename ViewType>
 	inline std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>>
-		DescriptorHeap<DescriptorHeapTypeTag>::PushBackView(Device* device, T* resource)
+		DescriptorHeap<DescriptorHeapTypeTag>::PushBackView(Device* device, ResourceBase* resource)
 	{
 		//空いてるスペースがない場合
 		if (offset >= size)
@@ -118,11 +115,8 @@ namespace DX12
 		//cpuハンドルの取得
 		auto cpuHandle = GetCPUHandle(offset);
 
-		//Viewを作製したいリソースのポインタを取得
-		auto resourcePtr = GetResourcePtrPolicy::Get(resource);
-
 		//viewの生成
-		if (!CreateView<DescriptorHeapTypeTag, ViewType>(device, resourcePtr, cpuHandle))
+		if (!CreateView<DescriptorHeapTypeTag, ViewType>(device, resource->Get(), cpuHandle))
 			return std::nullopt;
 
 		//戻り値用にgpuハンドルの取得
@@ -135,11 +129,12 @@ namespace DX12
 	}
 
 	template<typename DescriptorHeapTypeTag>
-	template<typename T, typename GetResourcePtrPolicy>
+	template<typename T>
 	inline std::optional<std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>> 
 		DescriptorHeap<DescriptorHeapTypeTag>::PushBackView(Device* device, T* resource)
 	{
-		return PushBackView<typename DefaultViewTypeTraits<T>::Type, T, GetResourcePtrPolicy>(device, resource);
+		static_assert(std::is_base_of_v<ResourceBase, T>);
+		return PushBackView<typename DefaultViewTypeTraits<T>::Type>(device, resource);
 	}
 
 
@@ -156,7 +151,7 @@ namespace DX12
 	}
 
 	template<typename DescriptorHeapTypeTag>
-	inline D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeap<DescriptorHeapTypeTag>::GetGPUHandle(std::uint32_t index)
+	inline D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeap<DescriptorHeapTypeTag>::GetGPUHandle(std::size_t index)
 	{
 		auto gpuHandle = descriptorHeap->GetGPUDescriptorHandleForHeapStart();
 		gpuHandle.ptr += static_cast<UINT64>(incrementSize) * static_cast<UINT64>(index);
@@ -164,10 +159,10 @@ namespace DX12
 	}
 
 	template<typename DescriptorHeapTypeTag>
-	inline D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap<DescriptorHeapTypeTag>::GetCPUHandle(std::uint32_t index)
+	inline D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap<DescriptorHeapTypeTag>::GetCPUHandle(std::size_t index)
 	{
 		auto cpuHandle = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
-		cpuHandle.ptr += static_cast<uint32_t>(incrementSize) * static_cast<uint32_t>(index);
+		cpuHandle.ptr += static_cast<SIZE_T>(incrementSize) * static_cast<SIZE_T>(index);
 		return cpuHandle;
 	}
 
