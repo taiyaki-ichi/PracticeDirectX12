@@ -19,6 +19,14 @@ namespace DX12
 		void InitializeImpl(Device*, std::uint32_t width, std::uint32_t height, FFormat, std::uint16_t depthOrArraySize, D3D12_CLEAR_VALUE*);
 	};
 
+	template<>
+	struct DefaultViewTypeTraits<ShaderResource> {
+		using Type = DescriptorHeapViewTag::ShaderResource;
+	};
+
+
+	//‚Æ‚è‚ ‚¦‚¸
+	
 	class Float4ShaderResource : public ShaderResource
 	{
 	public:
@@ -45,17 +53,17 @@ namespace DX12
 
 	template<>
 	struct DefaultViewTypeTraits<Float4ShaderResource> {
-		using Type = DescriptorHeapViewTag::Float4ShaderResource;
+		using Type = DescriptorHeapViewTag::ShaderResource;
 	};
 
 	template<>
 	struct DefaultViewTypeTraits<FloatShaderResource> {
-		using Type = DescriptorHeapViewTag::FloatShaderResource;
+		using Type = DescriptorHeapViewTag::ShaderResource;
 	};
 
 	template<>
 	struct DefaultViewTypeTraits<CubeMapShaderResource> {
-		using Type = DescriptorHeapViewTag::CubeMapResource;
+		using Type = DescriptorHeapViewTag::ShaderResource;
 	};
 
 

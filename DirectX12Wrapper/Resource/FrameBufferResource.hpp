@@ -9,7 +9,7 @@ namespace DX12
 	template<>
 	struct DefaultViewTypeTraits<FrameBufferResource>
 	{
-		using Type = DescriptorHeapViewTag::Float4ShaderResource;
+		using Type = DescriptorHeapViewTag::ShaderResource;
 	};
 
 }

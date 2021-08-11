@@ -11,14 +11,11 @@ namespace DX12
 		//深度ステンシル
 		struct DepthStencilBuffer {};
 
-		//RGBAのテクスチャのようなfloatが4つからなるデータ
-		struct Float4ShaderResource {};
-
-		//Rのみのテクスチャのようなfloatが1つからなるデータ
-		struct FloatShaderResource {};
+		//
+		struct ShaderResource {};
 
 		//キューブマップ用
-		struct CubeMapResource {};
+		struct CubeMap {};
 
 		//キューブマップ用のデプスステンシル
 		struct CubeMapDepthStencilBuffer {};

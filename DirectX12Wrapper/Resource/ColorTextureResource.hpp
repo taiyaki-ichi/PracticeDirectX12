@@ -23,7 +23,7 @@ namespace DX12
 	template<>
 	struct DefaultViewTypeTraits<ColorTextureResource>
 	{
-		using Type = DescriptorHeapViewTag::Float4ShaderResource;
+		using Type = DescriptorHeapViewTag::ShaderResource;
 	};
 
 	//グレイグラデーション
@@ -36,7 +36,7 @@ namespace DX12
 	template<>
 	struct DefaultViewTypeTraits<GrayGradationTextureResource>
 	{
-		using Type = DescriptorHeapViewTag::Float4ShaderResource;
+		using Type = DescriptorHeapViewTag::ShaderResource;
 	};
 
 	//
