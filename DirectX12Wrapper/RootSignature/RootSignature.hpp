@@ -108,7 +108,7 @@ namespace DX12
 		{
 			auto result = device->Get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
 			if (FAILED(result))
-				throw "CreateRootSignature is falied : CreateRootSignature\n";
+				throw "";
 
 			rootSigBlob->Release();
 		}

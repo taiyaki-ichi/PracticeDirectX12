@@ -11,12 +11,12 @@ namespace DX12
 	class ShaderResource : public ResourceBase
 	{
 	public:
-		void Initialize(Device*, std::uint32_t width, std::uint32_t height, FFormat,std::uint16_t depthOrArraySize);
-		void Initialize(Device*, std::uint32_t width, std::uint32_t height, FFormat,std::uint16_t depthOrArraySize, std::array<float, 4> clearValue);
-		void Initialize(Device*, std::uint32_t width, std::uint32_t height, FFormat, std::uint16_t depthOrArraySize, float depthClearValue);
+		void Initialize(Device*, std::uint32_t width, std::uint32_t height, Format,std::uint16_t depthOrArraySize);
+		void Initialize(Device*, std::uint32_t width, std::uint32_t height, Format,std::uint16_t depthOrArraySize, std::array<float, 4> clearValue);
+		void Initialize(Device*, std::uint32_t width, std::uint32_t height, Format, std::uint16_t depthOrArraySize, float depthClearValue);
 
 	private:
-		void InitializeImpl(Device*, std::uint32_t width, std::uint32_t height, FFormat, std::uint16_t depthOrArraySize, D3D12_CLEAR_VALUE*);
+		void InitializeImpl(Device*, std::uint32_t width, std::uint32_t height, Format, std::uint16_t depthOrArraySize, D3D12_CLEAR_VALUE*);
 	};
 
 	template<>
@@ -28,12 +28,12 @@ namespace DX12
 	//
 	//
 
-	inline void ShaderResource::Initialize(Device* device, std::uint32_t width, std::uint32_t height, FFormat format, std::uint16_t depthOrArraySize)
+	inline void ShaderResource::Initialize(Device* device, std::uint32_t width, std::uint32_t height, Format format, std::uint16_t depthOrArraySize)
 	{
 		InitializeImpl(device, width, height, format, depthOrArraySize, nullptr);
 	}
 
-	inline void ShaderResource::Initialize(Device* device, std::uint32_t width, std::uint32_t height, FFormat format, std::uint16_t depthOrArraySize, std::array<float, 4> clearValue)
+	inline void ShaderResource::Initialize(Device* device, std::uint32_t width, std::uint32_t height, Format format, std::uint16_t depthOrArraySize, std::array<float, 4> clearValue)
 	{
 		D3D12_CLEAR_VALUE cv{};
 		cv.Format = format.value;
@@ -41,7 +41,7 @@ namespace DX12
 		InitializeImpl(device, width, height, format, depthOrArraySize, &cv);
 	}
 
-	inline void ShaderResource::Initialize(Device* device, std::uint32_t width, std::uint32_t height, FFormat format, std::uint16_t depthOrArraySize, float depthClearValue)
+	inline void ShaderResource::Initialize(Device* device, std::uint32_t width, std::uint32_t height, Format format, std::uint16_t depthOrArraySize, float depthClearValue)
 	{
 		D3D12_CLEAR_VALUE cv{};
 		cv.Format = format.value;
@@ -49,7 +49,7 @@ namespace DX12
 		InitializeImpl(device, width, height, format, depthOrArraySize, &cv);
 	}
 
-	inline void ShaderResource::InitializeImpl(Device* device, std::uint32_t width, std::uint32_t height, FFormat format, std::uint16_t depthOrArraySize, D3D12_CLEAR_VALUE* clearValuePtr)
+	inline void ShaderResource::InitializeImpl(Device* device, std::uint32_t width, std::uint32_t height, Format format, std::uint16_t depthOrArraySize, D3D12_CLEAR_VALUE* clearValuePtr)
 	{
 		D3D12_RESOURCE_DESC resdesc{};
 		resdesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -69,7 +69,7 @@ namespace DX12
 		heapprop.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
 		heapprop.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 
-		return ResourceBase::Initialize(device,
+		ResourceBase::Initialize(device,
 			&heapprop,
 			D3D12_HEAP_FLAG_NONE,
 			&resdesc,

@@ -97,7 +97,7 @@ namespace DX12
 	{
 		descriptorHeap = DescriptorHeapTypeTag::Initialize(d, s);
 		if (!descriptorHeap)
-			throw "descriptor heap init is failed\n";
+			throw "";
 
 		incrementSize = DescriptorHeapTypeTag::GetIncrementSize(d);
 		size = s;

@@ -18,6 +18,4 @@ void main(
 		element.normal = normal;
 		output.Append(element);
 	}
-
-	//output.RestartStrip();
 }

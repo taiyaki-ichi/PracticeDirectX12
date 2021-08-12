@@ -6,7 +6,7 @@
 #include"DescriptorHeap/DescriptorHeap.hpp"
 #include"Resource/VertexBuffer.hpp"
 #include"RootSignature/RootSignature.hpp"
-#include"PipelineState/PipelineState.hpp"
+#include"PipelineState.hpp"
 #include"Resource/IndexBuffer.hpp"
 #include"Resource/ShaderResource.hpp"
 
@@ -52,16 +52,16 @@ namespace test002
 			{0.8f,0.8f,0.f,1.f,0.f}
 			} };
 
-		std::array<std::uint16_t, 6> index{
+		std::array<std::uint32_t, 6> index{
 			0,1,2,2,1,3
 		};
 
 		VertexBuffer vertexBuffer{};
-		vertexBuffer.Initialize(&device, sizeof(vertex), sizeof(decltype(vertex)::value_type));
+		vertexBuffer.Initialize(&device, vertex.size(), sizeof(decltype(vertex)::value_type));
 		vertexBuffer.Map(vertex);
 
 		IndexBuffer indexBuffer{};
-		indexBuffer.Initialize(&device, sizeof(index));
+		indexBuffer.Initialize(&device, index.size());
 		indexBuffer.Map(index);
 
 		int x, y, n;

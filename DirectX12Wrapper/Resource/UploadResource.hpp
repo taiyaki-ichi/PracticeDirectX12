@@ -86,7 +86,7 @@ namespace DX12
 	{
 		uint8_t* target = nullptr;
 		if (FAILED(Get()->Map(0, nullptr, (void**)&target)))
-			throw "UploadResource is failed\n";
+			throw "";
 
 		std::uint32_t targetRowPitch = AlignmentSize(rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 

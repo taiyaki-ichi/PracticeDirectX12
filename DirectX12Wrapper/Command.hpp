@@ -1,7 +1,7 @@
 #pragma once
 #include"Device.hpp"
 #include"SwapChain.hpp"
-#include"PipelineState/PipelineState.hpp"
+#include"PipelineState.hpp"
 #include"Resource/VertexBuffer.hpp"
 #include"Resource/IndexBuffer.hpp"
 #include"DescriptorHeap/DescriptorHeap.hpp"
@@ -157,10 +157,10 @@ namespace DX12
 	{
 		for (auto& a : allocator)
 			if (FAILED(device->Get()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&a))))
-				throw "CreateCommandAllocator is failed\n";
+				throw "";
 
 		if (FAILED(device->Get()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, allocator[0], nullptr, IID_PPV_ARGS(&list))))
-			throw "CreateCommandList is failed\n";
+			throw "";
 
 		D3D12_COMMAND_QUEUE_DESC cmdQueueDesc{};
 		cmdQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;		//タイムアウトナシ
@@ -168,14 +168,14 @@ namespace DX12
 		cmdQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;	//プライオリティ特に指定なし
 		cmdQueueDesc.Type = list->GetType();			//ここはコマンドリストと合わせる
 		if (FAILED(device->Get()->CreateCommandQueue(&cmdQueueDesc, IID_PPV_ARGS(&queue))))
-			throw "CreateCommandQueue is failed\n";
+			throw "";
 
 		//とりあえず全て１で初期化してみる
 		std::fill(fenceValue.begin(), fenceValue.end(), 1);
 
 		for (std::size_t i = 0; i < FrameLatencyNum; i++)
 			if (FAILED(device->Get()->CreateFence(fenceValue[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence[i]))))
-				throw "CreateFence is failed\n";
+				throw "";
 
 		fenceEventHandle = CreateEvent(NULL, FALSE, FALSE, NULL);
 
@@ -190,8 +190,13 @@ namespace DX12
 		IDXGIFactory3* factory = nullptr;
 		IDXGISwapChain4* swapChain = nullptr;
 
+#ifdef _DEBUG
+		if (FAILED(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory))))
+			throw "";
+#else
 		if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))))
-			throw "CreateDXGIFactory1 is failed\n";
+			throw "";
+#endif
 
 		RECT windowRect{};
 		GetWindowRect(hwnd, &windowRect);
@@ -211,7 +216,8 @@ namespace DX12
 		swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 		if (FAILED(factory->CreateSwapChainForHwnd(queue, hwnd, &swapchainDesc, nullptr, nullptr, (IDXGISwapChain1**)&swapChain)))
-			throw "CreateSwapChainForHwnd is failed\n";
+			throw "";
+
 		factory->Release();
 
 		return { swapChain };

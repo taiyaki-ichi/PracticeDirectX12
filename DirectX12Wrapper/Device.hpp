@@ -68,17 +68,19 @@ namespace DX12
 
 	inline void Device::Initialize()
 	{
+#ifdef _DEBUG
 		ID3D12Debug* debugLayer = nullptr;
 		if (FAILED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugLayer)))) {
-			throw "D3D12GetDebugInterface is failed\n";
+			throw "";
 		}
 		else {
 			debugLayer->EnableDebugLayer();
 			debugLayer->Release();
 		}
+#endif
 
 		if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))))
-			throw "CreateDXGIFactory1 is failed\n";
+			throw "";
 
 
 		UINT adapterIndex = 0;
@@ -94,7 +96,7 @@ namespace DX12
 			adapterIndex++;
 			//å©Ç¬Ç©ÇÁÇ»Ç©Ç¡ÇΩèÍçá
 			if (adapterIndex == DXGI_ERROR_NOT_FOUND)
-				throw "adaptor is not found\n";
+				throw "";
 		}
 
 		std::array levels{
@@ -105,11 +107,10 @@ namespace DX12
 		};
 
 		for (auto l : levels) {
-			//ìKêÿÇ…ê∂ê¨Ç≈Ç´ÇΩèÍçá
 			if (SUCCEEDED(D3D12CreateDevice(adaptor, l, IID_PPV_ARGS(&device))))
 				break;
 			if (l == levels.back())
-				throw "D3D12CreateDevice is failed\n";
+				throw "";
 		}
 	}
 

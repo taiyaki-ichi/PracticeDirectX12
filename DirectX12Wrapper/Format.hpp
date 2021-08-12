@@ -14,10 +14,10 @@ namespace DX12
 		UnsignedNormalizedFloat,//8bit,doublebuffer‚Í‚¾‚¢‚½‚¢‚±‚ê
 	};
 
-	class FFormat {
+	class Format {
 	public:
 		DXGI_FORMAT value;
-		FFormat(Type t, std::uint16_t num);
+		Format(Type t, std::uint16_t num);
 	};
 
 
@@ -25,7 +25,7 @@ namespace DX12
 	//
 	//
 
-	inline FFormat::FFormat(Type t, std::uint16_t num)
+	inline Format::Format(Type t, std::uint16_t num)
 	{
 		
 		constexpr auto getHash = [](Type t, std::uint16_t num) ->std::uint16_t {

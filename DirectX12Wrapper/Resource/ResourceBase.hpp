@@ -10,7 +10,6 @@
 
 namespace DX12
 {
-
 	//全てのリソースの元
 	class ResourceBase
 	{
@@ -33,8 +32,6 @@ namespace DX12
 		void Initialize(Device* device, const D3D12_HEAP_PROPERTIES* heapProp, D3D12_HEAP_FLAGS flag,
 			const D3D12_RESOURCE_DESC* resoDesc, ResourceState s, const D3D12_CLEAR_VALUE* cv);
 
-		//主にバックバッファを生成する際に使用
-		//なくしてしまいたい
 		void Initialize(ID3D12Resource* r);
 
 		ID3D12Resource* Get() const noexcept;
@@ -93,7 +90,7 @@ namespace DX12
 			cv,
 			IID_PPV_ARGS(&resource))))
 		{
-			throw  "resource initialize is failed\n";
+			throw  "";
 		}
 	}
 

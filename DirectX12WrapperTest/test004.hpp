@@ -1,7 +1,7 @@
 #pragma once
 #include"Window.hpp"
 #include"Device.hpp"
-#include"PipelineState/PipelineState.hpp"
+#include"PipelineState.hpp"
 #include"Command.hpp"
 #include"SwapChain.hpp"
 #include"OffLoader.hpp"
@@ -60,7 +60,7 @@ namespace test004
 	public:
 		void Initialize(Device* device,const char* fileName)
 		{
-			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint16_t, 3>>(fileName);
+			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>(fileName);
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
 			std::vector<Vertex> posNormalList{};
@@ -73,10 +73,10 @@ namespace test004
 
 			faceNum = faceList.size();
 
-			vertexBuffer.Initialize(device, sizeof(Vertex) * posNormalList.size(), sizeof(Vertex));
+			vertexBuffer.Initialize(device, posNormalList.size(), sizeof(Vertex));
 			vertexBuffer.Map(std::move(posNormalList));
 
-			indexBuffer.Initialize(device, sizeof(decltype(faceList)::value_type) * faceList.size());
+			indexBuffer.Initialize(device, faceList.size() * 3);
 			indexBuffer.Map(std::move(faceList));
 		}
 

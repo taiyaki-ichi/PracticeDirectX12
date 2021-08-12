@@ -4,6 +4,7 @@
 
 namespace DX12
 {
+	//SwapChainì‡Ç≈ê∂ê¨
 	class FrameBuffer : public ResourceBase {};
 
 	template<>

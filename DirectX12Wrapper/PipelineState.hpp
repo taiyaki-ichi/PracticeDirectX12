@@ -1,10 +1,9 @@
 #pragma once
-#include"../RootSignature/RootSignature.hpp"
-#include"VertexLayout.hpp"
-#include"../Format.hpp"
-#include"../Shader.hpp"
-#include"../Device.hpp"
-#include"../PrimitiveTopology.hpp"
+#include"RootSignature/RootSignature.hpp"
+#include"Format.hpp"
+#include"Shader.hpp"
+#include"Device.hpp"
+#include"PrimitiveTopology.hpp"
 #include<d3d12.h>
 #include<dxgi1_6.h>
 #include<vector>
@@ -21,7 +20,7 @@ namespace DX12
 		Shader* hullShader = nullptr;
 		Shader* domainShader = nullptr;
 	};
-	
+
 	class PipelineState
 	{
 		ID3D12PipelineState* pipelineState = nullptr;
@@ -39,7 +38,7 @@ namespace DX12
 		PipelineState& operator=(PipelineState&&) noexcept;
 
 		void Initialize(Device*, RootSignature*, ShaderDesc,
-			const std::vector<std::pair<std::string,FFormat>>& vertexLayouts, const std::vector<FFormat>& renderTargetFormats,
+			const std::vector<std::pair<std::string, Format>>& vertexLayouts, const std::vector<Format>& renderTargetFormats,
 			bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology
 		);
 
@@ -70,9 +69,9 @@ namespace DX12
 		rhs.pipelineState = nullptr;
 		return *this;
 	}
-	
-	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, ShaderDesc shaderDesc, const std::vector<std::pair<std::string, FFormat>>& vertexLayouts, 
-		const std::vector<FFormat>& renderTargetFormats, bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology)
+
+	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, ShaderDesc shaderDesc, const std::vector<std::pair<std::string, Format>>& vertexLayouts,
+		const std::vector<Format>& renderTargetFormats, bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology)
 	{
 		this->rootSignature = rootSignature->Get();
 
@@ -192,7 +191,7 @@ namespace DX12
 			throw "";
 
 	}
-	
+
 
 	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, Shader* computeShader)
 	{

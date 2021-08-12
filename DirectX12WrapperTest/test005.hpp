@@ -5,7 +5,7 @@
 #include"SwapChain.hpp"
 #include"Shader.hpp"
 #include"RootSignature/RootSignature.hpp"
-#include"PipelineState/PipelineState.hpp"
+#include"PipelineState.hpp"
 #include"Resource/DepthBuffer.hpp"
 #include"DescriptorHeap/DescriptorHeap.hpp"
 #include"Resource/ConstantBuffer.hpp"
@@ -45,10 +45,10 @@ namespace test005
 		float uvX, uvY;
 	};
 
-	inline std::pair<std::vector<Vertex>,std::vector<std::uint16_t>> GetGroundPatch()
+	inline std::pair<std::vector<Vertex>,std::vector<std::uint32_t>> GetGroundPatch()
 	{
 		std::vector<Vertex> vertexList{};
-		std::vector<std::uint16_t> indexList{};
+		std::vector<std::uint32_t> indexList{};
 
 		constexpr float EDGE = 200.f;
 		constexpr std::size_t DIVIDE = 10;
@@ -192,11 +192,11 @@ namespace test005
 		auto [vertexList, indexList] = GetGroundPatch();
 
 		VertexBuffer vertexBuffer{};
-		vertexBuffer.Initialize(&device, sizeof(Vertex) * vertexList.size(), sizeof(Vertex));
+		vertexBuffer.Initialize(&device, vertexList.size(), sizeof(Vertex));
 		vertexBuffer.Map(vertexList);
 
 		IndexBuffer indexBuffer{};
-		indexBuffer.Initialize(&device, sizeof(std::uint16_t) * indexList.size());
+		indexBuffer.Initialize(&device, indexList.size());
 		indexBuffer.Map(indexList);
 
 

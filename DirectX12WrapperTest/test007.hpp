@@ -5,7 +5,7 @@
 #include"SwapChain.hpp"
 #include"Shader.hpp"
 #include"RootSignature/RootSignature.hpp"
-#include"PipelineState/PipelineState.hpp"
+#include"PipelineState.hpp"
 #include"Resource/DepthBuffer.hpp"
 #include"DescriptorHeap/DescriptorHeap.hpp"
 #include"Resource/ConstantBuffer.hpp"
@@ -75,10 +75,10 @@ namespace test007
 
 	constexpr float GROUND_EDGE = 128.f;
 
-	inline std::pair<std::vector<Vertex>, std::vector<std::uint16_t>> GetGroundPatch()
+	inline std::pair<std::vector<Vertex>, std::vector<std::uint32_t>> GetGroundPatch()
 	{
 		std::vector<Vertex> vertexList{};
-		std::vector<std::uint16_t> indexList{};
+		std::vector<std::uint32_t> indexList{};
 
 		constexpr std::size_t DIVIDE = 10;
 		constexpr auto ROWS = DIVIDE + 1;
@@ -243,11 +243,11 @@ namespace test007
 		auto [vertexList, indexList] = GetGroundPatch();
 
 		VertexBuffer vertexBuffer{};
-		vertexBuffer.Initialize(&device, sizeof(Vertex) * vertexList.size(), sizeof(Vertex));
+		vertexBuffer.Initialize(&device, vertexList.size(), sizeof(Vertex));
 		vertexBuffer.Map(vertexList);
 
 		IndexBuffer indexBuffer{};
-		indexBuffer.Initialize(&device, sizeof(std::uint16_t) * indexList.size());
+		indexBuffer.Initialize(&device, indexList.size());
 		indexBuffer.Map(indexList);
 
 
@@ -295,7 +295,7 @@ namespace test007
 		IndexBuffer sphereIndexBuffer{};
 		std::size_t sphereFaceNum{};
 		{
-			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint16_t, 3>>("../../Assets/sphere.off");
+			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/sphere.off");
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
 
@@ -309,10 +309,10 @@ namespace test007
 
 			sphereFaceNum = faceList.size();
 
-			sphereVertexBuffer.Initialize(&device, sizeof(Vertex2) * posNormalList.size(), sizeof(Vertex2));
+			sphereVertexBuffer.Initialize(&device, posNormalList.size(), sizeof(Vertex2));
 			sphereVertexBuffer.Map(std::move(posNormalList));
 
-			sphereIndexBuffer.Initialize(&device, sizeof(decltype(faceList)::value_type) * faceList.size());
+			sphereIndexBuffer.Initialize(&device, faceList.size() * 3);
 			sphereIndexBuffer.Map(std::move(faceList));
 		}
 
@@ -384,7 +384,7 @@ namespace test007
 			v.reserve(SNOW_NUM);
 			for (std::size_t i = 0; i < SNOW_NUM; i++)
 				v.emplace_back(std::array<float, 3>{dist(engine), dist(engine), dist(engine)});
-			snowVertexBuffer.Initialize(&device, sizeof(float) * 3 * SNOW_NUM, sizeof(float) * 3);
+			snowVertexBuffer.Initialize(&device, SNOW_NUM, sizeof(float) * 3);
 			snowVertexBuffer.Map(std::move(v));
 		}
 

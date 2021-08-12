@@ -13,6 +13,8 @@ namespace DX12
 		void Initialize(Device*, std::uint32_t width, std::uint32_t height);
 	};
 
+
+
 	//4×4のカラーテクスチャ
 	class ColorTextureResource : public ColorTextureResourceBase
 	{

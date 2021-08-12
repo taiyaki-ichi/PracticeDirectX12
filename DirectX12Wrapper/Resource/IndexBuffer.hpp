@@ -3,12 +3,13 @@
 
 namespace DX12
 {
+	//1つ当たり32bitのインデックス、大きすぎるかも
 	class IndexBuffer : public UploadResource
 	{
 		D3D12_INDEX_BUFFER_VIEW indexBufferView{};
 
 	public:
-		void Initialize(Device*, std::uint32_t size);
+		void Initialize(Device*, std::uint32_t indexNum);
 
 		const D3D12_INDEX_BUFFER_VIEW& GetView() const noexcept;
 	};
@@ -17,13 +18,13 @@ namespace DX12
 	//
 	//
 
-	inline void IndexBuffer::Initialize(Device* device, std::uint32_t size)
+	inline void IndexBuffer::Initialize(Device* device, std::uint32_t indexNum)
 	{
-		UploadResource::Initialize(device, size);
+		UploadResource::Initialize(device, 4 * indexNum);
 
 		indexBufferView.BufferLocation = Get()->GetGPUVirtualAddress();
-		indexBufferView.Format = DXGI_FORMAT_R16_UINT;
-		indexBufferView.SizeInBytes = size;
+		indexBufferView.Format = DXGI_FORMAT_R32_UINT;
+		indexBufferView.SizeInBytes = 4 * indexNum;
 	}
 
 	inline const D3D12_INDEX_BUFFER_VIEW& IndexBuffer::GetView() const noexcept

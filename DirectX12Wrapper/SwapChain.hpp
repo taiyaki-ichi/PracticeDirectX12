@@ -49,7 +49,7 @@ namespace DX12
 		{
 			ID3D12Resource* resourcePtr = nullptr;
 			if (FAILED(swapChain->GetBuffer(static_cast<UINT>(i), IID_PPV_ARGS(&resourcePtr))))
-				throw "GetBuffer is failed\n";
+				throw "";
 			frameBuffer[i].Initialize(resourcePtr);
 		}
 	}

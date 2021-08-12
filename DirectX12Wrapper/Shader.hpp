@@ -19,6 +19,12 @@ namespace DX12
 		Shader() = default;
 		~Shader();
 
+		Shader(Shader const&) = delete;
+		Shader& operator=(Shader const&) = delete;
+
+		Shader(Shader&&) noexcept;
+		Shader& operator=(Shader&&) noexcept;
+
 		//ファイル名、関数名、インクルードオプション
 		void Intialize(const wchar_t* fileName, const char* funcName, const char* includeOption);
 
@@ -33,6 +39,19 @@ namespace DX12
 	{
 		if (blob)
 			blob->Release();
+	}
+
+	inline Shader::Shader(Shader&& rhs) noexcept
+	{
+		blob = rhs.blob;
+		rhs.blob = nullptr;
+	}
+
+	inline Shader& Shader::operator=(Shader&& rhs) noexcept
+	{
+		blob = rhs.blob;
+		rhs.blob = nullptr;
+		return *this;
 	}
 
 	inline void Shader::Intialize(const wchar_t* fileName, const char* funcName, const char* includeOption)

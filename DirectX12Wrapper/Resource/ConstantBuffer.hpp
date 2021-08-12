@@ -25,6 +25,6 @@ namespace DX12
 		//サイズは16の倍数じゃあないといけないのでアライメント
 		size = (size + 0xff) & ~0xff;
 
-		return UploadResource::Initialize(device, size);
+		UploadResource::Initialize(device, size);
 	}
 }

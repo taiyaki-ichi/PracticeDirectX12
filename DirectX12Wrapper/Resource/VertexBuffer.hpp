@@ -8,7 +8,8 @@ namespace DX12
 		D3D12_VERTEX_BUFFER_VIEW bufferView{};
 
 	public:
-		void Initialize(Device*, std::uint32_t size, std::uint32_t stride);
+		//stride‚Í‚P’¸“_‚ ‚½‚è‚Ì‘å‚«‚³
+		void Initialize(Device*, std::uint32_t vertexNum, std::uint32_t stride);
 
 		const D3D12_VERTEX_BUFFER_VIEW& GetView() const noexcept;
 	};
@@ -17,12 +18,12 @@ namespace DX12
 	//
 	//
 
-	inline void VertexBuffer::Initialize(Device* device, std::uint32_t size, std::uint32_t stride)
+	inline void VertexBuffer::Initialize(Device* device, std::uint32_t vertexNum, std::uint32_t stride)
 	{
-		UploadResource::Initialize(device, size);
+		UploadResource::Initialize(device, vertexNum * stride);
 
 		bufferView.BufferLocation = Get()->GetGPUVirtualAddress();
-		bufferView.SizeInBytes = size;
+		bufferView.SizeInBytes = vertexNum * stride;
 		bufferView.StrideInBytes = stride;
 	}
 

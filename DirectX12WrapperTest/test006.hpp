@@ -4,15 +4,14 @@
 #include"Command.hpp"
 #include"Shader.hpp"
 #include"RootSignature/RootSignature.hpp"
-#include"PipelineState/PipelineState.hpp"
+#include"PipelineState.hpp"
 #include"Resource/ShaderResource.hpp"
 #include"DescriptorHeap/DescriptorHeap.hpp"
 #include"Resource/VertexBuffer.hpp"
 #include"Resource/IndexBuffer.hpp"
 
-#ifndef STB_IMAGE_IMPLEMENTATION
-	#define STB_IMAGE_IMPLEMENTATION
-#endif
+
+#define STB_IMAGE_IMPLEMENTATION
 #include<stb_image.h>
 
 namespace test006
@@ -114,16 +113,16 @@ namespace test006
 			{0.8f,0.8f,0.f,1.f,0.f}
 			} };
 
-		std::array<std::uint16_t, 6> index{
+		std::array<std::uint32_t, 6> index{
 			0,1,2,2,1,3
 		};
 
 		VertexBuffer vertexBuffer{};
-		vertexBuffer.Initialize(&device, sizeof(vertex), sizeof(decltype(vertex)::value_type));
+		vertexBuffer.Initialize(&device, vertex.size(), sizeof(decltype(vertex)::value_type));
 		vertexBuffer.Map(vertex);
 
 		IndexBuffer indexBuffer{};
-		indexBuffer.Initialize(&device, sizeof(index));
+		indexBuffer.Initialize(&device, index.size());
 		indexBuffer.Map(index);
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> descriptorHeap{};

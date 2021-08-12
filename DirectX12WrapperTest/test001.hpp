@@ -6,7 +6,7 @@
 #include"DescriptorHeap/DescriptorHeap.hpp"
 #include"Resource/VertexBuffer.hpp"
 #include"RootSignature/RootSignature.hpp"
-#include"PipelineState/PipelineState.hpp"
+#include"PipelineState.hpp"
 
 #include<array>
 
@@ -41,7 +41,7 @@ namespace test001
 		};
 
 		VertexBuffer vertexBuffer{};
-		vertexBuffer.Initialize(&device, sizeof(vertex), sizeof(decltype(vertex)::value_type));
+		vertexBuffer.Initialize(&device, vertex.size(), sizeof(decltype(vertex)::value_type));
 		vertexBuffer.Map(vertex);
 
 		RootSignature rootSignature{};

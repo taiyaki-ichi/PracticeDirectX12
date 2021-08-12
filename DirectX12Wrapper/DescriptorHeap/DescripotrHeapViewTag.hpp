@@ -11,7 +11,7 @@ namespace DX12
 		//深度ステンシル
 		struct DepthStencilBuffer {};
 
-		//
+		//SRV用
 		struct ShaderResource {};
 
 		//キューブマップ用

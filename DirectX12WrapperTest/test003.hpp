@@ -5,7 +5,7 @@
 #include"SwapChain.hpp"
 #include"Resource/VertexBuffer.hpp"
 #include"RootSignature/RootSignature.hpp"
-#include"PipelineState/PipelineState.hpp"
+#include"PipelineState.hpp"
 #include"Resource/IndexBuffer.hpp"
 #include"Resource/DepthBuffer.hpp"
 #include"Resource/ConstantBuffer.hpp"
@@ -47,14 +47,14 @@ namespace test003
 		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(0));
 		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(1));
 
-		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint16_t, 3>>("../../Assets/bunny.off");
+		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/bunny.off");
 		
 		VertexBuffer vertexBuffer{};
-		vertexBuffer.Initialize(&device, sizeof(decltype(vertex)::value_type) * vertex.size(), sizeof(decltype(vertex)::value_type));
+		vertexBuffer.Initialize(&device, vertex.size(), sizeof(decltype(vertex)::value_type));
 		vertexBuffer.Map(vertex);
 
 		IndexBuffer indexBuffer{};
-		indexBuffer.Initialize(&device, sizeof(decltype(face)::value_type) * face.size());
+		indexBuffer.Initialize(&device, face.size() * 3);
 		indexBuffer.Map(face);
 
 		RootSignature rootSignature{};
