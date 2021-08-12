@@ -1,6 +1,6 @@
 #pragma once
 #include"UploadResource.hpp"
-#include"../DescriptorHeap/DescripotrHeapViewTag.hpp"
+#include"../DescriptorHeap/ViewTypeTag.hpp"
 
 namespace DX12
 {
@@ -13,7 +13,7 @@ namespace DX12
 	template<>
 	struct DefaultViewTypeTraits<ConstantBuffer>
 	{
-		using Type = DescriptorHeapViewTag::ConstantBuffer;
+		using Type = ViewTypeTag::ConstantBuffer;
 	};
 
 	//

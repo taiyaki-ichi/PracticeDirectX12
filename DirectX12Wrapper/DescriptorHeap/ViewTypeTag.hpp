@@ -3,7 +3,7 @@
 namespace DX12
 {
 	//DescriptorHeapにViewを作る時に使用
-	namespace DescriptorHeapViewTag {
+	namespace ViewTypeTag {
 
 		//定数バッファ
 		struct ConstantBuffer {};

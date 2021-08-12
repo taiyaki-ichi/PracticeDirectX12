@@ -1,6 +1,6 @@
 #pragma once
 #include"ResourceBase.hpp"
-#include"DescriptorHeap/DescripotrHeapViewTag.hpp"
+#include"DescriptorHeap/ViewTypeTag.hpp"
 #include"../Format.hpp"
 #include<array>
 #include<variant>
@@ -21,7 +21,7 @@ namespace DX12
 
 	template<>
 	struct DefaultViewTypeTraits<ShaderResource> {
-		using Type = DescriptorHeapViewTag::ShaderResource;
+		using Type = ViewTypeTag::ShaderResource;
 	};
 
 	//

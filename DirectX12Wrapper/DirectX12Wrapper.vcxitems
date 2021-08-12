@@ -15,10 +15,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)Command.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescripotrHeapViewTag.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\ViewTypeTag.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeap.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeapTypeTag.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeapViewHepler.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\CreateViewHepler.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Format.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PipelineState.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PrimitiveTopology.hpp" />

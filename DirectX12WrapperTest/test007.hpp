@@ -75,6 +75,8 @@ namespace test007
 
 	constexpr float GROUND_EDGE = 128.f;
 
+	constexpr std::size_t FRAME_BUFFER_NUM = 3;
+
 	inline std::pair<std::vector<Vertex>, std::vector<std::uint32_t>> GetGroundPatch()
 	{
 		std::vector<Vertex> vertexList{};
@@ -124,16 +126,15 @@ namespace test007
 		Device device{};
 		device.Initialize();
 
-		Command<3> command{};
+		Command<FRAME_BUFFER_NUM> command{};
 		command.Initialize(&device);
 
 		auto swapChain = command.CreateSwapChain(&device, hwnd);
 
 		DescriptorHeap<DescriptorHeapTypeTag::RTV> rtvDescriptorHeap{};
-		rtvDescriptorHeap.Initialize(&device, 3);
-		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(0));
-		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(1));
-		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(2));
+		rtvDescriptorHeap.Initialize(&device, FRAME_BUFFER_NUM);
+		for (std::size_t i = 0; i < FRAME_BUFFER_NUM; i++)
+			rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(i));
 
 		DepthBuffer depthBuffer{};
 		depthBuffer.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -256,8 +257,8 @@ namespace test007
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> computeHeightDescriptorHeap{};
 		computeHeightDescriptorHeap.Initialize(&device, 3);
-		computeHeightDescriptorHeap.PushBackView<DescriptorHeapViewTag::UnorderedAccessResource>(&device, &heightMapResource);
-		computeHeightDescriptorHeap.PushBackView<DescriptorHeapViewTag::UnorderedAccessResource>(&device, &elapsedTimeMapResource);
+		computeHeightDescriptorHeap.PushBackView<ViewTypeTag::UnorderedAccessResource>(&device, &heightMapResource);
+		computeHeightDescriptorHeap.PushBackView<ViewTypeTag::UnorderedAccessResource>(&device, &elapsedTimeMapResource);
 		computeHeightDescriptorHeap.PushBackView(&device, &groundDepthShaderResource);
 
 		Shader computeHeightCS{};
@@ -275,7 +276,7 @@ namespace test007
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> computeNormalDescriptorHeap{};
 		computeNormalDescriptorHeap.Initialize(&device, 2);
 		computeNormalDescriptorHeap.PushBackView(&device, &heightMapResource);
-		computeNormalDescriptorHeap.PushBackView<DescriptorHeapViewTag::UnorderedAccessResource>(&device, &normalMapResource);
+		computeNormalDescriptorHeap.PushBackView<ViewTypeTag::UnorderedAccessResource>(&device, &normalMapResource);
 
 		Shader computeNormalCS{};
 		computeNormalCS.Intialize(L"Shader/ComputeShader003.hlsl", "main", "cs_5_1");

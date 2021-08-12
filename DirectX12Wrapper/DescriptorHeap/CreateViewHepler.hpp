@@ -9,13 +9,12 @@
 
 namespace DX12
 {
-	//ëOï˚êÈåæ
 	namespace DescriptorHeapTypeTag {
 		struct CBV_SRV_UAV;
 		struct DSV;
 		struct RTV;
 	}
-	namespace DescriptorHeapViewTag {
+	namespace ViewTypeTag {
 		struct ConstantBuffer;
 		struct DepthStencilBuffer;
 		struct ShaderResource;
@@ -24,15 +23,17 @@ namespace DX12
 	}
 
 	//ÉrÉÖÅ[ÇçÏê¨Ç∑ÇÈä÷êî
-	template<typename DescriptorHeapTypeTag, typename DescriptorHeapViewTag>
-	inline bool CreateView(Device*, ID3D12Resource*, const D3D12_CPU_DESCRIPTOR_HANDLE&);
+	template<typename DescriptorHeapTypeTag, typename ViewTypeTag>
+	inline bool CreateView(Device*, ID3D12Resource*, const D3D12_CPU_DESCRIPTOR_HANDLE&) {
+		static_assert(false);
+	}
 
 	//
 	//
 	//
 
 	template<>
-	inline bool CreateView<DescriptorHeapTypeTag::CBV_SRV_UAV, DescriptorHeapViewTag::ConstantBuffer>
+	inline bool CreateView<DescriptorHeapTypeTag::CBV_SRV_UAV, ViewTypeTag::ConstantBuffer>
 		(Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 	{
 		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
@@ -45,7 +46,7 @@ namespace DX12
 	}
 
 	template<>
-	inline bool  CreateView<DescriptorHeapTypeTag::CBV_SRV_UAV, DescriptorHeapViewTag::ShaderResource>
+	inline bool  CreateView<DescriptorHeapTypeTag::CBV_SRV_UAV, ViewTypeTag::ShaderResource>
 		(Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 	{
 		const auto& desc = resource->GetDesc();
@@ -68,7 +69,7 @@ namespace DX12
 	}
 
 	template<>
-	inline bool  CreateView<DescriptorHeapTypeTag::CBV_SRV_UAV, DescriptorHeapViewTag::DepthStencilBuffer>
+	inline bool  CreateView<DescriptorHeapTypeTag::CBV_SRV_UAV, ViewTypeTag::DepthStencilBuffer>
 		(Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 	{
 		const auto& desc = resource->GetDesc();
@@ -93,7 +94,7 @@ namespace DX12
 	}
 
 	template<>
-	inline bool CreateView<DescriptorHeapTypeTag::CBV_SRV_UAV, DescriptorHeapViewTag::CubeMap>
+	inline bool CreateView<DescriptorHeapTypeTag::CBV_SRV_UAV, ViewTypeTag::CubeMap>
 		(Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle) 
 	{
 		const auto& desc = resource->GetDesc();
@@ -110,7 +111,7 @@ namespace DX12
 	}
 
 	template<>
-	inline bool CreateView<DescriptorHeapTypeTag::CBV_SRV_UAV, DescriptorHeapViewTag::UnorderedAccessResource>
+	inline bool CreateView<DescriptorHeapTypeTag::CBV_SRV_UAV, ViewTypeTag::UnorderedAccessResource>
 		(Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 	{
 		const auto& desc = resource->GetDesc();
@@ -126,7 +127,7 @@ namespace DX12
 	}
 
 	template<>
-	inline bool  CreateView<DescriptorHeapTypeTag::DSV, DescriptorHeapViewTag::DepthStencilBuffer>
+	inline bool  CreateView<DescriptorHeapTypeTag::DSV, ViewTypeTag::DepthStencilBuffer>
 		(Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 	{
 		const auto& desc = resource->GetDesc();
@@ -148,7 +149,7 @@ namespace DX12
 	}
 
 	template<>
-	inline bool CreateView<DescriptorHeapTypeTag::RTV, DescriptorHeapViewTag::ShaderResource>
+	inline bool CreateView<DescriptorHeapTypeTag::RTV, ViewTypeTag::ShaderResource>
 		(Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 	{
 		const auto& desc = resource->GetDesc();

@@ -1,6 +1,6 @@
 #pragma once
 #include"ResourceBase.hpp"
-#include"../DescriptorHeap/DescripotrHeapViewTag.hpp"
+#include"../DescriptorHeap/ViewTypeTag.hpp"
 
 namespace DX12
 {
@@ -12,7 +12,7 @@ namespace DX12
 
 	template<>
 	struct DefaultViewTypeTraits<DepthBuffer> {
-		using Type = DescriptorHeapViewTag::DepthStencilBuffer;
+		using Type = ViewTypeTag::DepthStencilBuffer;
 	};
 
 	//

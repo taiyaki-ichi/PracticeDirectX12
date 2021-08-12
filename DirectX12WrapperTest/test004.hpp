@@ -200,7 +200,7 @@ namespace test004
 			descriptorHeap.Initialize(device, 3);
 			descriptorHeap.PushBackView(device, sceneConstantBufferResource);
 			descriptorHeap.PushBackView(device, &worldConstantBuffer);
-			descriptorHeap.PushBackView<DescriptorHeapViewTag::CubeMap>(device, &cubemapShaderResource);
+			descriptorHeap.PushBackView<ViewTypeTag::CubeMap>(device, &cubemapShaderResource);
 		}
 
 		template<typename T>
