@@ -11,7 +11,7 @@ namespace DX12
 	enum class Type {
 		Float,//32bit
 		Uint,//32bit
-		UnsignedNormalizedInt8,//8bit,doublebuffer‚Í‚¾‚¢‚½‚¢‚±‚ê
+		UnsignedNormalizedFloat,//8bit,doublebuffer‚Í‚¾‚¢‚½‚¢‚±‚ê
 	};
 
 	class FFormat {
@@ -49,9 +49,9 @@ case getHash(t,n):				\
 			switchCase(Type::Uint, 2, DXGI_FORMAT_R32G32_UINT);
 			switchCase(Type::Uint, 3, DXGI_FORMAT_R32G32B32_UINT);
 			switchCase(Type::Uint, 4, DXGI_FORMAT_R32G32B32A32_UINT);
-			switchCase(Type::UnsignedNormalizedInt8, 1, DXGI_FORMAT_R8_UNORM);
-			switchCase(Type::UnsignedNormalizedInt8, 2, DXGI_FORMAT_R8G8_UNORM);
-			switchCase(Type::UnsignedNormalizedInt8, 4, DXGI_FORMAT_R8G8B8A8_UNORM);
+			switchCase(Type::UnsignedNormalizedFloat, 1, DXGI_FORMAT_R8_UNORM);
+			switchCase(Type::UnsignedNormalizedFloat, 2, DXGI_FORMAT_R8G8_UNORM);
+			switchCase(Type::UnsignedNormalizedFloat, 4, DXGI_FORMAT_R8G8B8A8_UNORM);
 
 
 		default:

@@ -3,12 +3,12 @@
 #include"Device.hpp"
 #include"Command.hpp"
 #include"SwapChain.hpp"
-#include"Resource/VertexBufferResource.hpp"
+#include"Resource/VertexBuffer.hpp"
 #include"RootSignature/RootSignature.hpp"
 #include"PipelineState/PipelineState.hpp"
-#include"Resource/IndexBufferResource.hpp"
-#include"Resource/DepthBufferResource.hpp"
-#include"Resource/ConstantBufferResource.hpp"
+#include"Resource/IndexBuffer.hpp"
+#include"Resource/DepthBuffer.hpp"
+#include"Resource/ConstantBuffer.hpp"
 
 #include"OffLoader.hpp"
 
@@ -49,13 +49,13 @@ namespace test003
 
 		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint16_t, 3>>("../../Assets/bunny.off");
 		
-		VertexBufferResource vertexBufferResource{};
-		vertexBufferResource.Initialize(&device, sizeof(decltype(vertex)::value_type) * vertex.size(), sizeof(decltype(vertex)::value_type));
-		vertexBufferResource.Map(vertex);
+		VertexBuffer vertexBuffer{};
+		vertexBuffer.Initialize(&device, sizeof(decltype(vertex)::value_type) * vertex.size(), sizeof(decltype(vertex)::value_type));
+		vertexBuffer.Map(vertex);
 
-		IndexBufferResource indexBufferResource{};
-		indexBufferResource.Initialize(&device, sizeof(decltype(face)::value_type) * face.size());
-		indexBufferResource.Map(face);
+		IndexBuffer indexBuffer{};
+		indexBuffer.Initialize(&device, sizeof(decltype(face)::value_type) * face.size());
+		indexBuffer.Map(face);
 
 		RootSignature rootSignature{};
 		rootSignature.Initialize(&device, { {DescriptorRangeType::CBV} }, {});
@@ -77,21 +77,21 @@ namespace test003
 
 		PipelineState drawFacePipelineState{};
 		drawFacePipelineState.Initialize(&device, &rootSignature, { &vertexShader, &drawFacePixelShader,&drawFaceGeometryShader },
-			{ {"POSITION", {Type::Float,3}} }, { {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Triangle
+			{ {"POSITION", {Type::Float,3}} }, { {Type::UnsignedNormalizedFloat,4} }, true, false, PrimitiveTopology::Triangle
 		);
 
 		PipelineState drawNormalPipelineState{};
 		drawNormalPipelineState.Initialize(&device, &rootSignature, { &vertexShader, &drawNormalPixelShader,&drawNormalGeometryShader },
-			{ {"POSITION", {Type::Float,3}} }, { {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Triangle
+			{ {"POSITION", {Type::Float,3}} }, { {Type::UnsignedNormalizedFloat,4} }, true, false, PrimitiveTopology::Triangle
 		);
 
 
-		DepthBufferResource depthStencilBufferResource{};
-		depthStencilBufferResource.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
+		DepthBuffer depthBuffer{};
+		depthBuffer.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		DescriptorHeap<DescriptorHeapTypeTag::DSV> depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.Initialize(&device, 1);
-		depthStencilDescriptorHeap.PushBackView(&device, &depthStencilBufferResource);
+		depthStencilDescriptorHeap.PushBackView(&device, &depthBuffer);
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
 		D3D12_RECT scissorRect{ 0,0,static_cast<LONG>(WINDOW_WIDTH),static_cast<LONG>(WINDOW_HEIGHT) };
@@ -108,14 +108,14 @@ namespace test003
 			100.f
 		);
 
-		ConstantBufferResource sceneDataConstantBufferResource{};
-		sceneDataConstantBufferResource.Initialize(&device, sizeof(SceneData));
-		sceneDataConstantBufferResource.Map(SceneData{ view,proj });
+		ConstantBuffer sceneDataConstantBuffer{};
+		sceneDataConstantBuffer.Initialize(&device, sizeof(SceneData));
+		sceneDataConstantBuffer.Map(SceneData{ view,proj });
 
 		//SceneDataをシェーダに渡す用
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> descriptorHeap{};
 		descriptorHeap.Initialize(&device, 1);
-		descriptorHeap.PushBackView(&device, &sceneDataConstantBufferResource);
+		descriptorHeap.PushBackView(&device, &sceneDataConstantBuffer);
 
 		std::size_t cnt = 0;
 		while (UpdateWindow()) {
@@ -123,7 +123,7 @@ namespace test003
 			eye.x = len * std::cos(cnt / 60.0);
 			eye.z = len * std::sin(cnt / 60.0);
 			auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
-			sceneDataConstantBufferResource.Map(SceneData{ view,proj });
+			sceneDataConstantBuffer.Map(SceneData{ view,proj });
 			cnt++;
 
 			auto backBufferIndex = swapChain.GetCurrentBackBufferIndex();
@@ -145,8 +145,8 @@ namespace test003
 				command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
 				command.SetGraphicsRootSignature(&rootSignature);
 
-				command.SetVertexBuffer(&vertexBufferResource);
-				command.SetIndexBuffer(&indexBufferResource);
+				command.SetVertexBuffer(&vertexBuffer);
+				command.SetIndexBuffer(&indexBuffer);
 				command.SetDescriptorHeap(&descriptorHeap);
 				command.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 
@@ -159,8 +159,8 @@ namespace test003
 				command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
 				command.SetGraphicsRootSignature(&rootSignature);
 
-				command.SetVertexBuffer(&vertexBufferResource);
-				command.SetIndexBuffer(&indexBufferResource);
+				command.SetVertexBuffer(&vertexBuffer);
+				command.SetIndexBuffer(&indexBuffer);
 				command.SetDescriptorHeap(&descriptorHeap);
 				command.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
 

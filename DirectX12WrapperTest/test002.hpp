@@ -4,10 +4,10 @@
 #include"Command.hpp"
 #include"SwapChain.hpp"
 #include"DescriptorHeap/DescriptorHeap.hpp"
-#include"Resource/VertexBufferResource.hpp"
+#include"Resource/VertexBuffer.hpp"
 #include"RootSignature/RootSignature.hpp"
 #include"PipelineState/PipelineState.hpp"
-#include"Resource/IndexBufferResource.hpp"
+#include"Resource/IndexBuffer.hpp"
 #include"Resource/ShaderResource.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -56,23 +56,23 @@ namespace test002
 			0,1,2,2,1,3
 		};
 
-		VertexBufferResource vertexBufferResource{};
-		vertexBufferResource.Initialize(&device, sizeof(vertex), sizeof(decltype(vertex)::value_type));
-		vertexBufferResource.Map(vertex);
+		VertexBuffer vertexBuffer{};
+		vertexBuffer.Initialize(&device, sizeof(vertex), sizeof(decltype(vertex)::value_type));
+		vertexBuffer.Map(vertex);
 
-		IndexBufferResource indexBufferResource{};
-		indexBufferResource.Initialize(&device, sizeof(index));
-		indexBufferResource.Map(index);
+		IndexBuffer indexBuffer{};
+		indexBuffer.Initialize(&device, sizeof(index));
+		indexBuffer.Map(index);
 
 		int x, y, n;
 		std::uint8_t* data = stbi_load("../../Assets/icon.png", &x, &y, &n, 0);
 
-		Float4ShaderResource textureResource{};
+		ShaderResource textureResource{};
 		{
 			UploadResource uploadResource{};
 			uploadResource.Initialize(&device, AlignmentSize(x * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * y);
 			uploadResource.Map(data, x * 4, y);
-			textureResource.Initialize(&device, x, y);
+			textureResource.Initialize(&device, x, y, { Type::UnsignedNormalizedFloat,4 }, 1);
 
 			command.Reset(0);
 			command.Barrior(&textureResource, ResourceState::CopyDest);
@@ -101,7 +101,7 @@ namespace test002
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
 			{ {"POSITION", {Type::Float,3}} ,{"TEXCOOD",{Type::Float,2}} },
-			{ {Type::UnsignedNormalizedInt8,4} }, false, false, PrimitiveTopology::Triangle
+			{ {Type::UnsignedNormalizedFloat,4} }, false, false, PrimitiveTopology::Triangle
 		);
 
 
@@ -127,8 +127,8 @@ namespace test002
 
 			command.SetDescriptorHeap(&descriptorHeap);
 			command.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
-			command.SetVertexBuffer(&vertexBufferResource);
-			command.SetIndexBuffer(&indexBufferResource);
+			command.SetVertexBuffer(&vertexBuffer);
+			command.SetIndexBuffer(&indexBuffer);
 			command.DrawIndexedInstanced(6);
 
 			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::Common);

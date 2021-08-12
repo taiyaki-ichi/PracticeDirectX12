@@ -1,5 +1,5 @@
 #pragma once
-#include"Resource/FrameBufferResource.hpp"
+#include"Resource/FrameBuffer.hpp"
 #include<array>
 #include<d3d12.h>
 #include<dxgi1_6.h>
@@ -14,7 +14,7 @@ namespace DX12
 	class SwapChain
 	{
 		IDXGISwapChain3* const swapChain;
-		std::array<FrameBufferResource, FrameBufferNum> frameBuffer{};
+		std::array<FrameBuffer, FrameBufferNum> frameBuffer{};
 
 	public:
 		SwapChain(IDXGISwapChain3*);
@@ -27,7 +27,7 @@ namespace DX12
 		//現在控えているBackBufferのインデックスの取得
 		std::uint32_t GetCurrentBackBufferIndex();
 
-		FrameBufferResource& GetFrameBuffer(std::size_t index);
+		FrameBuffer& GetFrameBuffer(std::size_t index);
 	};
 
 	//
@@ -68,7 +68,7 @@ namespace DX12
 	}
 
 	template<std::size_t FrameBufferNum>
-	inline FrameBufferResource& DX12::SwapChain<FrameBufferNum>::GetFrameBuffer(std::size_t index)
+	inline FrameBuffer& DX12::SwapChain<FrameBufferNum>::GetFrameBuffer(std::size_t index)
 	{
 		return frameBuffer[index];
 	}

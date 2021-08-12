@@ -4,14 +4,14 @@
 
 namespace DX12
 {
-	class ConstantBufferResource : public UploadResource
+	class ConstantBuffer : public UploadResource
 	{
 	public:
 		void Initialize(Device*, std::uint32_t size);
 	};
 
 	template<>
-	struct DefaultViewTypeTraits<ConstantBufferResource>
+	struct DefaultViewTypeTraits<ConstantBuffer>
 	{
 		using Type = DescriptorHeapViewTag::ConstantBuffer;
 	};
@@ -20,7 +20,7 @@ namespace DX12
 	//
 	//
 
-	inline void ConstantBufferResource::Initialize(Device* device, std::uint32_t size)
+	inline void ConstantBuffer::Initialize(Device* device, std::uint32_t size)
 	{
 		//サイズは16の倍数じゃあないといけないのでアライメント
 		size = (size + 0xff) & ~0xff;

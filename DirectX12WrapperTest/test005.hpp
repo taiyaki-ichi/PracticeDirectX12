@@ -6,12 +6,12 @@
 #include"Shader.hpp"
 #include"RootSignature/RootSignature.hpp"
 #include"PipelineState/PipelineState.hpp"
-#include"Resource/DepthBufferResource.hpp"
+#include"Resource/DepthBuffer.hpp"
 #include"DescriptorHeap/DescriptorHeap.hpp"
-#include"Resource/ConstantBufferResource.hpp"
+#include"Resource/ConstantBuffer.hpp"
 #include"Resource/ShaderResource.hpp"
-#include"Resource/VertexBufferResource.hpp"
-#include"Resource/IndexBufferResource.hpp"
+#include"Resource/VertexBuffer.hpp"
+#include"Resource/IndexBuffer.hpp"
 
 #include<vector>
 #include<cmath>
@@ -126,10 +126,10 @@ namespace test005
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vs, &ps,nullptr,&hs, &ds },
 			{ {"POSITION",{Type::Float,3}},{"TEXCOOD",{Type::Float,2}} },
-			{ {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Patch
+			{ {Type::UnsignedNormalizedFloat,4} }, true, false, PrimitiveTopology::Patch
 		);
 
-		DepthBufferResource depthStencilBufferResource{};
+		DepthBuffer depthStencilBufferResource{};
 		depthStencilBufferResource.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		DescriptorHeap<DescriptorHeapTypeTag::DSV> depthStencilDescriptorHeap{};
@@ -137,17 +137,17 @@ namespace test005
 		depthStencilDescriptorHeap.PushBackView(&device, &depthStencilBufferResource);
 
 
-		ConstantBufferResource sceneDataConstantBufferResource{};
-		sceneDataConstantBufferResource.Initialize(&device, sizeof(SceneData));
+		ConstantBuffer sceneDataConstantBuffer{};
+		sceneDataConstantBuffer.Initialize(&device, sizeof(SceneData));
 
-		Float4ShaderResource heightMapTextureResource{};
+		ShaderResource heightMapTextureResource{};
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/heightmap.png", &textureWidth, &textureHeight, &n, 4);
 			UploadResource uploadResource{};
 			uploadResource.Initialize(&device, AlignmentSize(textureWidth * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
-			heightMapTextureResource.Initialize(&device, textureWidth, textureHeight);
+			heightMapTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat,4 }, 1);
 
 			command.Reset(0);
 			command.Barrior(&heightMapTextureResource, ResourceState::CopyDest);
@@ -161,14 +161,14 @@ namespace test005
 			stbi_image_free(data);
 		}
 
-		Float4ShaderResource normalMapTextureResource{};
+		ShaderResource normalMapTextureResource{};
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/normalmap.png", &textureWidth, &textureHeight, &n, 4);
 			UploadResource uploadResource{};
 			uploadResource.Initialize(&device, AlignmentSize(textureWidth * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
-			normalMapTextureResource.Initialize(&device, textureWidth, textureHeight);
+			normalMapTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat,4 }, 1);
 
 			command.Reset(0);
 			command.Barrior(&normalMapTextureResource, ResourceState::CopyDest);
@@ -184,20 +184,20 @@ namespace test005
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> descriptorHeap{};
 		descriptorHeap.Initialize(&device, 3);
-		descriptorHeap.PushBackView(&device, &sceneDataConstantBufferResource);
+		descriptorHeap.PushBackView(&device, &sceneDataConstantBuffer);
 		descriptorHeap.PushBackView(&device, &heightMapTextureResource);
 		descriptorHeap.PushBackView(&device, &normalMapTextureResource);
 
 
 		auto [vertexList, indexList] = GetGroundPatch();
 
-		VertexBufferResource vertexBufferResource{};
-		vertexBufferResource.Initialize(&device, sizeof(Vertex) * vertexList.size(), sizeof(Vertex));
-		vertexBufferResource.Map(vertexList);
+		VertexBuffer vertexBuffer{};
+		vertexBuffer.Initialize(&device, sizeof(Vertex) * vertexList.size(), sizeof(Vertex));
+		vertexBuffer.Map(vertexList);
 
-		IndexBufferResource indexBufferResource{};
-		indexBufferResource.Initialize(&device, sizeof(std::uint16_t) * indexList.size());
-		indexBufferResource.Map(indexList);
+		IndexBuffer indexBuffer{};
+		indexBuffer.Initialize(&device, sizeof(std::uint16_t) * indexList.size());
+		indexBuffer.Map(indexList);
 
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
@@ -216,7 +216,7 @@ namespace test005
 			500.f
 		);
 
-		sceneDataConstantBufferResource.Map(SceneData{ view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) });
+		sceneDataConstantBuffer.Map(SceneData{ view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) });
 
 		std::size_t cnt = 0;
 		while (UpdateWindow())
@@ -225,7 +225,7 @@ namespace test005
 			//eye.z = len * std::sin(cnt / 600.0);
 			XMFLOAT3 t{ eye.x + 10.f,-1.f,0 };
 			auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&t), XMLoadFloat3(&up));
-			sceneDataConstantBufferResource.Map(SceneData{ view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) });
+			sceneDataConstantBuffer.Map(SceneData{ view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) });
 			cnt++;
 
 
@@ -244,8 +244,8 @@ namespace test005
 			command.SetGraphicsRootSignature(&rootSignature);
 			command.SetDescriptorHeap(&descriptorHeap);
 			command.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
-			command.SetVertexBuffer(&vertexBufferResource);
-			command.SetIndexBuffer(&indexBufferResource);
+			command.SetVertexBuffer(&vertexBuffer);
+			command.SetIndexBuffer(&indexBuffer);
 			command.SetPrimitiveTopology(PrimitiveTopology::Contorol4PointPatchList);
 			command.DrawIndexedInstanced(indexList.size());
 

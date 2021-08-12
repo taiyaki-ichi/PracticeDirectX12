@@ -3,7 +3,7 @@
 
 namespace DX12
 {
-	class VertexBufferResource : public UploadResource
+	class VertexBuffer : public UploadResource
 	{
 		D3D12_VERTEX_BUFFER_VIEW bufferView{};
 
@@ -17,7 +17,7 @@ namespace DX12
 	//
 	//
 
-	inline void VertexBufferResource::Initialize(Device* device, std::uint32_t size, std::uint32_t stride)
+	inline void VertexBuffer::Initialize(Device* device, std::uint32_t size, std::uint32_t stride)
 	{
 		UploadResource::Initialize(device, size);
 
@@ -26,7 +26,7 @@ namespace DX12
 		bufferView.StrideInBytes = stride;
 	}
 
-	inline const D3D12_VERTEX_BUFFER_VIEW& VertexBufferResource::GetView() const noexcept
+	inline const D3D12_VERTEX_BUFFER_VIEW& VertexBuffer::GetView() const noexcept
 	{
 		return bufferView;
 	}

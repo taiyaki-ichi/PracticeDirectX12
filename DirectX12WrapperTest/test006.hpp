@@ -7,8 +7,8 @@
 #include"PipelineState/PipelineState.hpp"
 #include"Resource/ShaderResource.hpp"
 #include"DescriptorHeap/DescriptorHeap.hpp"
-#include"Resource/VertexBufferResource.hpp"
-#include"Resource/IndexBufferResource.hpp"
+#include"Resource/VertexBuffer.hpp"
+#include"Resource/IndexBuffer.hpp"
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 	#define STB_IMAGE_IMPLEMENTATION
@@ -58,13 +58,13 @@ namespace test006
 		computePipelineState.Initialize(&device, &computeRootsignature, &cs);
 
 		int x, y, n;
-		TextureResource textureResource{};
+		ShaderResource textureResource{};
 		{
 			std::uint8_t* data = stbi_load("../../Assets/icon.png", &x, &y, &n, 0);
 			UploadResource uploadResource{};
 			uploadResource.Initialize(&device, AlignmentSize(x * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * y);
 			uploadResource.Map(data, x * 4, y);
-			textureResource.Initialize(&device, x, y);
+			textureResource.Initialize(&device, x, y, { Type::UnsignedNormalizedFloat,4 }, 1);
 
 			command.Reset(0);
 			command.Barrior(&textureResource, ResourceState::CopyDest);
@@ -78,8 +78,8 @@ namespace test006
 			stbi_image_free(data);
 		}
 
-		Float4ShaderResource float4ShaderResource{};
-		float4ShaderResource.Initialize(&device, x, y, { { 0.f,0.f,0.f,0.f } });
+		ShaderResource float4ShaderResource{};
+		float4ShaderResource.Initialize(&device, x, y, { Type::UnsignedNormalizedFloat,4 }, 1, { { 0.f,0.f,0.f,0.f } });
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> computeDescriptorHeap{};
 		computeDescriptorHeap.Initialize(&device, 2);
@@ -118,13 +118,13 @@ namespace test006
 			0,1,2,2,1,3
 		};
 
-		VertexBufferResource vertexBufferResource{};
-		vertexBufferResource.Initialize(&device, sizeof(vertex), sizeof(decltype(vertex)::value_type));
-		vertexBufferResource.Map(vertex);
+		VertexBuffer vertexBuffer{};
+		vertexBuffer.Initialize(&device, sizeof(vertex), sizeof(decltype(vertex)::value_type));
+		vertexBuffer.Map(vertex);
 
-		IndexBufferResource indexBufferResource{};
-		indexBufferResource.Initialize(&device, sizeof(index));
-		indexBufferResource.Map(index);
+		IndexBuffer indexBuffer{};
+		indexBuffer.Initialize(&device, sizeof(index));
+		indexBuffer.Map(index);
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> descriptorHeap{};
 		descriptorHeap.Initialize(&device, 1);
@@ -143,7 +143,7 @@ namespace test006
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
 			{ {"POSITION", {Type::Float,3}} ,{"TEXCOOD",{Type::Float,2}} },
-			{ {Type::UnsignedNormalizedInt8,4} }, false, false, PrimitiveTopology::Triangle
+			{ {Type::UnsignedNormalizedFloat,4} }, false, false, PrimitiveTopology::Triangle
 		);
 
 
@@ -169,8 +169,8 @@ namespace test006
 			command.SetGraphicsRootSignature(&rootSignature);
 			command.SetDescriptorHeap(&descriptorHeap);
 			command.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
-			command.SetVertexBuffer(&vertexBufferResource);
-			command.SetIndexBuffer(&indexBufferResource);
+			command.SetVertexBuffer(&vertexBuffer);
+			command.SetIndexBuffer(&indexBuffer);
 			command.DrawIndexedInstanced(6);
 
 			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::Common);

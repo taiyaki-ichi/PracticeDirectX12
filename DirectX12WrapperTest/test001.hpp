@@ -4,7 +4,7 @@
 #include"Command.hpp"
 #include"SwapChain.hpp"
 #include"DescriptorHeap/DescriptorHeap.hpp"
-#include"Resource/VertexBufferResource.hpp"
+#include"Resource/VertexBuffer.hpp"
 #include"RootSignature/RootSignature.hpp"
 #include"PipelineState/PipelineState.hpp"
 
@@ -40,9 +40,9 @@ namespace test001
 			{{-0.8f,-0.8f,0.f},{-0.8f,0.8f,0.f},{0.8f,-0.8f,0.f}}
 		};
 
-		VertexBufferResource vertexBufferResource{};
-		vertexBufferResource.Initialize(&device, sizeof(vertex), sizeof(decltype(vertex)::value_type));
-		vertexBufferResource.Map(vertex);
+		VertexBuffer vertexBuffer{};
+		vertexBuffer.Initialize(&device, sizeof(vertex), sizeof(decltype(vertex)::value_type));
+		vertexBuffer.Map(vertex);
 
 		RootSignature rootSignature{};
 		rootSignature.Initialize(&device, {}, {});
@@ -55,7 +55,7 @@ namespace test001
 
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
-			{ {"POSITION", {Type::Float,3}} }, { {Type::UnsignedNormalizedInt8,4} }, false, false, PrimitiveTopology::Triangle
+			{ {"POSITION", {Type::Float,3}} }, { {Type::UnsignedNormalizedFloat,4} }, false, false, PrimitiveTopology::Triangle
 		);
 
 
@@ -80,7 +80,7 @@ namespace test001
 			command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
 			command.SetGraphicsRootSignature(&rootSignature);
 
-			command.SetVertexBuffer(&vertexBufferResource);
+			command.SetVertexBuffer(&vertexBuffer);
 			command.DrawInstanced(3);
 
 			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::Common);

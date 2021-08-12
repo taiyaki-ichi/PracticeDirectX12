@@ -6,11 +6,11 @@
 #include"SwapChain.hpp"
 #include"OffLoader.hpp"
 #include"utility.hpp"
-#include"Resource/VertexBufferResource.hpp"
-#include"Resource/IndexBufferResource.hpp"
+#include"Resource/VertexBuffer.hpp"
+#include"Resource/IndexBuffer.hpp"
 #include"Resource/ShaderResource.hpp"
-#include"Resource/ConstantBufferResource.hpp"
-#include"Resource/DepthBufferResource.hpp"
+#include"Resource/ConstantBuffer.hpp"
+#include"Resource/DepthBuffer.hpp"
 
 #include<array>
 #include<DirectXMath.h>
@@ -49,8 +49,8 @@ namespace test004
 	{
 		std::size_t faceNum{};
 
-		VertexBufferResource vertexBufferResource{};
-		IndexBufferResource indexBufferResource{};
+		VertexBuffer vertexBuffer{};
+		IndexBuffer indexBuffer{};
 
 		struct Vertex {
 			std::array<float, 3> pos;
@@ -73,17 +73,17 @@ namespace test004
 
 			faceNum = faceList.size();
 
-			vertexBufferResource.Initialize(device, sizeof(Vertex) * posNormalList.size(), sizeof(Vertex));
-			vertexBufferResource.Map(std::move(posNormalList));
+			vertexBuffer.Initialize(device, sizeof(Vertex) * posNormalList.size(), sizeof(Vertex));
+			vertexBuffer.Map(std::move(posNormalList));
 
-			indexBufferResource.Initialize(device, sizeof(decltype(faceList)::value_type) * faceList.size());
-			indexBufferResource.Map(std::move(faceList));
+			indexBuffer.Initialize(device, sizeof(decltype(faceList)::value_type) * faceList.size());
+			indexBuffer.Map(std::move(faceList));
 		}
 
 		void SetMesh(Command<FRAME_LATENCY_NUM>* cl)
 		{
-			cl->SetVertexBuffer(&vertexBufferResource);
-			cl->SetIndexBuffer(&indexBufferResource);
+			cl->SetVertexBuffer(&vertexBuffer);
+			cl->SetIndexBuffer(&indexBuffer);
 		}
 
 		void Draw(Command<FRAME_LATENCY_NUM>* cl)
@@ -95,26 +95,26 @@ namespace test004
 	template<std::size_t ColorObjectNum>
 	class ColorObjectModel
 	{
-		std::array<ConstantBufferResource, ColorObjectNum> colorBunnyDataConstantBufferResource{};
+		std::array<ConstantBuffer, ColorObjectNum> colorBunnyDataConstantBuffer{};
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> descriptorHeap{};
 
 	public:
-		void Initialize(Device* device, ConstantBufferResource* sceneDataConstantBuffer, ConstantBufferResource* cubemapSceneDataConstantBuffer)
+		void Initialize(Device* device, ConstantBuffer* sceneDataConstantBuffer, ConstantBuffer* cubemapSceneDataConstantBuffer)
 		{
 			for (std::size_t i = 0; i < ColorObjectNum; i++)
-				colorBunnyDataConstantBufferResource[i].Initialize(device, sizeof(ColorObjectData));
+				colorBunnyDataConstantBuffer[i].Initialize(device, sizeof(ColorObjectData));
 
 			descriptorHeap.Initialize(device, 2 + ColorObjectNum);
 			descriptorHeap.PushBackView(device, sceneDataConstantBuffer);
 			for (std::size_t i = 0; i < ColorObjectNum; i++)
-				descriptorHeap.PushBackView(device, &colorBunnyDataConstantBufferResource[i]);
+				descriptorHeap.PushBackView(device, &colorBunnyDataConstantBuffer[i]);
 			descriptorHeap.PushBackView(device, cubemapSceneDataConstantBuffer);
 		}
 
 		template<typename T>
 		void MapColorBunnyData(T&& t, std::size_t i)
 		{
-			colorBunnyDataConstantBufferResource[i].Map(std::forward<T>(t));
+			colorBunnyDataConstantBuffer[i].Map(std::forward<T>(t));
 		}
 
 		void SetDescriptorHeap(Command<FRAME_LATENCY_NUM>* cl, std::size_t i)
@@ -149,7 +149,7 @@ namespace test004
 
 				standerdPipelineState.Initialize(device, &rootSignature, { &vs, &ps },
 					{ {"POSITION", {Type::Float,3} },{"NORMAL",{Type::Float,3} } },
-					{ {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Triangle
+					{ {Type::UnsignedNormalizedFloat,4} }, true, false, PrimitiveTopology::Triangle
 				);
 			}
 
@@ -165,7 +165,7 @@ namespace test004
 
 				cubemapPipelineState.Initialize(device, &rootSignature, { &vs, &ps,&gs },
 					{ {"POSITION", {Type::Float,3} } ,{"NORMAL",{Type::Float,3} } },
-					{ {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Triangle
+					{ {Type::UnsignedNormalizedFloat,4} }, true, false, PrimitiveTopology::Triangle
 				);
 			}
 		}
@@ -184,28 +184,28 @@ namespace test004
 
 	class MirrorObjectModel
 	{
-		ConstantBufferResource worldConstantbunnferResource{};
-		CubeMapShaderResource cubemapShaderResource{};
+		ConstantBuffer worldConstantBuffer{};
+		ShaderResource cubemapShaderResource{};
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> descriptorHeap{};
 
 	public:
 		static constexpr std::array<float, 4> CUBEMAP_CLEAR_VALUE{ 0.5f,0.5f,0.5f,1.f };
 
-		void Initialize(Device* device, ConstantBufferResource* sceneConstantBufferResource)
+		void Initialize(Device* device, ConstantBuffer* sceneConstantBufferResource)
 		{
-			worldConstantbunnferResource.Initialize(device, sizeof(XMMATRIX));
-			cubemapShaderResource.Initialize(device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, CUBEMAP_CLEAR_VALUE);
+			worldConstantBuffer.Initialize(device, sizeof(XMMATRIX));
+			cubemapShaderResource.Initialize(device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, { Type::UnsignedNormalizedFloat,4 }, 6, CUBEMAP_CLEAR_VALUE);
 
 			descriptorHeap.Initialize(device, 3);
 			descriptorHeap.PushBackView(device, sceneConstantBufferResource);
-			descriptorHeap.PushBackView(device, &worldConstantbunnferResource);
+			descriptorHeap.PushBackView(device, &worldConstantBuffer);
 			descriptorHeap.PushBackView<DescriptorHeapViewTag::CubeMap>(device, &cubemapShaderResource);
 		}
 
 		template<typename T>
 		void MapWorld(T&& t) {
-			worldConstantbunnferResource.Map(std::forward<T>(t));
+			worldConstantBuffer.Map(std::forward<T>(t));
 		}
 
 		auto& GetCubemapShaderResource() {
@@ -241,7 +241,7 @@ namespace test004
 
 			pipelineState.Initialize(device, &rootSignature, { &vs, &ps },
 				{ {"POSITION", {Type::Float,3} },{"NORMAL",{Type::Float,3} } },
-				{ {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Triangle
+				{ {Type::UnsignedNormalizedFloat,4} }, true, false, PrimitiveTopology::Triangle
 			);
 		}
 
@@ -303,11 +303,11 @@ namespace test004
 		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(1));
 
 
-		ConstantBufferResource sceneDataConstantBufferResource{};
-		sceneDataConstantBufferResource.Initialize(&device, sizeof(SceneData));
+		ConstantBuffer sceneDataConstantBuffer{};
+		sceneDataConstantBuffer.Initialize(&device, sizeof(SceneData));
 
-		ConstantBufferResource cubemapSceneDataConstantBuffer{};
-		cubemapSceneDataConstantBuffer.Initialize(&device, sizeof(CubemapSceneData));
+		ConstantBuffer cubemapSceneDataConstant{};
+		cubemapSceneDataConstant.Initialize(&device, sizeof(CubemapSceneData));
 
 
 		Mesh bunnyMesh{};
@@ -334,35 +334,35 @@ namespace test004
 		} };
 
 		ColorObjectModel<ColorObjectNum> colorObjectModel{};
-		colorObjectModel.Initialize(&device, &sceneDataConstantBufferResource, &cubemapSceneDataConstantBuffer);
+		colorObjectModel.Initialize(&device, &sceneDataConstantBuffer, &cubemapSceneDataConstant);
 
 		ColorObjectRenderer colorObjectRenderer{};
 		colorObjectRenderer.Initialize(&device);
 
 
 		MirrorObjectModel mirrorObjectModel{};
-		mirrorObjectModel.Initialize(&device, &sceneDataConstantBufferResource);
+		mirrorObjectModel.Initialize(&device, &sceneDataConstantBuffer);
 
 		MirrorObjectRenderer mirrorObjectRenderer{};
 		mirrorObjectRenderer.Initialize(&device);
 
 
-		DepthBufferResource cubemapDepthStencilBufferResource{};
-		cubemapDepthStencilBufferResource.Initialize(&device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, 6);
+		DepthBuffer cubemapDepthBuffer{};
+		cubemapDepthBuffer.Initialize(&device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, 6);
 
 		DescriptorHeap<DescriptorHeapTypeTag::RTV> cubemapRtvDescriptorHeap{};
 		cubemapRtvDescriptorHeap.Initialize(&device, 1);
 		cubemapRtvDescriptorHeap.PushBackView(&device, &mirrorObjectModel.GetCubemapShaderResource());
 
 
-		DepthBufferResource depthStencilBufferResource{};
-		depthStencilBufferResource.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
+		DepthBuffer depthBuffer{};
+		depthBuffer.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		DescriptorHeap<DescriptorHeapTypeTag::DSV> depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.Initialize(&device, 2);
-		depthStencilDescriptorHeap.PushBackView(&device, &depthStencilBufferResource);
+		depthStencilDescriptorHeap.PushBackView(&device, &depthBuffer);
 		//Ç±Ç±Ç…ViewÇçÏÇ¡ÇƒÇµÇ‹Ç®Ç§
-		depthStencilDescriptorHeap.PushBackView(&device, &cubemapDepthStencilBufferResource);
+		depthStencilDescriptorHeap.PushBackView(&device, &cubemapDepthBuffer);
 
 
 
@@ -389,7 +389,7 @@ namespace test004
 		while (UpdateWindow())
 		{
 
-			sceneDataConstantBufferResource.Map(SceneData{ view,proj,lightDir,eye });
+			sceneDataConstantBuffer.Map(SceneData{ view,proj,lightDir,eye });
 
 			for (std::size_t i = 0; i < ColorObjectNum; i++) {
 				colorObjectWorlds[i] *= XMMatrixRotationY(0.02);
@@ -397,7 +397,7 @@ namespace test004
 			}
 
 			auto cubemapSceneData = GetCubemapSceneData(mirrorPos);
-			cubemapSceneDataConstantBuffer.Map(cubemapSceneData);
+			cubemapSceneDataConstant.Map(cubemapSceneData);
 
 			mirrorObjectModel.MapWorld(XMMatrixScaling(3.f, 3.f, 3.f) * XMMatrixTranslation(mirrorPos.x, mirrorPos.y, mirrorPos.z));
 

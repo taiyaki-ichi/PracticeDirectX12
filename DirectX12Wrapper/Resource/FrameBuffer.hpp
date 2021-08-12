@@ -4,10 +4,10 @@
 
 namespace DX12
 {
-	class FrameBufferResource : public ResourceBase {};
+	class FrameBuffer : public ResourceBase {};
 
 	template<>
-	struct DefaultViewTypeTraits<FrameBufferResource>
+	struct DefaultViewTypeTraits<FrameBuffer>
 	{
 		using Type = DescriptorHeapViewTag::ShaderResource;
 	};

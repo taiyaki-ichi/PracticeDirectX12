@@ -2,10 +2,9 @@
 #include"Device.hpp"
 #include"SwapChain.hpp"
 #include"PipelineState/PipelineState.hpp"
-#include"Resource/VertexBufferResource.hpp"
-#include"Resource/IndexBufferResource.hpp"
+#include"Resource/VertexBuffer.hpp"
+#include"Resource/IndexBuffer.hpp"
 #include"DescriptorHeap/DescriptorHeap.hpp"
-#include"Resource/TextureResource.hpp"
 #include<array>
 #include<algorithm>
 #include<d3d12.h>
@@ -77,8 +76,8 @@ namespace DX12
 		void SetScissorRect(const D3D12_RECT& rect);
 		void SetScissorRect(std::uint32_t num, D3D12_RECT* rectPtr);
 
-		void SetVertexBuffer(VertexBufferResource*);
-		void SetIndexBuffer(IndexBufferResource*);
+		void SetVertexBuffer(VertexBuffer*);
+		void SetIndexBuffer(IndexBuffer*);
 
 		void SetGraphicsRootSignature(RootSignature*);
 		void SetComputeRootSignature(RootSignature*);
@@ -367,13 +366,13 @@ namespace DX12
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::SetVertexBuffer(VertexBufferResource* vbr)
+	inline void Command<FrameLatencyNum>::SetVertexBuffer(VertexBuffer* vbr)
 	{
 		list->IASetVertexBuffers(0, 1, &vbr->GetView());
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::SetIndexBuffer(IndexBufferResource* ibr)
+	inline void Command<FrameLatencyNum>::SetIndexBuffer(IndexBuffer* ibr)
 	{
 		list->IASetIndexBuffer(&ibr->GetView());
 	}

@@ -24,50 +24,6 @@ namespace DX12
 		using Type = DescriptorHeapViewTag::ShaderResource;
 	};
 
-
-	//‚Æ‚è‚ ‚¦‚¸
-	
-	class Float4ShaderResource : public ShaderResource
-	{
-	public:
-		void Initialize(Device* device, std::uint32_t width, std::uint32_t height, std::array<float, 4> clearValue = {0,0,0,0}) {
-			ShaderResource::Initialize(device, width, height, { Type::UnsignedNormalizedInt8,4 }, 1, clearValue);
-		}
-	};
-
-	class FloatShaderResource : public ShaderResource
-	{
-	public:
-		void Initialize(Device* device, std::uint32_t width, std::uint32_t height,float depth=0.f) {
-			ShaderResource::Initialize(device, width, height, { Type::Float,1 }, 1, depth);
-		}
-	};
-
-	class CubeMapShaderResource : public ShaderResource
-	{
-	public:
-		void Initialize(Device* device, std::uint32_t width, std::uint32_t height,std::array<float, 4> clearValue = { 0,0,0,0 }) {
-			ShaderResource::Initialize(device, width, height, { Type::UnsignedNormalizedInt8,4 }, 6, clearValue);
-		}
-	};
-
-	template<>
-	struct DefaultViewTypeTraits<Float4ShaderResource> {
-		using Type = DescriptorHeapViewTag::ShaderResource;
-	};
-
-	template<>
-	struct DefaultViewTypeTraits<FloatShaderResource> {
-		using Type = DescriptorHeapViewTag::ShaderResource;
-	};
-
-	template<>
-	struct DefaultViewTypeTraits<CubeMapShaderResource> {
-		using Type = DescriptorHeapViewTag::ShaderResource;
-	};
-
-
-
 	//
 	//
 	//

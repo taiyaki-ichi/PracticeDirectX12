@@ -3,7 +3,7 @@
 
 namespace DX12
 {
-	class IndexBufferResource : public UploadResource
+	class IndexBuffer : public UploadResource
 	{
 		D3D12_INDEX_BUFFER_VIEW indexBufferView{};
 
@@ -17,7 +17,7 @@ namespace DX12
 	//
 	//
 
-	inline void IndexBufferResource::Initialize(Device* device, std::uint32_t size)
+	inline void IndexBuffer::Initialize(Device* device, std::uint32_t size)
 	{
 		UploadResource::Initialize(device, size);
 
@@ -26,7 +26,7 @@ namespace DX12
 		indexBufferView.SizeInBytes = size;
 	}
 
-	inline const D3D12_INDEX_BUFFER_VIEW& IndexBufferResource::GetView() const noexcept
+	inline const D3D12_INDEX_BUFFER_VIEW& IndexBuffer::GetView() const noexcept
 	{
 		return indexBufferView;
 	}

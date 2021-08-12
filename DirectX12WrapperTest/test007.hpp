@@ -6,11 +6,11 @@
 #include"Shader.hpp"
 #include"RootSignature/RootSignature.hpp"
 #include"PipelineState/PipelineState.hpp"
-#include"Resource/DepthBufferResource.hpp"
+#include"Resource/DepthBuffer.hpp"
 #include"DescriptorHeap/DescriptorHeap.hpp"
-#include"Resource/ConstantBufferResource.hpp"
-#include"Resource/VertexBufferResource.hpp"
-#include"Resource/IndexBufferResource.hpp"
+#include"Resource/ConstantBuffer.hpp"
+#include"Resource/VertexBuffer.hpp"
+#include"Resource/IndexBuffer.hpp"
 #include"Resource/ShaderResource.hpp"
 #include"OffLoader.hpp"
 #include"utility.hpp"
@@ -135,16 +135,16 @@ namespace test007
 		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(1));
 		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(2));
 
-		DepthBufferResource depthStencilBufferResource{};
-		depthStencilBufferResource.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
+		DepthBuffer depthBuffer{};
+		depthBuffer.Initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		DescriptorHeap<DescriptorHeapTypeTag::DSV> depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.Initialize(&device, 1);
-		depthStencilDescriptorHeap.PushBackView(&device, &depthStencilBufferResource);
+		depthStencilDescriptorHeap.PushBackView(&device, &depthBuffer);
 
 
-		ConstantBufferResource sceneDataConstantBufferResource{};
-		sceneDataConstantBufferResource.Initialize(&device, sizeof(SceneData));
+		ConstantBuffer sceneDataConstantBuffer{};
+		sceneDataConstantBuffer.Initialize(&device, sizeof(SceneData));
 
 
 		Shader groundVS{};
@@ -170,32 +170,32 @@ namespace test007
 		PipelineState groundPipelineState{};
 		groundPipelineState.Initialize(&device, &groundRootSignature, { &groundVS, &grooundPS ,nullptr,&groundHS, &groundDS },
 			{ {"POSITION",{Type::Float,3}},{"TEXCOOD",{Type::Float,2}} },
-			{ {Type::UnsignedNormalizedInt8,4 } }, true, false, PrimitiveTopology::Patch
+			{ {Type::UnsignedNormalizedFloat,4 } }, true, false, PrimitiveTopology::Patch
 		);
 
 
-		ConstantBufferResource groundDataConstantBufferResource{};
-		groundDataConstantBufferResource.Initialize(&device, sizeof(GroundData));
-		groundDataConstantBufferResource.Map(GroundData{ XMMatrixIdentity() });
+		ConstantBuffer groundDataConstantBuffer{};
+		groundDataConstantBuffer.Initialize(&device, sizeof(GroundData));
+		groundDataConstantBuffer.Map(GroundData{ XMMatrixIdentity() });
 
-		FloatShaderResource heightMapResource{};
-		heightMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
+		ShaderResource heightMapResource{};
+		heightMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, { Type::Float,1 }, 1);
 
-		FloatShaderResource elapsedTimeMapResource{};
-		elapsedTimeMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
+		ShaderResource elapsedTimeMapResource{};
+		elapsedTimeMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, { Type::Float,1 }, 1);
 
-		Float4ShaderResource normalMapResource{};
-		normalMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
+		ShaderResource normalMapResource{};
+		normalMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, { Type::UnsignedNormalizedFloat,4 }, 1);
 
 
-		Float4ShaderResource groundDepthTextureResource{};
+		ShaderResource groundDepthTextureResource{};
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/Snow_001_SD/Snow_001_DISP.png", &textureWidth, &textureHeight, &n, 4);
 			UploadResource uploadResource{};
 			uploadResource.Initialize(&device, AlignmentSize(textureWidth * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
-			groundDepthTextureResource.Initialize(&device, textureWidth, textureHeight);
+			groundDepthTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat,4 }, 1);
 
 			command.Reset(0);
 			command.Barrior(&groundDepthTextureResource, ResourceState::CopyDest);
@@ -209,14 +209,14 @@ namespace test007
 			stbi_image_free(data);
 		}
 
-		Float4ShaderResource groundNormalTextureResource{};
+		ShaderResource groundNormalTextureResource{};
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/Snow_001_SD/Snow_001_NORM.jpg", &textureWidth, &textureHeight, &n, 4);
 			UploadResource uploadResource{};
 			uploadResource.Initialize(&device, AlignmentSize(textureWidth * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
-			groundNormalTextureResource.Initialize(&device, textureWidth, textureHeight);
+			groundNormalTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat,4 }, 1);
 
 			command.Reset(0);
 			command.Barrior(&groundNormalTextureResource, ResourceState::CopyDest);
@@ -232,8 +232,8 @@ namespace test007
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> groundDescriptorHeap{};
 		groundDescriptorHeap.Initialize(&device, 7);
-		groundDescriptorHeap.PushBackView(&device, &sceneDataConstantBufferResource);
-		groundDescriptorHeap.PushBackView(&device, &groundDataConstantBufferResource);
+		groundDescriptorHeap.PushBackView(&device, &sceneDataConstantBuffer);
+		groundDescriptorHeap.PushBackView(&device, &groundDataConstantBuffer);
 		groundDescriptorHeap.PushBackView(&device, &heightMapResource);
 		groundDescriptorHeap.PushBackView(&device, &normalMapResource);
 		groundDescriptorHeap.PushBackView(&device, &groundDepthTextureResource);
@@ -242,17 +242,17 @@ namespace test007
 
 		auto [vertexList, indexList] = GetGroundPatch();
 
-		VertexBufferResource vertexBufferResource{};
-		vertexBufferResource.Initialize(&device, sizeof(Vertex) * vertexList.size(), sizeof(Vertex));
-		vertexBufferResource.Map(vertexList);
+		VertexBuffer vertexBuffer{};
+		vertexBuffer.Initialize(&device, sizeof(Vertex) * vertexList.size(), sizeof(Vertex));
+		vertexBuffer.Map(vertexList);
 
-		IndexBufferResource indexBufferResource{};
-		indexBufferResource.Initialize(&device, sizeof(std::uint16_t) * indexList.size());
-		indexBufferResource.Map(indexList);
+		IndexBuffer indexBuffer{};
+		indexBuffer.Initialize(&device, sizeof(std::uint16_t) * indexList.size());
+		indexBuffer.Map(indexList);
 
 
-		FloatShaderResource groundDepthShaderResource{};
-		groundDepthShaderResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 0.f);
+		ShaderResource groundDepthShaderResource{};
+		groundDepthShaderResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, { Type::Float,1 }, 1, 0.f);
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> computeHeightDescriptorHeap{};
 		computeHeightDescriptorHeap.Initialize(&device, 3);
@@ -291,8 +291,8 @@ namespace test007
 
 
 
-		VertexBufferResource sphereVertexBufferResource{};
-		IndexBufferResource sphereIndexBufferResource{};
+		VertexBuffer sphereVertexBuffer{};
+		IndexBuffer sphereIndexBuffer{};
 		std::size_t sphereFaceNum{};
 		{
 			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint16_t, 3>>("../../Assets/sphere.off");
@@ -309,20 +309,20 @@ namespace test007
 
 			sphereFaceNum = faceList.size();
 
-			sphereVertexBufferResource.Initialize(&device, sizeof(Vertex2) * posNormalList.size(), sizeof(Vertex2));
-			sphereVertexBufferResource.Map(std::move(posNormalList));
+			sphereVertexBuffer.Initialize(&device, sizeof(Vertex2) * posNormalList.size(), sizeof(Vertex2));
+			sphereVertexBuffer.Map(std::move(posNormalList));
 
-			sphereIndexBufferResource.Initialize(&device, sizeof(decltype(faceList)::value_type) * faceList.size());
-			sphereIndexBufferResource.Map(std::move(faceList));
+			sphereIndexBuffer.Initialize(&device, sizeof(decltype(faceList)::value_type) * faceList.size());
+			sphereIndexBuffer.Map(std::move(faceList));
 		}
 
 
-		DepthBufferResource groundDepthStencilBufferResource{};
-		groundDepthStencilBufferResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
+		DepthBuffer groundDepthBuffer{};
+		groundDepthBuffer.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE);
 
 		DescriptorHeap<DescriptorHeapTypeTag::DSV> groundDepthStencilDescriptorHeap{};
 		groundDepthStencilDescriptorHeap.Initialize(&device, 1);
-		groundDepthStencilDescriptorHeap.PushBackView(&device, &groundDepthStencilBufferResource);
+		groundDepthStencilDescriptorHeap.PushBackView(&device, &groundDepthBuffer);
 
 		DescriptorHeap<DescriptorHeapTypeTag::RTV> groundDepthRTVDescriptorHeap{};
 		groundDepthRTVDescriptorHeap.Initialize(&device, 1);
@@ -341,10 +341,10 @@ namespace test007
 		Shader sphereDepthPS{};
 		sphereDepthPS.Intialize(L"Shader/Sphere/DepthPixelShader.hlsl", "main", "ps_5_1");
 
-		ConstantBufferResource sphereDataConstantBuffer{};
+		ConstantBuffer sphereDataConstantBuffer{};
 		sphereDataConstantBuffer.Initialize(&device, sizeof(SphereData));
 
-		ConstantBufferResource upCameraMatrixConstantBuffer{};
+		ConstantBuffer upCameraMatrixConstantBuffer{};
 		upCameraMatrixConstantBuffer.Initialize(&device, sizeof(XMMATRIX));
 
 		RootSignature sphereRootSignature{};
@@ -356,7 +356,7 @@ namespace test007
 		PipelineState spherePipelineState{};
 		spherePipelineState.Initialize(&device, &sphereRootSignature, { &sphereVS, &spherePS },
 			{ {"POSITION",{Type::Float,3}},{"NORMAL",{Type::Float,3}} },
-			{ {Type::UnsignedNormalizedInt8,4} }, true, false, PrimitiveTopology::Triangle
+			{ {Type::UnsignedNormalizedFloat,4} }, true, false, PrimitiveTopology::Triangle
 		);
 
 		PipelineState sphereDepthPipelineState{};
@@ -368,14 +368,14 @@ namespace test007
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> sphereDescriptorHeap{};
 		sphereDescriptorHeap.Initialize(&device, 3);
-		sphereDescriptorHeap.PushBackView(&device, &sceneDataConstantBufferResource);
+		sphereDescriptorHeap.PushBackView(&device, &sceneDataConstantBuffer);
 		sphereDescriptorHeap.PushBackView(&device, &sphereDataConstantBuffer);
 		sphereDescriptorHeap.PushBackView(&device, &upCameraMatrixConstantBuffer);
 
 
 		constexpr std::size_t SNOW_NUM = 8000;
 		constexpr float SNOW_RANGE = 8.f;
-		VertexBufferResource snowVertexBufferResource{};
+		VertexBuffer snowVertexBuffer{};
 		{
 			std::random_device seed_gen;
 			std::default_random_engine engine(seed_gen());
@@ -384,27 +384,27 @@ namespace test007
 			v.reserve(SNOW_NUM);
 			for (std::size_t i = 0; i < SNOW_NUM; i++)
 				v.emplace_back(std::array<float, 3>{dist(engine), dist(engine), dist(engine)});
-			snowVertexBufferResource.Initialize(&device, sizeof(float) * 3 * SNOW_NUM, sizeof(float) * 3);
-			snowVertexBufferResource.Map(std::move(v));
+			snowVertexBuffer.Initialize(&device, sizeof(float) * 3 * SNOW_NUM, sizeof(float) * 3);
+			snowVertexBuffer.Map(std::move(v));
 		}
 
-		ConstantBufferResource snowDataConstantBufferResource{};
-		snowDataConstantBufferResource.Initialize(&device, sizeof(SnowData));
+		ConstantBuffer snowDataConstantBuffer{};
+		snowDataConstantBuffer.Initialize(&device, sizeof(SnowData));
 
 
-		Float4ShaderResource snowTextureShaderResource{};
+		ShaderResource snowTextureShader{};
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/snow.png", &textureWidth, &textureHeight, &n, 4);
 			UploadResource uploadResource{};
 			uploadResource.Initialize(&device, AlignmentSize(textureWidth * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
-			snowTextureShaderResource.Initialize(&device, textureWidth, textureHeight);
+			snowTextureShader.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat,4 }, 1);
 
 			command.Reset(0);
-			command.Barrior(&snowTextureShaderResource, ResourceState::CopyDest);
-			command.CopyTexture(&device, &uploadResource, &snowTextureShaderResource);
-			command.Barrior(&snowTextureShaderResource, ResourceState::PixcelShaderResource);
+			command.Barrior(&snowTextureShader, ResourceState::CopyDest);
+			command.CopyTexture(&device, &uploadResource, &snowTextureShader);
+			command.Barrior(&snowTextureShader, ResourceState::PixcelShaderResource);
 			command.Close();
 			command.Execute();
 			command.Fence(0);
@@ -416,9 +416,9 @@ namespace test007
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> snowDescriptorHeap{};
 		snowDescriptorHeap.Initialize(&device, 3);
-		snowDescriptorHeap.PushBackView(&device, &sceneDataConstantBufferResource);
-		snowDescriptorHeap.PushBackView(&device, &snowDataConstantBufferResource);
-		snowDescriptorHeap.PushBackView(&device, &snowTextureShaderResource);
+		snowDescriptorHeap.PushBackView(&device, &sceneDataConstantBuffer);
+		snowDescriptorHeap.PushBackView(&device, &snowDataConstantBuffer);
+		snowDescriptorHeap.PushBackView(&device, &snowTextureShader);
 
 		RootSignature snowRootSignature{};
 		snowRootSignature.Initialize(&device,
@@ -437,7 +437,7 @@ namespace test007
 
 		PipelineState snowPipelineState{};
 		snowPipelineState.Initialize(&device, &snowRootSignature, { &snowVS, &snowPS,&snowGS },
-			{ {"POSITION",{Type::Float,3}} }, { {Type::UnsignedNormalizedInt8,4} },
+			{ {"POSITION",{Type::Float,3}} }, { {Type::UnsignedNormalizedFloat,4} },
 			false, true, PrimitiveTopology::PointList
 		);
 
@@ -460,7 +460,7 @@ namespace test007
 			500.f
 		);
 		XMFLOAT3 lightDir{ -1.f,1.f,0.f };
-		sceneDataConstantBufferResource.Map(SceneData{ view,proj,eye,0.f,lightDir });
+		sceneDataConstantBuffer.Map(SceneData{ view,proj,eye,0.f,lightDir });
 
 		XMFLOAT3 upPos{ 0.f,0.f,0.f };
 		XMFLOAT3 upTarget{ 0,1,0 };
@@ -493,7 +493,7 @@ namespace test007
 			snowMove.y -= 0.02f;
 			if (snowMove.y < -SNOW_RANGE)
 				snowMove.y += SNOW_RANGE * 2.f;
-			snowDataConstantBufferResource.Map(SnowData{ snowMove,XMFLOAT4{},SNOW_RANGE,1 / SNOW_RANGE,0.05f });
+			snowDataConstantBuffer.Map(SnowData{ snowMove,XMFLOAT4{},SNOW_RANGE,1 / SNOW_RANGE,0.05f });
 
 			cnt++;
 
@@ -514,8 +514,8 @@ namespace test007
 			command.SetDescriptorHeap(&sphereDescriptorHeap);
 			command.SetGraphicsRootDescriptorTable(0, sphereDescriptorHeap.GetGPUHandle());
 			command.SetPipelineState(&sphereDepthPipelineState);
-			command.SetVertexBuffer(&sphereVertexBufferResource);
-			command.SetIndexBuffer(&sphereIndexBufferResource);
+			command.SetVertexBuffer(&sphereVertexBuffer);
+			command.SetIndexBuffer(&sphereIndexBuffer);
 			command.SetRenderTarget(groundDepthRTVDescriptorHeap.GetCPUHandle(), groundDepthStencilDescriptorHeap.GetCPUHandle());
 			command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
 			command.DrawIndexedInstanced(sphereFaceNum * 3, 2);
@@ -566,8 +566,8 @@ namespace test007
 			command.SetGraphicsRootSignature(&groundRootSignature);
 			command.SetDescriptorHeap(&groundDescriptorHeap);
 			command.SetGraphicsRootDescriptorTable(0, groundDescriptorHeap.GetGPUHandle());
-			command.SetVertexBuffer(&vertexBufferResource);
-			command.SetIndexBuffer(&indexBufferResource);
+			command.SetVertexBuffer(&vertexBuffer);
+			command.SetIndexBuffer(&indexBuffer);
 			command.SetPrimitiveTopology(PrimitiveTopology::Contorol4PointPatchList);
 			command.DrawIndexedInstanced(indexList.size());
 
@@ -575,8 +575,8 @@ namespace test007
 			command.SetGraphicsRootSignature(&sphereRootSignature);
 			command.SetDescriptorHeap(&sphereDescriptorHeap);
 			command.SetGraphicsRootDescriptorTable(0, sphereDescriptorHeap.GetGPUHandle());
-			command.SetVertexBuffer(&sphereVertexBufferResource);
-			command.SetIndexBuffer(&sphereIndexBufferResource);
+			command.SetVertexBuffer(&sphereVertexBuffer);
+			command.SetIndexBuffer(&sphereIndexBuffer);
 			command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
 			command.DrawIndexedInstanced(sphereFaceNum * 3, 2);
 
@@ -584,7 +584,7 @@ namespace test007
 			command.SetGraphicsRootSignature(&snowRootSignature);
 			command.SetDescriptorHeap(&snowDescriptorHeap);
 			command.SetGraphicsRootDescriptorTable(0, snowDescriptorHeap.GetGPUHandle());
-			command.SetVertexBuffer(&snowVertexBufferResource);
+			command.SetVertexBuffer(&snowVertexBuffer);
 			command.SetPrimitiveTopology(PrimitiveTopology::PointList);
 			command.DrawInstanced(SNOW_NUM);
 
