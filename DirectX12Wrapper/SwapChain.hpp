@@ -13,12 +13,18 @@ namespace DX12
 	template<std::size_t FrameBufferNum = 2>
 	class SwapChain
 	{
-		IDXGISwapChain3* const swapChain;
+		IDXGISwapChain3* swapChain;
 		std::array<FrameBuffer, FrameBufferNum> frameBuffer{};
 
 	public:
 		SwapChain(IDXGISwapChain3*);
 		~SwapChain();
+
+		SwapChain<FrameBufferNum>(SwapChain<FrameBufferNum> const&) = delete;
+		SwapChain<FrameBufferNum>& operator=(SwapChain<FrameBufferNum> const&) = delete;
+
+		SwapChain<FrameBufferNum>(SwapChain<FrameBufferNum>&&) noexcept;
+		SwapChain<FrameBufferNum>& operator=(SwapChain<FrameBufferNum>&&) noexcept;
 
 		//レンダリングされた画像を表示する
 		//また、GetCurrentBackBufferIndexの戻り値が更新される
@@ -53,6 +59,23 @@ namespace DX12
 	{
 		if (swapChain)
 			swapChain->Release();
+	}
+
+	template<std::size_t FrameBufferNum>
+	inline SwapChain<FrameBufferNum>::SwapChain(SwapChain<FrameBufferNum>&& rhs) noexcept
+	{
+		swapChain = rhs.swapChain;
+		rhs.swapChain = nullptr;
+		frameBuffer = std::move(rhs.frameBuffer);
+	}
+
+	template<std::size_t FrameBufferNum>
+	inline SwapChain<FrameBufferNum>& SwapChain<FrameBufferNum>::operator=(SwapChain<FrameBufferNum>&& rhs) noexcept
+	{
+		swapChain = rhs.swapChain;
+		rhs.swapChain = nullptr;
+		frameBuffer = std::move(rhs.frameBuffer);
+		return *this;
 	}
 
 	template<std::size_t FrameBufferNum>
