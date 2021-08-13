@@ -24,8 +24,6 @@ namespace DX12
 	class PipelineState
 	{
 		ID3D12PipelineState* pipelineState = nullptr;
-		//éQè∆
-		ID3D12RootSignature* rootSignature = nullptr;
 
 	public:
 		PipelineState() = default;
@@ -46,7 +44,6 @@ namespace DX12
 		void Initialize(Device*, RootSignature*, Shader* computeShader);
 
 		ID3D12PipelineState* Get() const noexcept;
-		ID3D12RootSignature* GetRootSignature() const noexcept;
 
 	};
 
@@ -73,10 +70,7 @@ namespace DX12
 	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, ShaderDesc shaderDesc, const std::vector<std::pair<std::string, Format>>& vertexLayouts,
 		const std::vector<Format>& renderTargetFormats, bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology)
 	{
-		this->rootSignature = rootSignature->Get();
-
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineDesc{};
-
 
 		if (!shaderDesc.vertexShader || !shaderDesc.pixcelShader)
 			throw "";
@@ -207,10 +201,5 @@ namespace DX12
 	inline ID3D12PipelineState* PipelineState::Get() const noexcept
 	{
 		return pipelineState;
-	}
-
-	inline ID3D12RootSignature* PipelineState::GetRootSignature() const noexcept
-	{
-		return rootSignature;
 	}
 }

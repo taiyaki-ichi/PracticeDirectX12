@@ -17,7 +17,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Command.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\ViewTypeTag.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeap.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeapTypeTag.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\CreateViewHepler.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Format.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PipelineState.hpp" />

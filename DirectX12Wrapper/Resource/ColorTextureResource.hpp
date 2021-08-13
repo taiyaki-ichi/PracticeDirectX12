@@ -1,6 +1,6 @@
 #pragma once
 #include"ResourceBase.hpp"
-#include"../DescriptorHeap/DescripotrHeapViewTag.hpp"
+#include"../DescriptorHeap/ViewTypeTag.hpp"
 #include<array>
 
 namespace DX12

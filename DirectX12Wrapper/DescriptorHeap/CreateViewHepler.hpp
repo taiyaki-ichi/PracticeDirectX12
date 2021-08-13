@@ -9,6 +9,29 @@
 
 namespace DX12
 {
+	//DescriptorHeapのポインタを作成する関数
+	template<typename DescriptorHeapTypeTag>
+	inline ID3D12DescriptorHeap* GetDescriptorHeapPtr(Device*, std::uint32_t size) {
+		static_assert(false);
+	}
+	
+	//Handleのインクリメントのサイズ取得
+	template<typename DescriptorHeapTypeTag>
+	inline std::uint32_t GetDescriptorHandleIncrementSize(Device*) {
+		static_assert(false);
+	}
+	
+	//ビューを作成する関数
+	template<typename DescriptorHeapTypeTag, typename ViewTypeTag>
+	inline bool CreateView(Device*, ID3D12Resource*, const D3D12_CPU_DESCRIPTOR_HANDLE&) {
+		static_assert(false);
+	}
+
+
+	//
+	//
+	//
+
 	namespace DescriptorHeapTypeTag {
 		struct CBV_SRV_UAV;
 		struct DSV;
@@ -22,15 +45,73 @@ namespace DX12
 		struct UnorderedAccessResource;
 	}
 
-	//ビューを作成する関数
-	template<typename DescriptorHeapTypeTag, typename ViewTypeTag>
-	inline bool CreateView(Device*, ID3D12Resource*, const D3D12_CPU_DESCRIPTOR_HANDLE&) {
-		static_assert(false);
+	template<>
+	inline ID3D12DescriptorHeap* GetDescriptorHeapPtr<DescriptorHeapTypeTag::CBV_SRV_UAV>(Device* device, std::uint32_t size) 
+	{
+		ID3D12DescriptorHeap* result = nullptr;
+
+		D3D12_DESCRIPTOR_HEAP_DESC desc{};
+		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		desc.NodeMask = 0;
+		desc.NumDescriptors = size;
+		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+
+		if (FAILED(device->Get()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&result))))
+			throw "";
+		
+		return result;
 	}
 
-	//
-	//
-	//
+	template<>
+	inline ID3D12DescriptorHeap* GetDescriptorHeapPtr<DescriptorHeapTypeTag::DSV>(Device* device, std::uint32_t size)
+	{
+		ID3D12DescriptorHeap* result = nullptr;
+
+		D3D12_DESCRIPTOR_HEAP_DESC desc{};
+		desc.NodeMask = 0;
+		desc.NumDescriptors = size;
+		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+
+		if (FAILED(device->Get()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&result))))
+			throw "";
+
+		return result;
+	}
+
+	template<>
+	inline ID3D12DescriptorHeap* GetDescriptorHeapPtr<DescriptorHeapTypeTag::RTV>(Device* device, std::uint32_t size)
+	{
+		ID3D12DescriptorHeap* result = nullptr;
+
+		D3D12_DESCRIPTOR_HEAP_DESC desc{};
+		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		desc.NodeMask = 0;
+		desc.NumDescriptors = size;
+		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+
+		if (FAILED(device->Get()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&result))))
+			throw "";
+
+		return result;
+	}
+
+	template<>
+	inline std::uint32_t GetDescriptorHandleIncrementSize<DescriptorHeapTypeTag::CBV_SRV_UAV>(Device* device) 
+	{
+		return device->Get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	}
+
+	template<>
+	inline std::uint32_t GetDescriptorHandleIncrementSize<DescriptorHeapTypeTag::DSV>(Device* device)
+	{
+		return device->Get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	}
+
+	template<>
+	inline std::uint32_t GetDescriptorHandleIncrementSize<DescriptorHeapTypeTag::RTV>(Device* device)
+	{
+		return device->Get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	}
 
 	template<>
 	inline bool CreateView<DescriptorHeapTypeTag::CBV_SRV_UAV, ViewTypeTag::ConstantBuffer>

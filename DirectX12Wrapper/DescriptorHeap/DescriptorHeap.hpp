@@ -1,5 +1,4 @@
 #pragma once
-#include"DescriptorHeapTypeTag.hpp"
 #include"CreateViewHepler.hpp"
 #include<optional>
 #include<d3d12.h>
@@ -11,8 +10,17 @@
 namespace DX12
 {
 
-	template<typename T>
-	struct DefaultViewTypeTraits;
+	//DescriptorHeapのテンプレート引数用の型
+	//そのディスクリプターヒープの用途を指定
+	namespace DescriptorHeapTypeTag
+	{
+		//定数バッファやシェーダーリソースなど用
+		struct CBV_SRV_UAV {};
+		//ディプスステンシル用
+		struct DSV {};
+		//レンダーターゲット用
+		struct RTV {};
+	}
 
 	template<typename DescriptorHeapTypeTag>
 	class DescriptorHeap
@@ -33,7 +41,7 @@ namespace DX12
 		DescriptorHeap(DescriptorHeap&&) noexcept;
 		DescriptorHeap& operator=(DescriptorHeap&&) noexcept;
 
-		void Initialize(Device* d, unsigned int size);
+		void Initialize(Device* d, std::uint32_t size);
 
 		//ViewTypeを指定してViewを作り成功した場合はハンドルを返す
 		template<typename ViewType>
@@ -93,13 +101,13 @@ namespace DX12
 	}
 
 	template<typename DescriptorHeapTypeTag>
-	inline void DescriptorHeap<DescriptorHeapTypeTag>::Initialize(Device* d, unsigned int s)
+	inline void DescriptorHeap<DescriptorHeapTypeTag>::Initialize(Device* d, std::uint32_t s)
 	{
-		descriptorHeap = DescriptorHeapTypeTag::Initialize(d, s);
+		descriptorHeap = GetDescriptorHeapPtr<DescriptorHeapTypeTag>(d, s);
 		if (!descriptorHeap)
 			throw "";
 
-		incrementSize = DescriptorHeapTypeTag::GetIncrementSize(d);
+		incrementSize = GetDescriptorHandleIncrementSize<DescriptorHeapTypeTag>(d);
 		size = s;
 	}
 

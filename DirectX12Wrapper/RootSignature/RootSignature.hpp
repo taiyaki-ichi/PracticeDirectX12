@@ -20,15 +20,6 @@ namespace DX12
 		Cubemap,
 	};
 
-	//おおかたの通常の描写用
-	struct Standard;
-
-	//トゥーン用
-	struct Toon;
-
-	//シャドウマッピング用
-	struct ShadowMapping;
-
 	class RootSignature
 	{
 		ID3D12RootSignature* rootSignature = nullptr;
