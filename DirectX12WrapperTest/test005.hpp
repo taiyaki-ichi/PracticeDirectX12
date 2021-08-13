@@ -12,6 +12,7 @@
 #include"Resource/ShaderResource.hpp"
 #include"Resource/VertexBuffer.hpp"
 #include"Resource/IndexBuffer.hpp"
+#include"Resource/UploadTextureResource.hpp"
 
 #include<vector>
 #include<cmath>
@@ -144,8 +145,8 @@ namespace test005
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/heightmap.png", &textureWidth, &textureHeight, &n, 4);
-			UploadResource uploadResource{};
-			uploadResource.Initialize(&device, AlignmentSize(textureWidth * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * textureHeight);
+			UploadTextureResource uploadResource{};
+			uploadResource.Initialize(&device, textureWidth * 4, textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
 			heightMapTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat,4 }, 1);
 
@@ -165,8 +166,8 @@ namespace test005
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/normalmap.png", &textureWidth, &textureHeight, &n, 4);
-			UploadResource uploadResource{};
-			uploadResource.Initialize(&device, AlignmentSize(textureWidth * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * textureHeight);
+			UploadTextureResource uploadResource{};
+			uploadResource.Initialize(&device, textureWidth * 4, textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
 			normalMapTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat,4 }, 1);
 

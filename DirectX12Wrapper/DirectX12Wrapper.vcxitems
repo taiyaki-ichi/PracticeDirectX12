@@ -31,6 +31,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ResourceBase.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ResourceState.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\UploadResource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\UploadTextureResource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\VertexBuffer.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SwapChain.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Window.hpp" />

@@ -9,6 +9,7 @@
 #include"PipelineState.hpp"
 #include"Resource/IndexBuffer.hpp"
 #include"Resource/ShaderResource.hpp"
+#include"Resource/UploadTextureResource.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include<stb_image.h>
@@ -69,8 +70,8 @@ namespace test002
 
 		ShaderResource textureResource{};
 		{
-			UploadResource uploadResource{};
-			uploadResource.Initialize(&device, AlignmentSize(x * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * y);
+			UploadTextureResource uploadResource{};
+			uploadResource.Initialize(&device, x * 4, y);
 			uploadResource.Map(data, x * 4, y);
 			textureResource.Initialize(&device, x, y, { Type::UnsignedNormalizedFloat,4 }, 1);
 

@@ -14,6 +14,7 @@
 #include"Resource/ShaderResource.hpp"
 #include"OffLoader.hpp"
 #include"utility.hpp"
+#include"Resource/UploadTextureResource.hpp"
 
 #include<vector>
 #include<cmath>
@@ -193,8 +194,8 @@ namespace test007
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/Snow_001_SD/Snow_001_DISP.png", &textureWidth, &textureHeight, &n, 4);
-			UploadResource uploadResource{};
-			uploadResource.Initialize(&device, AlignmentSize(textureWidth * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * textureHeight);
+			UploadTextureResource uploadResource{};
+			uploadResource.Initialize(&device, textureWidth * 4, textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
 			groundDepthTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat,4 }, 1);
 
@@ -214,8 +215,8 @@ namespace test007
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/Snow_001_SD/Snow_001_NORM.jpg", &textureWidth, &textureHeight, &n, 4);
-			UploadResource uploadResource{};
-			uploadResource.Initialize(&device, AlignmentSize(textureWidth * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * textureHeight);
+			UploadTextureResource uploadResource{};
+			uploadResource.Initialize(&device, textureWidth * 4, textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
 			groundNormalTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat,4 }, 1);
 
@@ -397,8 +398,8 @@ namespace test007
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/snow.png", &textureWidth, &textureHeight, &n, 4);
-			UploadResource uploadResource{};
-			uploadResource.Initialize(&device, AlignmentSize(textureWidth * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * textureHeight);
+			UploadTextureResource uploadResource{};
+			uploadResource.Initialize(&device, textureWidth * 4, textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
 			snowTextureShader.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat,4 }, 1);
 

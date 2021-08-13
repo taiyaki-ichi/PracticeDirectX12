@@ -26,7 +26,7 @@ namespace DX12
 		void Map(T&&);
 
 		//テクスチャデータ用
-		void Map(uint8_t* data, std::uint32_t rowPitch, std::uint32_t height);
+		void Map(uint8_t* data, std::uint32_t width, std::uint32_t height);
 	};
 
 	//ヘルパ
@@ -82,18 +82,18 @@ namespace DX12
 			MapStruct(Get(), std::forward<T>(t));
 	}
 
-	void UploadResource::Map(uint8_t* data, std::uint32_t rowPitch, std::uint32_t height)
+	void UploadResource::Map(uint8_t* data, std::uint32_t width, std::uint32_t height)
 	{
 		uint8_t* target = nullptr;
 		if (FAILED(Get()->Map(0, nullptr, (void**)&target)))
 			throw "";
 
-		std::uint32_t targetRowPitch = AlignmentSize(rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+		auto targetRowPitch = AlignmentSize<std::uint32_t>(width, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 
 		for (std::uint32_t i = 0; i < height; i++)
 		{
-			std::copy_n(data, rowPitch, target);
-			data += rowPitch;
+			std::copy_n(data, width, target);
+			data += width;
 			target += targetRowPitch;
 		}
 
