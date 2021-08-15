@@ -9,7 +9,7 @@ namespace DX12
 		D3D12_INDEX_BUFFER_VIEW indexBufferView{};
 
 	public:
-		void Initialize(Device*, std::uint32_t indexNum);
+		void Initialize(Device*, std::uint32_t indexNum, std::uint32_t stride = 4, Format format = { Type::Uint32,1 });
 
 		const D3D12_INDEX_BUFFER_VIEW& GetView() const noexcept;
 	};
@@ -18,13 +18,13 @@ namespace DX12
 	//
 	//
 
-	inline void IndexBuffer::Initialize(Device* device, std::uint32_t indexNum)
+	inline void IndexBuffer::Initialize(Device* device, std::uint32_t indexNum, std::uint32_t stride , Format format)
 	{
-		UploadResource::Initialize(device, 4 * indexNum);
+		UploadResource::Initialize(device, stride * indexNum);
 
 		indexBufferView.BufferLocation = Get()->GetGPUVirtualAddress();
-		indexBufferView.Format = DXGI_FORMAT_R32_UINT;
-		indexBufferView.SizeInBytes = 4 * indexNum;
+		indexBufferView.Format = format.value;
+		indexBufferView.SizeInBytes = stride * indexNum;
 	}
 
 	inline const D3D12_INDEX_BUFFER_VIEW& IndexBuffer::GetView() const noexcept

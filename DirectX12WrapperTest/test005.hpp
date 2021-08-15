@@ -126,8 +126,8 @@ namespace test005
 
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vs, &ps,nullptr,&hs, &ds },
-			{ {"POSITION",{Type::Float,3}},{"TEXCOOD",{Type::Float,2}} },
-			{ {Type::UnsignedNormalizedFloat,4} }, true, false, PrimitiveTopology::Patch
+			{ {"POSITION",{Type::Float32,3}},{"TEXCOOD",{Type::Float32,2}} },
+			{ {Type::UnsignedNormalizedFloat8,4} }, true, false, PrimitiveTopology::Patch
 		);
 
 		DepthBuffer depthStencilBufferResource{};
@@ -148,7 +148,7 @@ namespace test005
 			UploadTextureResource uploadResource{};
 			uploadResource.Initialize(&device, textureWidth * 4, textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
-			heightMapTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat,4 }, 1);
+			heightMapTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat8,4 }, 1);
 
 			command.Reset(0);
 			command.Barrior(&heightMapTextureResource, ResourceState::CopyDest);
@@ -169,7 +169,7 @@ namespace test005
 			UploadTextureResource uploadResource{};
 			uploadResource.Initialize(&device, textureWidth * 4, textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
-			normalMapTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat,4 }, 1);
+			normalMapTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat8,4 }, 1);
 
 			command.Reset(0);
 			command.Barrior(&normalMapTextureResource, ResourceState::CopyDest);

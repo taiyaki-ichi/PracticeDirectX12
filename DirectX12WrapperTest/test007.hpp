@@ -171,8 +171,8 @@ namespace test007
 
 		PipelineState groundPipelineState{};
 		groundPipelineState.Initialize(&device, &groundRootSignature, { &groundVS, &grooundPS ,nullptr,&groundHS, &groundDS },
-			{ {"POSITION",{Type::Float,3}},{"TEXCOOD",{Type::Float,2}} },
-			{ {Type::UnsignedNormalizedFloat,4 } }, true, false, PrimitiveTopology::Patch
+			{ {"POSITION",{Type::Float32,3}},{"TEXCOOD",{Type::Float32,2}} },
+			{ {Type::UnsignedNormalizedFloat8,4 } }, true, false, PrimitiveTopology::Patch
 		);
 
 
@@ -181,13 +181,13 @@ namespace test007
 		groundDataConstantBuffer.Map(GroundData{ XMMatrixIdentity() });
 
 		ShaderResource heightMapResource{};
-		heightMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, { Type::Float,1 }, 1);
+		heightMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, { Type::Float32,1 }, 1);
 
 		ShaderResource elapsedTimeMapResource{};
-		elapsedTimeMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, { Type::Float,1 }, 1);
+		elapsedTimeMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, { Type::Float32,1 }, 1);
 
 		ShaderResource normalMapResource{};
-		normalMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, { Type::UnsignedNormalizedFloat,4 }, 1);
+		normalMapResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, { Type::UnsignedNormalizedFloat8,4 }, 1);
 
 
 		ShaderResource groundDepthTextureResource{};
@@ -197,7 +197,7 @@ namespace test007
 			UploadTextureResource uploadResource{};
 			uploadResource.Initialize(&device, textureWidth * 4, textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
-			groundDepthTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat,4 }, 1);
+			groundDepthTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat8,4 }, 1);
 
 			command.Reset(0);
 			command.Barrior(&groundDepthTextureResource, ResourceState::CopyDest);
@@ -218,7 +218,7 @@ namespace test007
 			UploadTextureResource uploadResource{};
 			uploadResource.Initialize(&device, textureWidth * 4, textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
-			groundNormalTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat,4 }, 1);
+			groundNormalTextureResource.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat8,4 }, 1);
 
 			command.Reset(0);
 			command.Barrior(&groundNormalTextureResource, ResourceState::CopyDest);
@@ -254,7 +254,7 @@ namespace test007
 
 
 		ShaderResource groundDepthShaderResource{};
-		groundDepthShaderResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, { Type::Float,1 }, 1, 0.f);
+		groundDepthShaderResource.Initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, { Type::Float32,1 }, 1, 0.f);
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> computeHeightDescriptorHeap{};
 		computeHeightDescriptorHeap.Initialize(&device, 3);
@@ -357,14 +357,14 @@ namespace test007
 
 		PipelineState spherePipelineState{};
 		spherePipelineState.Initialize(&device, &sphereRootSignature, { &sphereVS, &spherePS },
-			{ {"POSITION",{Type::Float,3}},{"NORMAL",{Type::Float,3}} },
-			{ {Type::UnsignedNormalizedFloat,4} }, true, false, PrimitiveTopology::Triangle
+			{ {"POSITION",{Type::Float32,3}},{"NORMAL",{Type::Float32,3}} },
+			{ {Type::UnsignedNormalizedFloat8,4} }, true, false, PrimitiveTopology::Triangle
 		);
 
 		PipelineState sphereDepthPipelineState{};
 		sphereDepthPipelineState.Initialize(&device, &sphereRootSignature, { &sphereDepthVS, &sphereDepthPS },
-			{ {"POSITION",{Type::Float,3}},{"NORMAL",{Type::Float,3} } },
-			{ {Type::Float,1} }, true, false, PrimitiveTopology::Triangle
+			{ {"POSITION",{Type::Float32,3}},{"NORMAL",{Type::Float32,3} } },
+			{ {Type::Float32,1} }, true, false, PrimitiveTopology::Triangle
 		);
 
 
@@ -401,7 +401,7 @@ namespace test007
 			UploadTextureResource uploadResource{};
 			uploadResource.Initialize(&device, textureWidth * 4, textureHeight);
 			uploadResource.Map(data, textureWidth * 4, textureHeight);
-			snowTextureShader.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat,4 }, 1);
+			snowTextureShader.Initialize(&device, textureWidth, textureHeight, { Type::UnsignedNormalizedFloat8,4 }, 1);
 
 			command.Reset(0);
 			command.Barrior(&snowTextureShader, ResourceState::CopyDest);
@@ -439,7 +439,7 @@ namespace test007
 
 		PipelineState snowPipelineState{};
 		snowPipelineState.Initialize(&device, &snowRootSignature, { &snowVS, &snowPS,&snowGS },
-			{ {"POSITION",{Type::Float,3}} }, { {Type::UnsignedNormalizedFloat,4} },
+			{ {"POSITION",{Type::Float32,3}} }, { {Type::UnsignedNormalizedFloat8,4} },
 			false, true, PrimitiveTopology::PointList
 		);
 

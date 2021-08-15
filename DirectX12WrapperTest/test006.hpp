@@ -63,7 +63,7 @@ namespace test006
 			UploadTextureResource uploadResource{};
 			uploadResource.Initialize(&device, x * 4, y);
 			uploadResource.Map(data, x * 4, y);
-			textureResource.Initialize(&device, x, y, { Type::UnsignedNormalizedFloat,4 }, 1);
+			textureResource.Initialize(&device, x, y, { Type::UnsignedNormalizedFloat8,4 }, 1);
 
 			command.Reset(0);
 			command.Barrior(&textureResource, ResourceState::CopyDest);
@@ -78,7 +78,7 @@ namespace test006
 		}
 
 		ShaderResource float4ShaderResource{};
-		float4ShaderResource.Initialize(&device, x, y, { Type::UnsignedNormalizedFloat,4 }, 1, { { 0.f,0.f,0.f,0.f } });
+		float4ShaderResource.Initialize(&device, x, y, { Type::UnsignedNormalizedFloat8,4 }, 1, { { 0.f,0.f,0.f,0.f } });
 
 		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> computeDescriptorHeap{};
 		computeDescriptorHeap.Initialize(&device, 2);
@@ -141,8 +141,8 @@ namespace test006
 
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
-			{ {"POSITION", {Type::Float,3}} ,{"TEXCOOD",{Type::Float,2}} },
-			{ {Type::UnsignedNormalizedFloat,4} }, false, false, PrimitiveTopology::Triangle
+			{ {"POSITION", {Type::Float32,3}} ,{"TEXCOOD",{Type::Float32,2}} },
+			{ {Type::UnsignedNormalizedFloat8,4} }, false, false, PrimitiveTopology::Triangle
 		);
 
 

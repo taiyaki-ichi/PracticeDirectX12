@@ -148,8 +148,8 @@ namespace test004
 				ps.Intialize(L"Shader/ColorObject/PixelShader.hlsl", "main", "ps_5_0");
 
 				standerdPipelineState.Initialize(device, &rootSignature, { &vs, &ps },
-					{ {"POSITION", {Type::Float,3} },{"NORMAL",{Type::Float,3} } },
-					{ {Type::UnsignedNormalizedFloat,4} }, true, false, PrimitiveTopology::Triangle
+					{ {"POSITION", {Type::Float32,3} },{"NORMAL",{Type::Float32,3} } },
+					{ {Type::UnsignedNormalizedFloat8,4} }, true, false, PrimitiveTopology::Triangle
 				);
 			}
 
@@ -164,8 +164,8 @@ namespace test004
 				ps.Intialize(L"Shader/ColorObjectForCubemap/PixelShader.hlsl", "main", "ps_5_0");
 
 				cubemapPipelineState.Initialize(device, &rootSignature, { &vs, &ps,&gs },
-					{ {"POSITION", {Type::Float,3} } ,{"NORMAL",{Type::Float,3} } },
-					{ {Type::UnsignedNormalizedFloat,4} }, true, false, PrimitiveTopology::Triangle
+					{ {"POSITION", {Type::Float32,3} } ,{"NORMAL",{Type::Float32,3} } },
+					{ {Type::UnsignedNormalizedFloat8,4} }, true, false, PrimitiveTopology::Triangle
 				);
 			}
 		}
@@ -195,7 +195,7 @@ namespace test004
 		void Initialize(Device* device, ConstantBuffer* sceneConstantBufferResource)
 		{
 			worldConstantBuffer.Initialize(device, sizeof(XMMATRIX));
-			cubemapShaderResource.Initialize(device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, { Type::UnsignedNormalizedFloat,4 }, 6, CUBEMAP_CLEAR_VALUE);
+			cubemapShaderResource.Initialize(device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, { Type::UnsignedNormalizedFloat8,4 }, 6, CUBEMAP_CLEAR_VALUE);
 
 			descriptorHeap.Initialize(device, 3);
 			descriptorHeap.PushBackView(device, sceneConstantBufferResource);
@@ -240,8 +240,8 @@ namespace test004
 			ps.Intialize(L"Shader/MirrorObject/PixelShader.hlsl", "main", "ps_5_0");
 
 			pipelineState.Initialize(device, &rootSignature, { &vs, &ps },
-				{ {"POSITION", {Type::Float,3} },{"NORMAL",{Type::Float,3} } },
-				{ {Type::UnsignedNormalizedFloat,4} }, true, false, PrimitiveTopology::Triangle
+				{ {"POSITION", {Type::Float32,3} },{"NORMAL",{Type::Float32,3} } },
+				{ {Type::UnsignedNormalizedFloat8,4} }, true, false, PrimitiveTopology::Triangle
 			);
 		}
 

@@ -77,12 +77,12 @@ namespace test003
 
 		PipelineState drawFacePipelineState{};
 		drawFacePipelineState.Initialize(&device, &rootSignature, { &vertexShader, &drawFacePixelShader,&drawFaceGeometryShader },
-			{ {"POSITION", {Type::Float,3}} }, { {Type::UnsignedNormalizedFloat,4} }, true, false, PrimitiveTopology::Triangle
+			{ {"POSITION", {Type::Float32,3}} }, { {Type::UnsignedNormalizedFloat8,4} }, true, false, PrimitiveTopology::Triangle
 		);
 
 		PipelineState drawNormalPipelineState{};
 		drawNormalPipelineState.Initialize(&device, &rootSignature, { &vertexShader, &drawNormalPixelShader,&drawNormalGeometryShader },
-			{ {"POSITION", {Type::Float,3}} }, { {Type::UnsignedNormalizedFloat,4} }, true, false, PrimitiveTopology::Triangle
+			{ {"POSITION", {Type::Float32,3}} }, { {Type::UnsignedNormalizedFloat8,4} }, true, false, PrimitiveTopology::Triangle
 		);
 
 

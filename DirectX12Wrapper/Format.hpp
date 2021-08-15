@@ -9,9 +9,11 @@
 namespace DX12
 {
 	enum class Type {
-		Float,//32bit
-		Uint,//32bit
-		UnsignedNormalizedFloat,//8bit,doublebuffer‚Í‚¾‚¢‚½‚¢‚±‚ê
+		Float16,
+		Float32,
+		Uint16,
+		Uint32,
+		UnsignedNormalizedFloat8,//framebuffer‚Í‚¾‚¢‚½‚¢‚±‚ê
 	};
 
 	class Format {
@@ -41,18 +43,23 @@ case getHash(t,n):				\
 
 		switch (getHash(t, num))
 		{
-			switchCase(Type::Float, 1, DXGI_FORMAT_R32_FLOAT);
-			switchCase(Type::Float, 2, DXGI_FORMAT_R32G32_FLOAT);
-			switchCase(Type::Float, 3, DXGI_FORMAT_R32G32B32_FLOAT);
-			switchCase(Type::Float, 4, DXGI_FORMAT_R32G32B32A32_FLOAT);
-			switchCase(Type::Uint, 1, DXGI_FORMAT_R32_UINT);
-			switchCase(Type::Uint, 2, DXGI_FORMAT_R32G32_UINT);
-			switchCase(Type::Uint, 3, DXGI_FORMAT_R32G32B32_UINT);
-			switchCase(Type::Uint, 4, DXGI_FORMAT_R32G32B32A32_UINT);
-			switchCase(Type::UnsignedNormalizedFloat, 1, DXGI_FORMAT_R8_UNORM);
-			switchCase(Type::UnsignedNormalizedFloat, 2, DXGI_FORMAT_R8G8_UNORM);
-			switchCase(Type::UnsignedNormalizedFloat, 4, DXGI_FORMAT_R8G8B8A8_UNORM);
-
+			switchCase(Type::Float16, 1, DXGI_FORMAT_R16_FLOAT);
+			switchCase(Type::Float16, 2, DXGI_FORMAT_R16G16_FLOAT);
+			switchCase(Type::Float16, 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
+			switchCase(Type::Float32, 1, DXGI_FORMAT_R32_FLOAT);
+			switchCase(Type::Float32, 2, DXGI_FORMAT_R32G32_FLOAT);
+			switchCase(Type::Float32, 3, DXGI_FORMAT_R32G32B32_FLOAT);
+			switchCase(Type::Float32, 4, DXGI_FORMAT_R32G32B32A32_FLOAT);
+			switchCase(Type::Uint16, 1, DXGI_FORMAT_R16_UINT);
+			switchCase(Type::Uint16, 2, DXGI_FORMAT_R16G16_UINT);
+			switchCase(Type::Uint16, 4, DXGI_FORMAT_R16G16B16A16_UINT);
+			switchCase(Type::Uint32, 1, DXGI_FORMAT_R32_UINT);
+			switchCase(Type::Uint32, 2, DXGI_FORMAT_R32G32_UINT);
+			switchCase(Type::Uint32, 3, DXGI_FORMAT_R32G32B32_UINT);
+			switchCase(Type::Uint32, 4, DXGI_FORMAT_R32G32B32A32_UINT);
+			switchCase(Type::UnsignedNormalizedFloat8, 1, DXGI_FORMAT_R8_UNORM);
+			switchCase(Type::UnsignedNormalizedFloat8, 2, DXGI_FORMAT_R8G8_UNORM);
+			switchCase(Type::UnsignedNormalizedFloat8, 4, DXGI_FORMAT_R8G8B8A8_UNORM);
 
 		default:
 			throw"";
