@@ -37,7 +37,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Utility.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Shader.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RootSignature\RootSignature.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)RootSignature\RootSignatureInitializeHelper.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RootSignature\RootSignatureHelper.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Device.hpp" />
   </ItemGroup>
 </Project>

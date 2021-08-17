@@ -7,6 +7,7 @@
 #include"DescriptorHeap/DescriptorHeap.hpp"
 #include<array>
 #include<algorithm>
+#include<optional>
 #include<d3d12.h>
 #include<dxgi1_6.h>
 
@@ -65,8 +66,9 @@ namespace DX12
 		void SetPipelineState(PipelineState*);
 
 		//OMSetRenderTargetsの最適化について、どのターゲットのViewもおなじディスクリプタヒープ連続して生成されていないとみなしている
-		void SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle);
-		void SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle, D3D12_CPU_DESCRIPTOR_HANDLE depthStencilHandle);
+		//void SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle);
+		//void SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle, D3D12_CPU_DESCRIPTOR_HANDLE depthStencilHandle);
+		void SetRenderTarget(std::optional<D3D12_CPU_DESCRIPTOR_HANDLE> renderTargetHandle, std::optional<D3D12_CPU_DESCRIPTOR_HANDLE> depthStencilHandle = std::nullopt);
 		void SetRenderTarget(std::uint32_t renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget);
 		void SetRenderTarget(std::uint32_t renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget, D3D12_CPU_DESCRIPTOR_HANDLE depthStencilHandle);
 
@@ -323,6 +325,7 @@ namespace DX12
 		list->SetPipelineState(ps->Get());
 	}
 
+	/*
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle)
 	{
@@ -333,6 +336,18 @@ namespace DX12
 	inline void Command<FrameLatencyNum>::SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle, D3D12_CPU_DESCRIPTOR_HANDLE depthStencilHandle)
 	{
 		list->OMSetRenderTargets(1, &renderTargetHandle, false, &depthStencilHandle);
+	}
+	*/
+
+	template<std::size_t FrameLatencyNum>
+	inline void Command<FrameLatencyNum>::SetRenderTarget(std::optional<D3D12_CPU_DESCRIPTOR_HANDLE> renderTargetHandle, std::optional<D3D12_CPU_DESCRIPTOR_HANDLE> depthStencilHandle)
+	{
+		D3D12_CPU_DESCRIPTOR_HANDLE* rth = renderTargetHandle ? (&renderTargetHandle.value()) : nullptr;
+		D3D12_CPU_DESCRIPTOR_HANDLE* dsh = depthStencilHandle ? (&depthStencilHandle.value()) : nullptr;
+		if (rth)
+			list->OMSetRenderTargets(1, rth, false, dsh);
+		else 
+			list->OMSetRenderTargets(0, rth, false, dsh);
 	}
 
 	template<std::size_t FrameLatencyNum>

@@ -519,7 +519,7 @@ namespace test007
 			command.SetVertexBuffer(&sphereVertexBuffer);
 			command.SetIndexBuffer(&sphereIndexBuffer);
 			command.SetRenderTarget(groundDepthRTVDescriptorHeap.GetCPUHandle(), groundDepthStencilDescriptorHeap.GetCPUHandle());
-			command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
+			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
 			command.DrawIndexedInstanced(sphereFaceNum * 3, 2);
 			command.Barrior(&groundDepthShaderResource, ResourceState::PixcelShaderResource);
 
@@ -579,7 +579,7 @@ namespace test007
 			command.SetGraphicsRootDescriptorTable(0, sphereDescriptorHeap.GetGPUHandle());
 			command.SetVertexBuffer(&sphereVertexBuffer);
 			command.SetIndexBuffer(&sphereIndexBuffer);
-			command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
+			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
 			command.DrawIndexedInstanced(sphereFaceNum * 3, 2);
 
 			command.SetPipelineState(&snowPipelineState);

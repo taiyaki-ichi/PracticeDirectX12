@@ -123,7 +123,7 @@ namespace test002
 			command.SetRenderTarget(rtvDescriptorHeap.GetCPUHandle(backBufferIndex));
 
 			command.SetPipelineState(&pipelineState);
-			command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
+			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
 			command.SetGraphicsRootSignature(&rootSignature);
 
 			command.SetDescriptorHeap(&descriptorHeap);

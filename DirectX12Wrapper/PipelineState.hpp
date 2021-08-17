@@ -72,12 +72,14 @@ namespace DX12
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineDesc{};
 
-		if (!shaderDesc.vertexShader || !shaderDesc.pixcelShader)
-			throw "";
-		graphicsPipelineDesc.VS.pShaderBytecode = shaderDesc.vertexShader->Get()->GetBufferPointer();
-		graphicsPipelineDesc.VS.BytecodeLength = shaderDesc.vertexShader->Get()->GetBufferSize();
-		graphicsPipelineDesc.PS.pShaderBytecode = shaderDesc.pixcelShader->Get()->GetBufferPointer();
-		graphicsPipelineDesc.PS.BytecodeLength = shaderDesc.pixcelShader->Get()->GetBufferSize();
+		if (shaderDesc.vertexShader) {
+			graphicsPipelineDesc.VS.pShaderBytecode = shaderDesc.vertexShader->Get()->GetBufferPointer();
+			graphicsPipelineDesc.VS.BytecodeLength = shaderDesc.vertexShader->Get()->GetBufferSize();
+		}
+		if (shaderDesc.pixcelShader) {
+			graphicsPipelineDesc.PS.pShaderBytecode = shaderDesc.pixcelShader->Get()->GetBufferPointer();
+			graphicsPipelineDesc.PS.BytecodeLength = shaderDesc.pixcelShader->Get()->GetBufferSize();
+		}
 		if (shaderDesc.geometryShader) {
 			graphicsPipelineDesc.GS.pShaderBytecode = shaderDesc.geometryShader->Get()->GetBufferPointer();
 			graphicsPipelineDesc.GS.BytecodeLength = shaderDesc.geometryShader->Get()->GetBufferSize();
@@ -116,7 +118,7 @@ namespace DX12
 		rasterizerDesc.FrontCounterClockwise = FALSE;
 		rasterizerDesc.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
 		rasterizerDesc.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
-		rasterizerDesc.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;//シャドウマップするときは変更したい
+		rasterizerDesc.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
 		rasterizerDesc.DepthClipEnable = TRUE;
 		rasterizerDesc.MultisampleEnable = FALSE;
 		rasterizerDesc.AntialiasedLineEnable = FALSE;

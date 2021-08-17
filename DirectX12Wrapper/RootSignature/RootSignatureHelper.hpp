@@ -85,7 +85,7 @@ namespace DX12
 		result.MinLOD = 0.0f;//ミップマップ最小値
 		result.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;//オーバーサンプリングの際リサンプリングしない？
 		result.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-		result.RegisterSpace = registerNum;
+		result.ShaderRegister = registerNum;
 
 		return result;
 	}
@@ -102,8 +102,8 @@ namespace DX12
 		result.MinLOD = 0.0f;//ミップマップ最小値
 		result.ComparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 		result.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-		result.MaxAnisotropy = 1;//深度傾斜を有効に
-		result.RegisterSpace = registerNum;
+		//result.MaxAnisotropy = 1;//深度傾斜を有効に
+		result.ShaderRegister = registerNum;
 
 		return result;
 	}
@@ -115,13 +115,14 @@ namespace DX12
 		result.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 		result.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 		result.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;//ボーダーの時は黒
-		result.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;//補間しない(ニアレストネイバー)
 		result.MaxLOD = D3D12_FLOAT32_MAX;//ミップマップ最大値
 		result.MinLOD = 0.0f;//ミップマップ最小値
-		result.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;//オーバーサンプリングの際リサンプリングしない
 		result.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-		result.RegisterSpace = registerNum;
+		result.ShaderRegister = registerNum;
 
+		result.ComparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+		result.Filter = D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;//比較結果をリニア補完
+	
 		return result;
 	}
 
@@ -139,7 +140,7 @@ namespace DX12
 		result.MinLOD = 0.f;
 		result.MaxLOD = D3D12_FLOAT32_MAX;
 		result.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-		result.RegisterSpace = registerNum;
+		result.ShaderRegister = registerNum;
 
 		return result;
 	}

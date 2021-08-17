@@ -241,7 +241,7 @@ namespace test005
 			command.SetViewport(viewport);
 			command.SetScissorRect(scissorRect);
 			command.SetPipelineState(&pipelineState);
-			command.SetPrimitiveTopology(PrimitiveTopology::TrinagleList);
+			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
 			command.SetGraphicsRootSignature(&rootSignature);
 			command.SetDescriptorHeap(&descriptorHeap);
 			command.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
