@@ -8,16 +8,12 @@ float4 main(PSInput input) : SV_TARGET
 	float3 refLight = normalize(reflect(sceneData.lightDir, input.normal.xyz));
 	float3 specular = float3(0.8f, 0.0f, 0.0f) * pow(saturate(dot(refLight, input.ray)), 50.f);
 
-	float3 color = diffuse + ambient + specular;
-
+	float3 color = diffuse;// + ambient + specular;
 	
 	float shadowWeight = 1.0f;
 	float3 posFromLightVP = input.tpos.xyz / input.tpos.w;
 	float2 shadowUV = (posFromLightVP.xy + float2(1, -1)) * float2(0.5, -0.5);
 	float2 depth = shadowMap.Sample(smp, shadowUV);
-
-	//float bias = 1 - saturate(dot(input.normal.xyz, sceneData.lightDir.xyz));
-	//bias = clamp(bias, 0.005, 0.03);
 
 	float bias = 0.005f;
 
@@ -26,13 +22,14 @@ float4 main(PSInput input) : SV_TARGET
 		float variance = depth.y - depth.x * depth.x;
 		float p = variance / (variance + (posFromLightVP.z - depth.x) * (posFromLightVP.z - depth.x));
 		shadowWeight = p;
-		shadowWeight *= 0.3;
-		shadowWeight += 0.3;
-
-		return float4(ambient, 1.f);
+		shadowWeight *= 0.5;
+		shadowWeight += 0.5;
 	}
 
 	color *= shadowWeight;
+
+	//
+	color += ambient + specular;
 
 	return float4(color, 1.f);
 }
