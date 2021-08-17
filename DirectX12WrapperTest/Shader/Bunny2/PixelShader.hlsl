@@ -14,16 +14,25 @@ float4 main(PSInput input) : SV_TARGET
 	float shadowWeight = 1.0f;
 	float3 posFromLightVP = input.tpos.xyz / input.tpos.w;
 	float2 shadowUV = (posFromLightVP.xy + float2(1, -1)) * float2(0.5, -0.5);
-	
-	float depthFromLight = shadowMap.SampleCmp(
-		shadowSmp,
-		shadowUV,
-		posFromLightVP.z - 0.005f);
-	shadowWeight = lerp(0.5f, 1.0f, depthFromLight);
+	float2 depth = shadowMap.Sample(smp, shadowUV);
 
-	//color *= shadowWeight;
-	if (shadowWeight < 1.f)
+	//float bias = 1 - saturate(dot(input.normal.xyz, sceneData.lightDir.xyz));
+	//bias = clamp(bias, 0.005, 0.03);
+
+	float bias = 0.005f;
+
+	if (posFromLightVP.z - bias > depth.x)
+	{
+		float variance = depth.y - depth.x * depth.x;
+		float p = variance / (variance + (posFromLightVP.z - depth.x) * (posFromLightVP.z - depth.x));
+		shadowWeight = p;
+		shadowWeight *= 0.3;
+		shadowWeight += 0.3;
+
 		return float4(ambient, 1.f);
+	}
+
+	color *= shadowWeight;
 
 	return float4(color, 1.f);
 }

@@ -44,6 +44,15 @@
     <FxCompile Include="Shader\Bunny\PixelShader.hlsl" />
     <FxCompile Include="Shader\Ground3\ShadowMapVertexShader.hlsl" />
     <FxCompile Include="Shader\Bunny\ShadowMapVertexShader.hlsl" />
+    <FxCompile Include="Shader\Ground4\PixelShader.hlsl" />
+    <FxCompile Include="Shader\Ground4\ShadowMapPixelShader.hlsl" />
+    <FxCompile Include="Shader\Ground4\ShadowMapVertexShader.hlsl" />
+    <FxCompile Include="Shader\Ground4\VertexShader.hlsl" />
+    <FxCompile Include="Shader\Bunny2\PixelShader.hlsl" />
+    <FxCompile Include="Shader\Bunny2\ShadowMapPixelShader.hlsl" />
+    <FxCompile Include="Shader\Bunny2\ShadowMapVertexShader.hlsl" />
+    <FxCompile Include="Shader\Bunny2\VertexShader.hlsl" />
+    <FxCompile Include="Shader\ComputeShader004.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test001.hpp" />
@@ -55,6 +64,7 @@
     <ClInclude Include="test006.hpp" />
     <ClInclude Include="test007.hpp" />
     <ClInclude Include="test008.hpp" />
+    <ClInclude Include="test009.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Header002.hlsli" />
@@ -68,5 +78,7 @@
     <None Include="Shader\Snow\Header.hlsli" />
     <None Include="Shader\Ground3\Header.hlsli" />
     <None Include="Shader\Bunny\Header.hlsli" />
+    <None Include="Shader\Ground4\Header.hlsli" />
+    <None Include="Shader\Bunny2\Header.hlsli" />
   </ItemGroup>
 </Project>

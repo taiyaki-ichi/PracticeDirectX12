@@ -9,6 +9,8 @@
 #pragma comment(lib,"dxgi.lib")
 #pragma comment(lib,"d3dcompiler.lib")
 
+#include<iostream>
+
 namespace DX12
 {
 	class Shader
@@ -73,6 +75,7 @@ namespace DX12
 				std::wstring errstr;
 				errstr.resize(errorBlob->GetBufferSize());
 				std::copy_n((char*)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize(), errstr.begin());
+				std::wcout << errstr;
 				throw errstr + L" : " + fileName + L"\n";
 			}
 		}

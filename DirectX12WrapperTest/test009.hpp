@@ -19,7 +19,7 @@
 #include"utility.hpp"
 
 //ƒ|ƒŠƒSƒ“‚Ì•`ŽÊ‚Ì•`ŽÊ‚ð‚·‚é
-namespace test008
+namespace test009
 {
 	using namespace DirectX;
 	using namespace DX12;
@@ -53,6 +53,12 @@ namespace test008
 	};
 
 	constexpr std::uint32_t SHADOW_MAP_EDGE = 1024;
+
+	struct ShadowMapData
+	{
+		float width;
+		float height;
+	};
 
 	inline int main()
 	{
@@ -89,12 +95,41 @@ namespace test008
 		//ShadowMap
 		//
 
-		DepthBuffer shadowMap{};
-		shadowMap.Initialize(&device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE);
+		ShaderResource shadowMap{};
+		shadowMap.Initialize(&device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, { Type::Float32,2 }, 1, { 1.f,1.f,1.f,1.f });
 
-		DescriptorHeap<DescriptorHeapTypeTag::DSV> shadowMapDescriptorHeap{};
-		shadowMapDescriptorHeap.Initialize(&device, 1);
-		shadowMapDescriptorHeap.PushBackView(&device, &shadowMap);
+		ShaderResource gaussianBlurShadowMap{};
+		gaussianBlurShadowMap.Initialize(&device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, { Type::Float32,2 }, 1, { 1.f,1.f,1.f,1.f });
+
+		ConstantBuffer shadowMapDataConstantBuffer{};
+		shadowMapDataConstantBuffer.Initialize(&device, sizeof(ShadowMapData));
+		shadowMapDataConstantBuffer.Map(ShadowMapData{ SHADOW_MAP_EDGE,SHADOW_MAP_EDGE });
+
+		DepthBuffer shadowMapDepthBuffer{};
+		shadowMapDepthBuffer.Initialize(&device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE);
+
+		DescriptorHeap<DescriptorHeapTypeTag::DSV> shadowMapDSVDescriptorHeap{};
+		shadowMapDSVDescriptorHeap.Initialize(&device, 1);
+		shadowMapDSVDescriptorHeap.PushBackView(&device, &shadowMapDepthBuffer);
+
+		DescriptorHeap<DescriptorHeapTypeTag::RTV> shadowMapRTVDescriptorHeap{};
+		shadowMapRTVDescriptorHeap.Initialize(&device, 1);
+		shadowMapRTVDescriptorHeap.PushBackView(&device, &shadowMap);
+
+		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> computeGaussianBlurDescriptorHeap{};
+		computeGaussianBlurDescriptorHeap.Initialize(&device, 3);
+		computeGaussianBlurDescriptorHeap.PushBackView(&device, &shadowMap);
+		computeGaussianBlurDescriptorHeap.PushBackView<ViewTypeTag::UnorderedAccessResource>(&device, &gaussianBlurShadowMap);
+		computeGaussianBlurDescriptorHeap.PushBackView(&device, &shadowMapDataConstantBuffer);
+
+		Shader computeGaussianCS{};
+		computeGaussianCS.Intialize(L"Shader/ComputeShader004.hlsl", "main", "cs_5_1");
+
+		RootSignature computeGaussianBlurRootSignature{};
+		computeGaussianBlurRootSignature.Initialize(&device, { {DescriptorRangeType::SRV,DescriptorRangeType::UAV,DescriptorRangeType::CBV} }, {});
+
+		PipelineState computeGaussianBlurPipelineState{};
+		computeGaussianBlurPipelineState.Initialize(&device, &computeGaussianBlurRootSignature, &computeGaussianCS);
 
 
 		//
@@ -131,22 +166,26 @@ namespace test008
 		groundDescriptorHeap.Initialize(&device, 3);
 		groundDescriptorHeap.PushBackView(&device, &sceneDataConstantBuffer);
 		groundDescriptorHeap.PushBackView(&device, &groundDataConstantBuffer);
-		groundDescriptorHeap.PushBackView(&device, &shadowMap);
+		//groundDescriptorHeap.PushBackView(&device, &shadowMap);
+		groundDescriptorHeap.PushBackView(&device, &gaussianBlurShadowMap);
 
 		RootSignature groundRootSignature{};
 		groundRootSignature.Initialize(&device,
 			{ {DescriptorRangeType::CBV,DescriptorRangeType::CBV,DescriptorRangeType::SRV} },
-			{ StaticSamplerType::SadowMapping,StaticSamplerType::Standard }
+			{ StaticSamplerType::Standard }
 		);
 
 		Shader groundVS{};
-		groundVS.Intialize(L"Shader/Ground3/VertexShader.hlsl", "main", "vs_5_1");
+		groundVS.Intialize(L"Shader/Ground4/VertexShader.hlsl", "main", "vs_5_1");
 
 		Shader groundPS{};
-		groundPS.Intialize(L"Shader/Ground3/PixelShader.hlsl", "main", "ps_5_1");
+		groundPS.Intialize(L"Shader/Ground4/PixelShader.hlsl", "main", "ps_5_1");
 
 		Shader groundShadowMapVS{};
-		groundShadowMapVS.Intialize(L"Shader/Ground3/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
+		groundShadowMapVS.Intialize(L"Shader/Ground4/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
+
+		Shader groundShadowMapPS{};
+		groundShadowMapPS.Intialize(L"Shader/Ground4/ShadowMapPixelShader.hlsl", "main", "ps_5_1");
 
 		PipelineState groundPipelineState{};
 		groundPipelineState.Initialize(&device, &groundRootSignature, { &groundVS,&groundPS },
@@ -155,8 +194,8 @@ namespace test008
 		);
 
 		PipelineState groundShadowMapPipelineState{};
-		groundShadowMapPipelineState.Initialize(&device, &groundRootSignature, { &groundShadowMapVS },
-			{ {"POSITION",{Type::Float32,3}} }, {},
+		groundShadowMapPipelineState.Initialize(&device, &groundRootSignature, { &groundShadowMapVS,&groundShadowMapPS },
+			{ {"POSITION",{Type::Float32,3}} }, { {Type::Float32,2} },
 			true, false, PrimitiveTopology::Triangle
 		);
 
@@ -198,22 +237,26 @@ namespace test008
 		bunnyDescriptorHeap.Initialize(&device, 3);
 		bunnyDescriptorHeap.PushBackView(&device, &sceneDataConstantBuffer);
 		bunnyDescriptorHeap.PushBackView(&device, &bunnyDataConstantBuffer);
-		bunnyDescriptorHeap.PushBackView(&device, &shadowMap);
+		//bunnyDescriptorHeap.PushBackView(&device, &shadowMap);
+		bunnyDescriptorHeap.PushBackView(&device, &gaussianBlurShadowMap);
 
 		RootSignature bunnyRootSignature{};
-		bunnyRootSignature.Initialize(&device, 
+		bunnyRootSignature.Initialize(&device,
 			{ {DescriptorRangeType::CBV,DescriptorRangeType::CBV,DescriptorRangeType::SRV} },
-			{ StaticSamplerType::SadowMapping }
+			{ StaticSamplerType::Standard }
 		);
 
 		Shader bunnyVS{};
-		bunnyVS.Intialize(L"Shader/Bunny/VertexShader.hlsl", "main", "vs_5_1");
+		bunnyVS.Intialize(L"Shader/Bunny2/VertexShader.hlsl", "main", "vs_5_1");
 
 		Shader bunnyPS{};
-		bunnyPS.Intialize(L"Shader/Bunny/PixelShader.hlsl", "main", "ps_5_1");
+		bunnyPS.Intialize(L"Shader/Bunny2/PixelShader.hlsl", "main", "ps_5_1");
 
 		Shader bunnyShadowMapVS{};
-		bunnyShadowMapVS.Intialize(L"Shader/Bunny/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
+		bunnyShadowMapVS.Intialize(L"Shader/Bunny2/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
+
+		Shader bunnyShadowMapPS{};
+		bunnyShadowMapPS.Intialize(L"Shader/Bunny2/ShadowMapPixelShader.hlsl", "main", "ps_5_1");
 
 		PipelineState bunnyPipelineState{};
 		bunnyPipelineState.Initialize(&device, &bunnyRootSignature, { &bunnyVS,&bunnyPS },
@@ -222,8 +265,8 @@ namespace test008
 		);
 
 		PipelineState bunnyShadowMapPipelineState{};
-		bunnyShadowMapPipelineState.Initialize(&device, &bunnyRootSignature, { &bunnyShadowMapVS },
-			{ {"POSITION",{Type::Float32,3}},{"NORMAL",{Type::Float32,3}} }, {},
+		bunnyShadowMapPipelineState.Initialize(&device, &bunnyRootSignature, { &bunnyShadowMapVS ,&bunnyShadowMapPS },
+			{ {"POSITION",{Type::Float32,3}},{"NORMAL",{Type::Float32,3}} }, { {Type::Float32,2} },
 			true, false, PrimitiveTopology::Triangle
 		);
 
@@ -271,7 +314,7 @@ namespace test008
 			//update
 			//
 			for (std::size_t i = 0; i < BUNNY_NUM; i++)
-				bunnyData.world[i] = XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(30.f , 5.f, 20.f - i * 20.f);
+				bunnyData.world[i] = XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(30.f, 5.f, 20.f - i * 20.f);
 			bunnyDataConstantBuffer.Map(bunnyData);
 
 			cnt++;
@@ -287,10 +330,11 @@ namespace test008
 			//ShadowMap
 			//
 
-			command.Barrior(&shadowMap, ResourceState::DepthWrite);
+			command.Barrior(&shadowMap, ResourceState::RenderTarget);
 
-			command.ClearDepthView(shadowMapDescriptorHeap.GetCPUHandle(), 1.f);
-			command.SetRenderTarget(std::nullopt, shadowMapDescriptorHeap.GetCPUHandle());
+			command.ClearDepthView(shadowMapDSVDescriptorHeap.GetCPUHandle(), 1.f);
+			command.ClearRenderTargetView(shadowMapRTVDescriptorHeap.GetCPUHandle(), { 1,1,1,1 });
+			command.SetRenderTarget(shadowMapRTVDescriptorHeap.GetCPUHandle(), shadowMapDSVDescriptorHeap.GetCPUHandle());
 			command.SetViewport(shadowMapViewport);
 			command.SetScissorRect(shadowMapScissorRect);
 
@@ -314,6 +358,18 @@ namespace test008
 
 			command.Barrior(&shadowMap, ResourceState::PixcelShaderResource);
 
+
+			//
+			//GaussianBlur
+			//
+
+			command.Barrior(&gaussianBlurShadowMap, ResourceState::UnorderedAccessResource);
+			command.SetComputeRootSignature(&computeGaussianBlurRootSignature);
+			command.SetDescriptorHeap(&computeGaussianBlurDescriptorHeap);
+			command.SetComputeRootDescriptorTable(0, computeGaussianBlurDescriptorHeap.GetGPUHandle());
+			command.SetPipelineState(&computeGaussianBlurPipelineState);
+			command.Dispatch(SHADOW_MAP_EDGE / 8 + 1, SHADOW_MAP_EDGE / 8 + 1, 1);
+			command.Barrior(&gaussianBlurShadowMap, ResourceState::PixcelShaderResource);
 
 
 			//
