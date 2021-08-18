@@ -201,9 +201,9 @@ namespace test008
 		bunnyDescriptorHeap.PushBackView(&device, &shadowMap);
 
 		RootSignature bunnyRootSignature{};
-		bunnyRootSignature.Initialize(&device, 
+		bunnyRootSignature.Initialize(&device,
 			{ {DescriptorRangeType::CBV,DescriptorRangeType::CBV,DescriptorRangeType::SRV} },
-			{ StaticSamplerType::SadowMapping }
+			{ StaticSamplerType::SadowMapping,StaticSamplerType::Standard }
 		);
 
 		Shader bunnyVS{};
@@ -247,12 +247,12 @@ namespace test008
 			0.1f,
 			500.f
 		);
-		XMFLOAT3 lightDir{ 0.1f,1.f,1.f };
+		XMFLOAT3 lightDir{ 0.f,1.f,1.f };
 
 		auto lightPos = XMLoadFloat3(&target) + XMVector3Normalize(XMLoadFloat3(&lightDir))
 			* XMVector3Length(XMVectorSubtract(XMLoadFloat3(&target), XMLoadFloat3(&eye))).m128_f32[0];
 
-		XMMATRIX shadowMapViewProj = XMMatrixLookAtLH(lightPos, XMLoadFloat3(&target), XMLoadFloat3(&up)) * XMMatrixOrthographicLH(100, 100, -100.f, 100.f);
+		XMMATRIX shadowMapViewProj = XMMatrixLookAtLH(lightPos, XMLoadFloat3(&target), XMLoadFloat3(&up)) * XMMatrixOrthographicLH(100, 100, -100.f, 200.f);
 
 		sceneDataConstantBuffer.Map(SceneData{ view,proj,{eye.x,eye.y,eye.z,0.f}, {lightDir.x,lightDir.y,lightDir.z,0.f},shadowMapViewProj });
 
@@ -271,7 +271,7 @@ namespace test008
 			//update
 			//
 			for (std::size_t i = 0; i < BUNNY_NUM; i++)
-				bunnyData.world[i] = XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(30.f , 5.f, 20.f - i * 20.f);
+				bunnyData.world[i] = XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(30.f , 0.f, 40.f - i * 40.f);
 			bunnyDataConstantBuffer.Map(bunnyData);
 
 			cnt++;

@@ -314,7 +314,7 @@ namespace test009
 			//update
 			//
 			for (std::size_t i = 0; i < BUNNY_NUM; i++)
-				bunnyData.world[i] = XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(30.f, 5.f, 20.f - i * 20.f);
+				bunnyData.world[i] = XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(30.f, 0.f, 40.f - i * 40.f);
 			bunnyDataConstantBuffer.Map(bunnyData);
 
 			cnt++;
