@@ -13,12 +13,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectX12WrapperTest", "Dir
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OffLoader", "OffLoader\OffLoader.vcxitems", "{45725327-A163-4768-96DA-AD853CC1C1A0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "develop", "develop\develop.vcxitems", "{8185DE59-4FF1-457C-8861-9B1C0C9408C8}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		load_mmd\load_mmd.vcxitems*{3236c697-86f0-4ede-964e-2ef3e18ad158}*SharedItemsImports = 9
 		OffLoader\OffLoader.vcxitems*{45725327-a163-4768-96da-ad853cc1c1a0}*SharedItemsImports = 9
+		develop\develop.vcxitems*{5f9a7898-42c5-493d-b011-3ff5fce3881f}*SharedItemsImports = 4
 		DirectX12Wrapper\DirectX12Wrapper.vcxitems*{5f9a7898-42c5-493d-b011-3ff5fce3881f}*SharedItemsImports = 4
 		OffLoader\OffLoader.vcxitems*{5f9a7898-42c5-493d-b011-3ff5fce3881f}*SharedItemsImports = 4
+		develop\develop.vcxitems*{8185de59-4ff1-457c-8861-9b1c0c9408c8}*SharedItemsImports = 9
 		DirectX12Wrapper\DirectX12Wrapper.vcxitems*{d1f8ae40-8879-4236-acc0-9bc0b2b74402}*SharedItemsImports = 9
 		load_mmd\load_mmd.vcxitems*{f4107366-ae45-4dd5-8947-cbaa7c77c3cf}*SharedItemsImports = 4
 	EndGlobalSection

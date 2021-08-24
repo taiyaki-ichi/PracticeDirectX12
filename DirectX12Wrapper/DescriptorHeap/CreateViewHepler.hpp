@@ -121,6 +121,7 @@ namespace DX12
 		cbvDesc.BufferLocation = resource->GetGPUVirtualAddress();
 		cbvDesc.SizeInBytes = static_cast<UINT>(resource->GetDesc().Width);
 
+
 		device->Get()->CreateConstantBufferView(&cbvDesc, cpuHandle);
 
 		return true;
