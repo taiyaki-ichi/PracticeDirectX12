@@ -1,5 +1,6 @@
 #pragma once
 #include"resource.hpp"
+#include"../Utility.hpp"
 #include<type_traits>
 #include<iterator>
 
@@ -22,6 +23,23 @@ namespace DX12
 		ValueType* target = nullptr;
 		resource->get()->Map(0, nullptr, (void**)&target);
 		std::copy(first, last, target);
+		resource->get()->Unmap(0, nullptr);
+	}
+
+	template<typename Resource,typename T>
+	inline void map_impl(Resource* resource, T* data, std::uint32_t width, std::uint32_t height,std::uint32_t targetPitch)
+	{
+		using value_type = std::remove_cv_t<T>;
+		value_type* target = nullptr;
+		resource->get()->Map(0, nullptr, (void**)&target);
+
+		for (std::uint32_t i = 0; i < height; i++)
+		{
+			std::copy_n(data, width, target);
+			data += width;
+			target += targetPitch;
+		}
+
 		resource->get()->Unmap(0, nullptr);
 	}
 

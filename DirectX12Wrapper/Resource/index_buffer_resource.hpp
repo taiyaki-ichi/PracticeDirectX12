@@ -9,7 +9,7 @@ namespace DX12
 		D3D12_INDEX_BUFFER_VIEW index_buffer_view{};
 
 	public:
-		void initialize(Device* device, std::uint32_t size, component_type componentType, std::uint32_t componentSize, std::uint32_t componentNum);
+		void initialize(Device* device, std::uint32_t size, format f);
 
 		const D3D12_INDEX_BUFFER_VIEW& get_view() const noexcept;
 	};
@@ -18,12 +18,12 @@ namespace DX12
 	//
 	//
 
-	void index_buffer_resource::initialize(Device* device, std::uint32_t size, component_type componentType, std::uint32_t componentSize, std::uint32_t componentNum)
+	void index_buffer_resource::initialize(Device* device, std::uint32_t size, format f)
 	{
 		buffer_resource::initialize(device, size);
 
 		index_buffer_view.BufferLocation = get()->GetGPUVirtualAddress();
-		index_buffer_view.Format = get_dxgi_format(componentType, componentSize, componentNum).value();
+		index_buffer_view.Format = get_dxgi_format(f.type, f.size, f.num).value();
 		index_buffer_view.SizeInBytes = size;
 	}
 
