@@ -21,6 +21,14 @@ namespace DX12
 		Shader* domainShader = nullptr;
 	};
 
+	struct vertex_layout
+	{
+		const char* name;
+		component_type type;
+		std::uint32_t size;
+		std::uint32_t num;
+	};
+
 	class PipelineState
 	{
 		ID3D12PipelineState* pipelineState = nullptr;
@@ -36,7 +44,7 @@ namespace DX12
 		PipelineState& operator=(PipelineState&&) noexcept;
 
 		void Initialize(Device*, RootSignature*, ShaderDesc,
-			const std::vector<std::pair<std::string, Format>>& vertexLayouts, const std::vector<Format>& renderTargetFormats,
+			const std::vector<vertex_layout>& vertexLayouts, const std::vector<format>& renderTargetFormats,
 			bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology
 		);
 
@@ -67,8 +75,8 @@ namespace DX12
 		return *this;
 	}
 
-	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, ShaderDesc shaderDesc, const std::vector<std::pair<std::string, Format>>& vertexLayouts,
-		const std::vector<Format>& renderTargetFormats, bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology)
+	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, ShaderDesc shaderDesc, const std::vector<vertex_layout>& vertexLayouts, 
+		const std::vector<format>& renderTargetFormats, bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology)
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineDesc{};
 
@@ -97,10 +105,10 @@ namespace DX12
 		std::uint32_t alignedByteOffset = 0;
 		for (std::uint32_t i = 0; i < vertexLayouts.size(); i++)
 		{
-			inputElementDescs[i].SemanticName = vertexLayouts[i].first.data();
+			inputElementDescs[i].SemanticName = vertexLayouts[i].name;
 			inputElementDescs[i].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
 			inputElementDescs[i].InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-			inputElementDescs[i].Format = vertexLayouts[i].second.value;
+			inputElementDescs[i].Format = get_dxgi_format(vertexLayouts[i].type, vertexLayouts[i].size, vertexLayouts[i].num).value();
 		}
 
 		graphicsPipelineDesc.InputLayout.pInputElementDescs = inputElementDescs.data();
@@ -160,7 +168,7 @@ namespace DX12
 
 		graphicsPipelineDesc.NumRenderTargets = renderTargetFormats.size();
 		for (std::uint32_t i = 0; i < renderTargetFormats.size(); i++)
-			graphicsPipelineDesc.RTVFormats[i] = renderTargetFormats[i].value;
+			graphicsPipelineDesc.RTVFormats[i] = get_dxgi_format(renderTargetFormats[i].type, renderTargetFormats[i].size, renderTargetFormats[i].num).value();
 
 
 		//デプスステンシル

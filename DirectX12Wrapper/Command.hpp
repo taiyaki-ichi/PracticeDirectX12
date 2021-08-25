@@ -2,9 +2,9 @@
 #include"Device.hpp"
 #include"SwapChain.hpp"
 #include"PipelineState.hpp"
-#include"Resource/VertexBuffer.hpp"
-#include"Resource/IndexBuffer.hpp"
-#include"DescriptorHeap/DescriptorHeap.hpp"
+#include"Resource/vertex_buffer_resource.hpp"
+#include"Resource/index_buffer_resource.hpp"
+#include"DescriptorHeap.hpp"
 #include<array>
 #include<algorithm>
 #include<optional>
@@ -42,7 +42,8 @@ namespace DX12
 		template<std::size_t FrameBufferNum=FrameLatencyNum>
 		SwapChain<FrameBufferNum> CreateSwapChain(Device*, HWND);
 
-		void CopyTexture(Device*,ResourceBase* srcResource, ResourceBase* dstResource);
+		template<typename SrcResource,typename DstResource>
+		void CopyTexture(Device*,SrcResource* srcResource, DstResource* dstResource);
 
 		void Execute();
 		void Dispatch(std::uint32_t threadGroupCountX, std::uint32_t threadGroupCountY, std::uint32_t threadGroupCountZ);
@@ -76,14 +77,14 @@ namespace DX12
 		void SetScissorRect(const D3D12_RECT& rect);
 		void SetScissorRect(std::uint32_t num, D3D12_RECT* rectPtr);
 
-		void SetVertexBuffer(VertexBuffer*);
-		void SetIndexBuffer(IndexBuffer*);
+		void SetVertexBuffer(vertex_buffer_resource*);
+		void SetIndexBuffer(index_buffer_resource*);
 
 		void SetGraphicsRootSignature(RootSignature*);
 		void SetComputeRootSignature(RootSignature*);
 
-		template<typename T>
-		void SetDescriptorHeap(DescriptorHeap<T>*);
+		template<typename DescriptorHeap>
+		void SetDescriptorHeap(DescriptorHeap*);
 		void SetGraphicsRootDescriptorTable(std::uint32_t index, D3D12_GPU_DESCRIPTOR_HANDLE);
 		void SetComputeRootDescriptorTable(std::uint32_t index, D3D12_GPU_DESCRIPTOR_HANDLE);
 
@@ -92,7 +93,8 @@ namespace DX12
 		void DrawInstanced(std::uint32_t vertexNumPerInstance, std::uint32_t instanceNum = 1);
 		void DrawIndexedInstanced(std::uint32_t indexNumPerInstance, std::uint32_t instanceNum = 1);
 
-		void Barrior(ResourceBase*, ResourceState);
+		template<typename Resource>
+		void Barrior(Resource*, resource_state);
 
 		void ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE, const std::array<float, 4>&);
 		void ClearDepthView(D3D12_CPU_DESCRIPTOR_HANDLE, float);
@@ -204,6 +206,7 @@ namespace DX12
 		DXGI_SWAP_CHAIN_DESC1 swapchainDesc{};
 		swapchainDesc.Width = windowRect.right - windowRect.left;
 		swapchainDesc.Height = windowRect.bottom - windowRect.top;
+		//
 		swapchainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		swapchainDesc.Stereo = false;
 		swapchainDesc.SampleDesc.Count = 1;
@@ -224,17 +227,18 @@ namespace DX12
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::CopyTexture(Device* device,ResourceBase* srcResource, ResourceBase* dstResource)
+	template<typename SrcResource, typename DstResource>
+	inline void Command<FrameLatencyNum>::CopyTexture(Device* device, SrcResource* srcResource, DstResource* dstResource)
 	{
 		D3D12_TEXTURE_COPY_LOCATION srcLocation{};
 		D3D12_TEXTURE_COPY_LOCATION dstLocation{};
 
-		const auto dstDesc = dstResource->Get()->GetDesc();
+		const auto dstDesc = dstResource->get()->GetDesc();
 		const auto width = dstDesc.Width;
 		const auto height = dstDesc.Height;
-		const auto uploadResourceRowPitch = srcResource->Get()->GetDesc().Width / height;
+		const auto uploadResourceRowPitch = srcResource->get()->GetDesc().Width / height;
 
-		srcLocation.pResource = srcResource->Get();
+		srcLocation.pResource = srcResource->get();
 		srcLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
 		{
 			D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
@@ -250,7 +254,7 @@ namespace DX12
 		srcLocation.PlacedFootprint.Footprint.RowPitch = uploadResourceRowPitch;
 		srcLocation.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-		dstLocation.pResource = dstResource->Get();
+		dstLocation.pResource = dstResource->get();
 		dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
 		dstLocation.SubresourceIndex = 0;
 
@@ -371,15 +375,15 @@ namespace DX12
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::SetVertexBuffer(VertexBuffer* vbr)
+	inline void Command<FrameLatencyNum>::SetVertexBuffer(vertex_buffer_resource* vbr)
 	{
-		list->IASetVertexBuffers(0, 1, &vbr->GetView());
+		list->IASetVertexBuffers(0, 1, &vbr->get_view());
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::SetIndexBuffer(IndexBuffer* ibr)
+	inline void Command<FrameLatencyNum>::SetIndexBuffer(index_buffer_resource* ibr)
 	{
-		list->IASetIndexBuffer(&ibr->GetView());
+		list->IASetIndexBuffer(&ibr->get_view());
 	}
 
 	template<std::size_t FrameLatencyNum>
@@ -395,10 +399,10 @@ namespace DX12
 	}
 
 	template<std::size_t FrameLatencyNum>
-	template<typename T>
-	inline void Command<FrameLatencyNum>::SetDescriptorHeap(DescriptorHeap<T>* dh)
+	template<typename DescriptorHeap>
+	inline void Command<FrameLatencyNum>::SetDescriptorHeap(DescriptorHeap* dh)
 	{
-		list->SetDescriptorHeaps(1, &dh->Get());
+		list->SetDescriptorHeaps(1, &dh->get());
 	}
 
 	template<std::size_t FrameLatencyNum>
@@ -432,21 +436,22 @@ namespace DX12
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::Barrior(ResourceBase* rb, ResourceState rs)
+	template<typename Resource>
+	inline void Command<FrameLatencyNum>::Barrior(Resource* r, resource_state s)
 	{
-		if (rb->GetState() == rs)
+		if (r->get_state() == s)
 			return;
 
 		D3D12_RESOURCE_BARRIER barrier{};
 		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		barrier.Transition.pResource = rb->Get();
-		barrier.Transition.StateBefore = static_cast<D3D12_RESOURCE_STATES>(rb->GetState());
-		barrier.Transition.StateAfter = static_cast<D3D12_RESOURCE_STATES>(rs);
+		barrier.Transition.pResource = r->get();
+		barrier.Transition.StateBefore = static_cast<D3D12_RESOURCE_STATES>(r->get_state());
+		barrier.Transition.StateAfter = static_cast<D3D12_RESOURCE_STATES>(s);
 		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 		list->ResourceBarrier(1, &barrier);
 
-		rb->SetState(rs);
+		r->set_state(s);
 	}
 
 	template<std::size_t FrameLatencyNum>

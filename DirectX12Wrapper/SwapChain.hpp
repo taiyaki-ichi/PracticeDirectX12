@@ -1,5 +1,5 @@
 #pragma once
-#include"Resource/FrameBuffer.hpp"
+#include"Resource/frame_buffer_resource.hpp"
 #include<array>
 #include<d3d12.h>
 #include<dxgi1_6.h>
@@ -14,7 +14,9 @@ namespace DX12
 	class SwapChain
 	{
 		IDXGISwapChain3* swapChain;
-		std::array<FrameBuffer, FrameBufferNum> frameBuffer{};
+
+		//
+		std::array<frame_buffer_resource<typeless_format<8,4>>, FrameBufferNum> frameBuffer{};
 
 	public:
 		SwapChain(IDXGISwapChain3*);
@@ -33,7 +35,8 @@ namespace DX12
 		//現在控えているBackBufferのインデックスの取得
 		std::uint32_t GetCurrentBackBufferIndex();
 
-		FrameBuffer& GetFrameBuffer(std::size_t index);
+		frame_buffer_resource<typeless_format<8,4>>& get_frame_buffer_resource(std::uint32_t index);
+
 	};
 
 	//
@@ -50,7 +53,7 @@ namespace DX12
 			ID3D12Resource* resourcePtr = nullptr;
 			if (FAILED(swapChain->GetBuffer(static_cast<UINT>(i), IID_PPV_ARGS(&resourcePtr))))
 				throw "";
-			frameBuffer[i].Initialize(resourcePtr);
+			frameBuffer[i].initialize(resourcePtr);
 		}
 	}
 
@@ -90,8 +93,9 @@ namespace DX12
 		return swapChain->GetCurrentBackBufferIndex();
 	}
 
+
 	template<std::size_t FrameBufferNum>
-	inline FrameBuffer& DX12::SwapChain<FrameBufferNum>::GetFrameBuffer(std::size_t index)
+	inline frame_buffer_resource<typeless_format<8,4>>& DX12::SwapChain<FrameBufferNum>::get_frame_buffer_resource(std::uint32_t index)
 	{
 		return frameBuffer[index];
 	}

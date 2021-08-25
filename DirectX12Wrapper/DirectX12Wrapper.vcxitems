@@ -15,24 +15,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)Command.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\ViewTypeTag.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\DescriptorHeap.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap\CreateViewHepler.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Format.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PipelineState.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PrimitiveTopology.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ColorTextureResource.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ConstantBuffer.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\DepthBuffer.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\FrameBuffer.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ShaderResource.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\IndexBuffer.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ResourceBase.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\ResourceState.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\UploadResource.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\UploadTextureResource.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\VertexBuffer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\buffer_resource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\constant_buffer_resource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\frame_buffer_resource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\index_buffer_resource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\map.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\resource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\shader_resource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\vertex_buffer_resource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SwapChain.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)View.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Window.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Utility.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Shader.hpp" />

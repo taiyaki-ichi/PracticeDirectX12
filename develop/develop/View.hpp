@@ -8,14 +8,14 @@
 
 namespace dev
 {
-	enum class ViewComponentType
+	enum class component_type
 	{
-		Float,
-		Uint,
-		UnsignedNormalizedFloat,
+		FLOAT,
+		UINT,
+		UNSIGNED_NORMALIZE_FLOAT,
 	};
 
-	enum class ViewDimention
+	enum class view_dimention
 	{
 		Texture2D,
 		Textre2DArray,
@@ -23,53 +23,53 @@ namespace dev
 	};
 
 	//ViewÇçÏê¨Ç∑ÇÈç€ÇÃFormatÇÃéÊìæ
-	template<ViewComponentType VCT,std::uint8_t ComponentSize,std::uint8_t ComponentNum>
-	constexpr DXGI_FORMAT GetViewFormat() {
+	template<component_type ViewComponentType,std::uint8_t ComponentSize,std::uint8_t component_num>
+	constexpr DXGI_FORMAT get_view_format() {
 		static_assert(false,"invalid template argument");
 	}
 
 #define DefineGetFormat(type,size,num,value)										\
 	template<>																		\
-	constexpr DXGI_FORMAT GetViewFormat<type,size,value>(){							\
+	constexpr DXGI_FORMAT get_view_format<type,size,value>(){							\
 		return value;																\
 	}																				\
 
-	DefineGetFormat(ViewComponentType::Float, 32, 4, DXGI_FORMAT_R32G32B32A32_FLOAT);
-	DefineGetFormat(ViewComponentType::Float, 32, 3, DXGI_FORMAT_R32G32B32_FLOAT);
-	DefineGetFormat(ViewComponentType::Float, 32, 2, DXGI_FORMAT_R32G32_FLOAT);
-	DefineGetFormat(ViewComponentType::Float, 32, 1, DXGI_FORMAT_R32_FLOAT);
-	DefineGetFormat(ViewComponentType::Uint, 32, 4, DXGI_FORMAT_R32G32B32A32_UINT);
-	DefineGetFormat(ViewComponentType::Uint, 32, 3, DXGI_FORMAT_R32G32B32_UINT);
-	DefineGetFormat(ViewComponentType::Uint, 32, 2, DXGI_FORMAT_R32G32_UINT);
-	DefineGetFormat(ViewComponentType::Uint, 32, 1, DXGI_FORMAT_R32_UINT);
-	DefineGetFormat(ViewComponentType::Float, 16, 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
-	DefineGetFormat(ViewComponentType::Float, 16, 2, DXGI_FORMAT_R16G16_FLOAT);
-	DefineGetFormat(ViewComponentType::Float, 16, 1, DXGI_FORMAT_R16_FLOAT);
-	DefineGetFormat(ViewComponentType::Uint, 16, 4, DXGI_FORMAT_R16G16B16A16_UINT);
-	DefineGetFormat(ViewComponentType::Uint, 16, 2, DXGI_FORMAT_R16G16_UINT);
-	DefineGetFormat(ViewComponentType::Uint, 16, 1, DXGI_FORMAT_R16_UINT);
-	DefineGetFormat(ViewComponentType::Uint, 8, 4, DXGI_FORMAT_R8G8B8A8_UINT);
-	DefineGetFormat(ViewComponentType::Uint, 8, 2, DXGI_FORMAT_R8G8_UINT);
-	DefineGetFormat(ViewComponentType::Uint, 8, 1, DXGI_FORMAT_R8_UINT);
-	DefineGetFormat(ViewComponentType::UnsignedNormalizedFloat, 8, 4, DXGI_FORMAT_R8G8B8A8_UNORM);
-	DefineGetFormat(ViewComponentType::UnsignedNormalizedFloat, 8, 2, DXGI_FORMAT_R8G8_UNORM);
-	DefineGetFormat(ViewComponentType::UnsignedNormalizedFloat, 8, 1, DXGI_FORMAT_R8_UNORM);
+	DefineGetFormat(component_type::FLOAT, 32, 4, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	DefineGetFormat(component_type::FLOAT, 32, 3, DXGI_FORMAT_R32G32B32_FLOAT);
+	DefineGetFormat(component_type::FLOAT, 32, 2, DXGI_FORMAT_R32G32_FLOAT);
+	DefineGetFormat(component_type::FLOAT, 32, 1, DXGI_FORMAT_R32_FLOAT);
+	DefineGetFormat(component_type::UINT, 32, 4, DXGI_FORMAT_R32G32B32A32_UINT);
+	DefineGetFormat(component_type::UINT, 32, 3, DXGI_FORMAT_R32G32B32_UINT);
+	DefineGetFormat(component_type::UINT, 32, 2, DXGI_FORMAT_R32G32_UINT);
+	DefineGetFormat(component_type::UINT, 32, 1, DXGI_FORMAT_R32_UINT);
+	DefineGetFormat(component_type::FLOAT, 16, 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	DefineGetFormat(component_type::FLOAT, 16, 2, DXGI_FORMAT_R16G16_FLOAT);
+	DefineGetFormat(component_type::FLOAT, 16, 1, DXGI_FORMAT_R16_FLOAT);
+	DefineGetFormat(component_type::UINT, 16, 4, DXGI_FORMAT_R16G16B16A16_UINT);
+	DefineGetFormat(component_type::UINT, 16, 2, DXGI_FORMAT_R16G16_UINT);
+	DefineGetFormat(component_type::UINT, 16, 1, DXGI_FORMAT_R16_UINT);
+	DefineGetFormat(component_type::UINT, 8, 4, DXGI_FORMAT_R8G8B8A8_UINT);
+	DefineGetFormat(component_type::UINT, 8, 2, DXGI_FORMAT_R8G8_UINT);
+	DefineGetFormat(component_type::UINT, 8, 1, DXGI_FORMAT_R8_UINT);
+	DefineGetFormat(component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4, DXGI_FORMAT_R8G8B8A8_UNORM);
+	DefineGetFormat(component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 2, DXGI_FORMAT_R8G8_UNORM);
+	DefineGetFormat(component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 1, DXGI_FORMAT_R8_UNORM);
 
 #undef DefineGetFormat
 
 	//DepthStencilÇÃDescriptorHeapÇ…ViewÇçÏÇÈéûÇ…égóp
-	template<std::uint8_t ComponentSize, std::uint8_t ComponentNum>
-	constexpr DXGI_FORMAT GetDepthStencilViewFormat() {
+	template<std::uint8_t ComponentSize, std::uint8_t component_num>
+	constexpr DXGI_FORMAT get_depth_stencil_view_format() {
 		static_assert(false, "invalid template argument");
 	}
 
 	template<>
-	constexpr DXGI_FORMAT GetDepthStencilViewFormat<16,1>() {
+	constexpr DXGI_FORMAT get_depth_stencil_view_format<16,1>() {
 		return DXGI_FORMAT_D16_UNORM;
 	}
 
 	template<>
-	constexpr DXGI_FORMAT GetDepthStencilViewFormat<32, 1>() {
+	constexpr DXGI_FORMAT get_depth_stencil_view_format<32, 1>() {
 		return DXGI_FORMAT_D32_FLOAT;;
 	}
 
@@ -82,12 +82,12 @@ namespace dev
 		device->CreateConstantBufferView(&desc, cpuHandle);
 	}
 
-	template<ViewComponentType VCT,typename PrimitiveFormat>
+	template<component_type ViewComponentType,typename typeless_format>
 	inline void CreateTexture2DShaderResourceView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSline, float resourceMinLODClamp)
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
-		desc.Format = GetViewFormat<VCT, PrimitiveFormat::componentSize, PrimitiveFormat::componentNum>();
+		desc.Format = get_view_format<ViewComponentType, typeless_format::componentSize, typeless_format::componentNum>();
 		desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 		desc.Texture2D.MipLevels = mipLevels;
@@ -97,12 +97,12 @@ namespace dev
 		device->CreateShaderResourceView(resource, &desc, cpuHandle);
 	}
 
-	template<ViewComponentType VCT,typename PrimitiveFormat>
+	template<component_type ViewComponentType,typename typeless_format>
 	inline void CreateTexture2DArrayShaderResourceView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSlice, float resourceMinLODClamp)
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
-		desc.Format = GetViewFormat<VCT, PrimitiveFormat::componentSize, PrimitiveFormat::componentNum>();
+		desc.Format = get_view_format<ViewComponentType, typeless_format::componentSize, typeless_format::componentNum>();
 		desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 		desc.Texture2DArray.ArraySize = arraySize;
@@ -114,12 +114,12 @@ namespace dev
 		device->CreateShaderResourceView(resource, &desc, cpuHandle);
 	}
 
-	template<ViewComponentType VCT, typename PrimitiveFormat>
+	template<component_type ViewComponentType, typename typeless_format>
 	inline void CreateTextureCubeShaderResourceView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSlice, float resourceMinLODClamp)
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
-		desc.Format = GetViewFormat<VCT, PrimitiveFormat::componentSize, PrimitiveFormat::componentNum>();
+		desc.Format = get_view_format<ViewComponentType, typeless_format::componentSize, typeless_format::componentNum>();
 		desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
 		desc.Texture2DArray.ArraySize = arraySize;
@@ -131,35 +131,35 @@ namespace dev
 		device->CreateShaderResourceView(resource, &desc, cpuHandle);
 	}
 
-	template<ViewComponentType VCT,typename PrimitiveFormat>
+	template<component_type ViewComponentType,typename typeless_format>
 	inline void CreateTextre2DUnorderedAccessResourceView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		ID3D12Resource* counterResource, std::uint32_t mipSlice, std::uint32_t planeSlice)
 	{
 		D3D12_UNORDERED_ACCESS_VIEW_DESC desc{};
-		desc.Format = GetViewFormat<VCT, PrimitiveFormat::componentSize, PrimitiveFormat::componentNum>();
+		desc.Format = get_view_format<ViewComponentType, typeless_format::componentSize, typeless_format::componentNum>();
 		desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
 		desc.Texture2D.MipSlice = mipSlice;
 		desc.Texture2D.PlaneSlice = planeSlice;
 		device->CreateUnorderedAccessView(resource, counterResource, &desc, cpuHandle);
 	}
 
-	template<typename PrimitiveFormat>
+	template<typename typeless_format>
 	inline void CreateTexture2DDepthStencilView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		std::uint32_t mipSlice)
 	{
 		D3D12_DEPTH_STENCIL_VIEW_DESC desc{};
-		desc.Format = GetDepthStencilViewFormat<PrimitiveFormat::componentSize, PrimitiveFormat::componentNum>();
+		desc.Format = get_depth_stencil_view_format<typeless_format::componentSize, typeless_format::componentNum>();
 		desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 		desc.Texture2D.MipSlice = mipSlice;
 		device->CreateDepthStencilView(resource, &desc, cpuHandle);
 	}
 	
-	template<typename PrimitiveFormat>
+	template<typename typeless_format>
 	inline void CreateTexture2DArrayDepthStencilView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice)
 	{
 		D3D12_DEPTH_STENCIL_VIEW_DESC desc{};
-		desc.Format = GetDepthStencilViewFormat<PrimitiveFormat::componentSize, PrimitiveFormat::componentNum>();
+		desc.Format = get_depth_stencil_view_format<typeless_format::componentSize, typeless_format::componentNum>();
 		desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
 		desc.Texture2DArray.ArraySize = arraySize;
 		desc.Texture2DArray.FirstArraySlice = firstArraySlice;
@@ -167,24 +167,24 @@ namespace dev
 		device->CreateDepthStencilView(resource, &desc, cpuHandle);
 	}
 
-	template<ViewComponentType VCT, typename PrimitiveFormat>
+	template<component_type ViewComponentType, typename typeless_format>
 	inline void CreateTextre2DRenderTargetView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		std::uint32_t mipSlice, std::uint32_t planeSlice)
 	{
 		D3D12_RENDER_TARGET_VIEW_DESC desc{};
-		desc.Format = GetViewFormat<VCT, PrimitiveFormat::componentSize, PrimitiveFormat::componentNum>();
+		desc.Format = get_view_format<ViewComponentType, typeless_format::componentSize, typeless_format::componentNum>();
 		desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 		desc.Texture2D.MipSlice = mipSlice;
 		desc.Texture2D.PlaneSlice = planeSlice;
 		device->CreateRenderTargetView(resource, &desc, cpuHandle);
 	}
 
-	template<ViewComponentType VCT, typename PrimitiveFormat>
+	template<component_type ViewComponentType, typename typeless_format>
 	inline void CreateTextre2DArrayRenderTargetView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice, std::uint32_t planeSlice)
 	{
 		D3D12_RENDER_TARGET_VIEW_DESC desc{};
-		desc.Format = GetViewFormat<VCT, PrimitiveFormat::componentSize, PrimitiveFormat::componentNum>();
+		desc.Format = get_view_format<ViewComponentType, typeless_format::componentSize, typeless_format::componentNum>();
 		desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
 		desc.Texture2DArray.ArraySize = arraySize;
 		desc.Texture2DArray.FirstArraySlice = firstArraySlice;

@@ -18,7 +18,7 @@ namespace dev
 		struct RTV {};
 	}
 	
-	class DescriptorHeapBase
+	class descriptor_heap_base
 	{
 		ID3D12DescriptorHeap* descriptorHeap = nullptr;
 
@@ -27,20 +27,20 @@ namespace dev
 		std::uint32_t incrementSize = 0;
 
 	public:
-		DescriptorHeapBase() = default;
-		virtual ~DescriptorHeapBase();
+		descriptor_heap_base() = default;
+		virtual ~descriptor_heap_base();
 
-		DescriptorHeapBase(const DescriptorHeapBase&) = delete;
-		DescriptorHeapBase& operator=(const DescriptorHeapBase&) = delete;
+		descriptor_heap_base(const descriptor_heap_base&) = delete;
+		descriptor_heap_base& operator=(const descriptor_heap_base&) = delete;
 
-		DescriptorHeapBase(DescriptorHeapBase&&) noexcept;
-		DescriptorHeapBase& operator=(DescriptorHeapBase&&) noexcept;
+		descriptor_heap_base(descriptor_heap_base&&) noexcept;
+		descriptor_heap_base& operator=(descriptor_heap_base&&) noexcept;
 
 		void Initialize(Device* device, D3D12_DESCRIPTOR_HEAP_DESC desc, std::uint32_t incrementSize);
 
-		template<typename ResourceType, typename CreateViewFunc, typename... CreateViewFuncOptionArgs>
+		template<typename resource, typename CreateViewFunc, typename... CreateViewFuncOptionArgs>
 		std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>
-			PushBackView(Device* device, ResourceType* resource, CreateViewFunc createViewFunc, CreateViewFuncOptionArgs&&... createViewPolicyArgs);
+			PushBackView(Device* device, resource* resource, CreateViewFunc createViewFunc, CreateViewFuncOptionArgs&&... createViewPolicyArgs);
 
 		ID3D12DescriptorHeap*& Get() noexcept;
 
@@ -49,53 +49,53 @@ namespace dev
 	};
 
 
-	class DescriptorHeap_CBV_SRV_UAV : public DescriptorHeapBase
+	class descriptor_heap_CBV_SRV_UAV : public descriptor_heap_base
 	{
 	public:
 		void Initialize(Device* device, std::uint32_t size);
 
 
-		template<typename ResourceType>
-		void PushBackCBV(Device*, ResourceType*, std::uint32_t sizeInBytes);
+		template<typename resource>
+		void PushBackCBV(Device*, resource*, std::uint32_t sizeInBytes);
 
-		template<ViewComponentType VCT,typename ResourceType>
-		void PushBackTextre2DSRV(Device*, ResourceType*,
+		template<component_type ViewComponentType,typename resource>
+		void PushBackTextre2DSRV(Device*, resource*,
 			std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSline, float resourceMinLODClamp);
 
-		template<ViewComponentType VCT,typename ResourceType>
-		void PushBackTexture2DArraySRV(Device*, ResourceType*,
+		template<component_type ViewComponentType,typename resource>
+		void PushBackTexture2DArraySRV(Device*, resource*,
 			std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSlice, float resourceMinLODClamp);
 
-		template<ViewComponentType VCT, typename ResourceType>
-		void PushBackTextreCubeArraySRV(Device*, ResourceType*,
+		template<component_type ViewComponentType, typename resource>
+		void PushBackTextreCubeArraySRV(Device*, resource*,
 			std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSlice, float resourceMinLODClamp);
 
-		template<ViewComponentType VCT, typename ResourceType>
-		void PushBackUAV(Device*,ResourceType*,
+		template<component_type ViewComponentType, typename resource>
+		void PushBackUAV(Device*,resource*,
 			std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSlice, float resourceMinLODClamp);
 	};
 
-	class Descriptor_DSV : public DescriptorHeapBase
+	class descriptor_heap_DSV : public descriptor_heap_base
 	{
 	public:
 		void Initialize(Device* device, std::uint32_t size);
 
-		template<typename ResourceType>
-		void PushBackTextre2DDSV(Device*, ResourceType*, std::uint32_t mipSlice);
+		template<typename resource>
+		void PushBackTextre2DDSV(Device*, resource*, std::uint32_t mipSlice);
 
-		template<typename ResourceType>
-		void PushBackTextre2DArrayDSV(Device*, ResourceType*, std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice);
+		template<typename resource>
+		void PushBackTextre2DArrayDSV(Device*, resource*, std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice);
 	};
 
-	class Descriptor_RTV : public DescriptorHeapBase
+	class descriptor_heap_RTV : public descriptor_heap_base
 	{
 	public:
 		void Initialize(Device* device, std::uint32_t size);
 
-		template<ViewComponentType VCT, typename ResourceType>
-		void PushBackTextre2DRTV(Device*, ResourceType*, std::uint32_t mipSlice, std::uint32_t planeSlice);
+		template<component_type ViewComponentType, typename resource>
+		void PushBackTextre2DRTV(Device*, resource*, std::uint32_t mipSlice, std::uint32_t planeSlice);
 
-		template<ViewComponentType VCT, typename ResourceType>
-		void PushBackTextre2DArrayRTV(Device*, ResourceType*, std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice, std::uint32_t planeSlice);
+		template<component_type ViewComponentType, typename resource>
+		void PushBackTextre2DArrayRTV(Device*, resource*, std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice, std::uint32_t planeSlice);
 	};
 }

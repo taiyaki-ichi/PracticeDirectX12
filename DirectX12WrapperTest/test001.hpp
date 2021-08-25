@@ -3,10 +3,11 @@
 #include"Device.hpp"
 #include"Command.hpp"
 #include"SwapChain.hpp"
-#include"DescriptorHeap/DescriptorHeap.hpp"
-#include"Resource/VertexBuffer.hpp"
+#include"DescriptorHeap.hpp"
+#include"Resource/vertex_buffer_resource.hpp"
 #include"RootSignature/RootSignature.hpp"
 #include"PipelineState.hpp"
+#include"Resource/map.hpp"
 
 #include<array>
 
@@ -31,18 +32,19 @@ namespace test001
 
 		auto swapChain = command.CreateSwapChain(&device, hwnd);
 
-		DescriptorHeap<DescriptorHeapTypeTag::RTV> rtvDescriptorHeap{};
-		rtvDescriptorHeap.Initialize(&device, 2);
-		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(0));
-		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(1));
+		descriptor_heap_RTV rtvDescriptorHeap{};
+		rtvDescriptorHeap.initialize(&device, 2);
+		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.get_frame_buffer_resource(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.get_frame_buffer_resource(1), 0, 0);
 
+		
 		std::array<std::array<float, 3>, 3> vertex{
 			{{-0.8f,-0.8f,0.f},{-0.8f,0.8f,0.f},{0.8f,-0.8f,0.f}}
 		};
 
-		VertexBuffer vertexBuffer{};
-		vertexBuffer.Initialize(&device, vertex.size(), sizeof(decltype(vertex)::value_type));
-		vertexBuffer.Map(vertex);
+		vertex_buffer_resource vertexBuffer{};
+		vertexBuffer.initialize(&device, sizeof(vertex), sizeof(vertex[0]));
+		map(&vertexBuffer, vertex);
 
 		RootSignature rootSignature{};
 		rootSignature.Initialize(&device, {}, {});
@@ -55,7 +57,7 @@ namespace test001
 
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
-			{ {"POSITION", {Type::Float32,3}} }, { {Type::UnsignedNormalizedFloat8,4} }, false, false, PrimitiveTopology::Triangle
+			{ {"POSITION", component_type::FLOAT,32,3} }, { {component_type::UNSIGNED_NORMALIZE_FLOAT,8,4} }, false, false, PrimitiveTopology::Triangle
 		);
 
 
@@ -71,10 +73,10 @@ namespace test001
 			command.SetViewport(viewport);
 			command.SetScissorRect(scissorRect);
 
-			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::RenderTarget);
-			command.ClearRenderTargetView(rtvDescriptorHeap.GetCPUHandle(backBufferIndex), { 0.5f,0.5f,0.5f,1.0f });
+			command.Barrior(&swapChain.get_frame_buffer_resource(backBufferIndex), resource_state::RenderTarget);
+			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5f,0.5f,0.5f,1.0f });
 
-			command.SetRenderTarget(rtvDescriptorHeap.GetCPUHandle(backBufferIndex));
+			command.SetRenderTarget(rtvDescriptorHeap.get_CPU_handle(backBufferIndex));
 
 			command.SetPipelineState(&pipelineState);
 			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
@@ -83,7 +85,7 @@ namespace test001
 			command.SetVertexBuffer(&vertexBuffer);
 			command.DrawInstanced(3);
 
-			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::Common);
+			command.Barrior(&swapChain.get_frame_buffer_resource(backBufferIndex), resource_state::Common);
 
 			command.Close();
 			command.Execute();
@@ -92,6 +94,8 @@ namespace test001
 			command.Fence(backBufferIndex);
 
 			command.Wait(swapChain.GetCurrentBackBufferIndex());
+
+			map(&vertexBuffer, vertex);
 		};
 
 

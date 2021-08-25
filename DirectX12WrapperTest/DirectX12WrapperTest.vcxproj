@@ -670,6 +670,14 @@
     <None Include="Shader\Snow\Header.hlsli" />
     <None Include="Shader\Sphere\Header.hlsli" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Update="C:\Users\tai_k\VisualStudio\PracticeDirectX12\DirectX12Wrapper\Resource\vertex_buffer_resource.hpp">
+      <FileType>Document</FileType>
+    </ClInclude>
+    <ClInclude Update="C:\Users\tai_k\VisualStudio\PracticeDirectX12\DirectX12Wrapper\Resource\vertex_buffer_resourcehpp">
+      <FileType>Document</FileType>
+    </ClInclude>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

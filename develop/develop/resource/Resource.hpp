@@ -10,14 +10,14 @@ namespace dev
 {
 	class Device;
 
-	enum class HeapProp
+	enum class resource_heap_property
 	{
 		Default,
 		Upload,
 		ReadBack,
 	};
 
-	enum class Flag
+	enum class resource_flag
 	{
 		AllowRenderTarget = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
 		AllowDepthStencil = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL,
@@ -25,7 +25,7 @@ namespace dev
 		DenyShederResource = D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE,
 	};
 
-	enum class Dimention
+	enum class resource_dimention
 	{
 		//MapÇ∑ÇÈéûÇ»Ç«Ç…égóp
 		//Ç±ÇÃèÍçáLayoutÇÕD3D12_TEXTURE_LAYOUT_ROW_MAJOR
@@ -52,7 +52,7 @@ namespace dev
 		static constexpr std::uint8_t size = S;
 	};
 
-	enum class State {
+	enum class resource_state {
 		Common = D3D12_RESOURCE_STATE_COMMON,
 		RenderTarget = D3D12_RESOURCE_STATE_RENDER_TARGET,
 		PixcelShaderResource = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
@@ -63,12 +63,12 @@ namespace dev
 	};
 
 
-	template<Dimention D,typename F,HeapProp H,Flag... Flags>
-	class Resource {
+	template<resource_dimention ResourceDimention,typename TypelessFormat,resource_heap_property HeapProperty,resource_flag... Flags>
+	class resource {
 
 		ID3D12Resource* resource = nullptr;
 
-		State state{};
+		resource_state state{};
 		std::optional<D3D12_CLEAR_VALUE> clearValue{};
 
 	public:
@@ -78,12 +78,12 @@ namespace dev
 
 		D3D12_CLEAR_VALUE* GetClearValue();
 
-		const State GetState() const noexcept;
-		void SetState(State) noexcept;
+		const resource_state GetState() const noexcept;
+		void SetState(resource_state) noexcept;
 
-		static constexpr Dimention dimention = D;
-		using format = F;
-		static constexpr HeapProp = H;
+		static constexpr resource_dimention dimention = ResourceDimention;
+		using format = TypelessFormat;
+		static constexpr resource_heap_property = HeapProperty;
 		static constexpr D3D12_RESOURCE_FLAGS flags = []() {
 			if constexpr (sizeof...(Nums) > 0) return static_cast<D3D12_RESOURCE_FLAGS>(flags) + ...;
 			else return D3D12_RESOURCE_FLAG_NONE;

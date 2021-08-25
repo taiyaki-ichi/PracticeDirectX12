@@ -1,5 +1,6 @@
 #pragma once
 #include<cassert>
+#include<optional>
 #include<d3d12.h>
 #include<dxgi1_6.h>
 
@@ -8,64 +9,73 @@
 
 namespace DX12
 {
-	enum class Type {
-		Float16,
-		Float32,
-		Uint16,
-		Uint32,
-		UnsignedNormalizedFloat8,//framebuffer‚Í‚¾‚¢‚½‚¢‚±‚ê
-	};
-
-	class Format {
-	public:
-		DXGI_FORMAT value;
-		Format(Type t, std::uint16_t num);
-	};
-
-
-	//
-	//
-	//
-
-	inline Format::Format(Type t, std::uint16_t num)
+	enum class component_type
 	{
-		
-		constexpr auto getHash = [](Type t, std::uint16_t num) ->std::uint16_t {
-			auto typeHash = 1 << (static_cast<std::uint16_t>(t) + 2);
-			return typeHash + (num - 1);
+		FLOAT,
+		UINT,
+		UNSIGNED_NORMALIZE_FLOAT,
+		TYPELSEE,
+	};
+
+	struct format
+	{
+		component_type type;
+		std::uint32_t size;
+		std::uint32_t num;
+	};
+
+	inline constexpr std::optional<DXGI_FORMAT> get_dxgi_format(component_type type, std::uint32_t size, std::uint32_t num)
+	{
+		//0-3bit‚ÅnumA4-6‚ÅsizeAŽc‚è‚ªtype
+		constexpr auto getHash = [](component_type type, std::uint32_t size, std::uint32_t num) constexpr ->std::uint32_t {
+			std::uint32_t numHash = 1 << (num - 1);
+			std::uint32_t sizeHash = (1 << 4) << ((size / 8) >> 1);
+			std::uint32_t typeHash = (1 << 7) << static_cast<std::uint32_t>(type);
+			return numHash | sizeHash | typeHash;
 		};
-		
 
-#define switchCase(t,n,v)		\
-case getHash(t,n):				\
-	value=v;					\
-	break;						\
-
-		switch (getHash(t, num))
+		switch (getHash(type, size, num))
 		{
-			switchCase(Type::Float16, 1, DXGI_FORMAT_R16_FLOAT);
-			switchCase(Type::Float16, 2, DXGI_FORMAT_R16G16_FLOAT);
-			switchCase(Type::Float16, 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
-			switchCase(Type::Float32, 1, DXGI_FORMAT_R32_FLOAT);
-			switchCase(Type::Float32, 2, DXGI_FORMAT_R32G32_FLOAT);
-			switchCase(Type::Float32, 3, DXGI_FORMAT_R32G32B32_FLOAT);
-			switchCase(Type::Float32, 4, DXGI_FORMAT_R32G32B32A32_FLOAT);
-			switchCase(Type::Uint16, 1, DXGI_FORMAT_R16_UINT);
-			switchCase(Type::Uint16, 2, DXGI_FORMAT_R16G16_UINT);
-			switchCase(Type::Uint16, 4, DXGI_FORMAT_R16G16B16A16_UINT);
-			switchCase(Type::Uint32, 1, DXGI_FORMAT_R32_UINT);
-			switchCase(Type::Uint32, 2, DXGI_FORMAT_R32G32_UINT);
-			switchCase(Type::Uint32, 3, DXGI_FORMAT_R32G32B32_UINT);
-			switchCase(Type::Uint32, 4, DXGI_FORMAT_R32G32B32A32_UINT);
-			switchCase(Type::UnsignedNormalizedFloat8, 1, DXGI_FORMAT_R8_UNORM);
-			switchCase(Type::UnsignedNormalizedFloat8, 2, DXGI_FORMAT_R8G8_UNORM);
-			switchCase(Type::UnsignedNormalizedFloat8, 4, DXGI_FORMAT_R8G8B8A8_UNORM);
 
-		default:
-			throw"";
-		}
-		
+#define switchCase(t,s,n,v)								\
+			case getHash(t,s,n): return v;				\
+
+			switchCase(component_type::FLOAT, 32, 4, DXGI_FORMAT_R32G32B32A32_FLOAT);
+			switchCase(component_type::FLOAT, 32, 3, DXGI_FORMAT_R32G32B32_FLOAT);
+			switchCase(component_type::FLOAT, 32, 2, DXGI_FORMAT_R32G32_FLOAT);
+			switchCase(component_type::FLOAT, 32, 1, DXGI_FORMAT_R32_FLOAT);
+			switchCase(component_type::FLOAT, 16, 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
+			switchCase(component_type::FLOAT, 16, 2, DXGI_FORMAT_R16G16_FLOAT);
+			switchCase(component_type::FLOAT, 16, 1, DXGI_FORMAT_R16_FLOAT);
+			switchCase(component_type::UINT, 32, 4, DXGI_FORMAT_R32G32B32A32_UINT);
+			switchCase(component_type::UINT, 32, 3, DXGI_FORMAT_R32G32B32_UINT);
+			switchCase(component_type::UINT, 32, 2, DXGI_FORMAT_R32G32_UINT);
+			switchCase(component_type::UINT, 32, 1, DXGI_FORMAT_R32_UINT);
+			switchCase(component_type::UINT, 16, 4, DXGI_FORMAT_R16G16B16A16_UINT);
+			switchCase(component_type::UINT, 16, 2, DXGI_FORMAT_R16G16_UINT);
+			switchCase(component_type::UINT, 16, 1, DXGI_FORMAT_R16_UINT);
+			switchCase(component_type::UINT, 8, 4, DXGI_FORMAT_R8G8B8A8_UINT);
+			switchCase(component_type::UINT, 8, 2, DXGI_FORMAT_R8G8_UINT);
+			switchCase(component_type::UINT, 8, 1, DXGI_FORMAT_R8_UINT);
+			switchCase(component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4, DXGI_FORMAT_R8G8B8A8_UNORM);
+			switchCase(component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 2, DXGI_FORMAT_R8G8_UNORM);
+			switchCase(component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 1, DXGI_FORMAT_R8_UNORM);
+			switchCase(component_type::TYPELSEE, 32, 1, DXGI_FORMAT_R32_TYPELESS);
+			switchCase(component_type::TYPELSEE, 32, 2, DXGI_FORMAT_R32G32_TYPELESS);
+			switchCase(component_type::TYPELSEE, 32, 3, DXGI_FORMAT_R32G32B32_TYPELESS);
+			switchCase(component_type::TYPELSEE, 32, 4, DXGI_FORMAT_R32G32B32A32_TYPELESS);
+			switchCase(component_type::TYPELSEE, 16, 1, DXGI_FORMAT_R16_TYPELESS);
+			switchCase(component_type::TYPELSEE, 16, 2, DXGI_FORMAT_R16G16_TYPELESS);
+			switchCase(component_type::TYPELSEE, 16, 4, DXGI_FORMAT_R16G16B16A16_TYPELESS);
+			switchCase(component_type::TYPELSEE, 8, 1, DXGI_FORMAT_R8_TYPELESS);
+			switchCase(component_type::TYPELSEE, 8, 2, DXGI_FORMAT_R8G8_TYPELESS);
+			switchCase(component_type::TYPELSEE, 8, 4, DXGI_FORMAT_R8G8B8A8_TYPELESS);
+
 #undef switchCase
+		}
+
+		return std::nullopt;
 	}
+
 
 }
