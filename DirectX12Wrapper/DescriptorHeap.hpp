@@ -1,6 +1,7 @@
 #pragma once
 #include"Device.hpp"
 #include"View.hpp"
+#include"Utility.hpp"
 #include<utility>
 #include<d3d12.h>
 #include<dxgi1_6.h>
@@ -77,10 +78,10 @@ namespace DX12
 	public:
 		void initialize(Device* device, std::uint32_t size);
 
-		template<typename Resource>
+		template<component_type ViewComponentType,typename Resource>
 		void push_back_textre2D_DSV(Device*, Resource*, std::uint32_t mipSlice);
 
-		template<typename Resource>
+		template<component_type ViewComponentType,typename Resource>
 		void push_back_textre2D_array_DSV(Device*, Resource*, std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice);
 	};
 
@@ -196,7 +197,7 @@ namespace DX12
 	template<typename Resource>
 	inline void descriptor_heap_CBV_SRV_UAV::push_back_CBV(Device* device, Resource* resource, std::uint32_t sizeInBytes)
 	{
-		push_back_view(device, resource, create_CBV, sizeInBytes);
+		push_back_view(device, resource, create_CBV, Alignment<std::uint32_t>(sizeInBytes, 256));
 	}
 
 	template<component_type ViewComponentType, typename Resource>
@@ -265,16 +266,16 @@ namespace DX12
 		descriptor_heap_base::initialize(device, size, desc, incrementSize);
 	}
 
-	template<typename Resource>
+	template<component_type ViewComponentType,typename Resource>
 	inline void descriptor_heap_DSV::push_back_textre2D_DSV(Device* device, Resource* resource, std::uint32_t mipSlice)
 	{
 		static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 		//ここのフォーマットのstaticassert
 
-		push_back_view(device, resource, create_texture2D_DSV<Resource::typeless_format>, mipSlice);
+		push_back_view(device, resource, create_texture2D_DSV<ViewComponentType, Resource::typeless_format>, mipSlice);
 	}
 
-	template<typename Resource>
+	template<component_type ViewComponentType,typename Resource>
 	inline void descriptor_heap_DSV::push_back_textre2D_array_DSV(Device* device, Resource* resource, 
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice)
 	{
@@ -282,7 +283,7 @@ namespace DX12
 		//
 		//
 
-		push_back_view(device, resource, create_texture2D_array_DSV<Resource::typeless_format>, arraySize, firstArraySlice, mipSlice);
+		push_back_view(device, resource, create_texture2D_array_DSV<ViewComponentType, Resource::typeless_format>, arraySize, firstArraySlice, mipSlice);
 	}
 
 	void descriptor_heap_RTV::initialize(Device* device, std::uint32_t size)

@@ -1,5 +1,6 @@
 #pragma once
 #include"buffer_resource.hpp"
+#include"../Utility.hpp"
 
 namespace DX12
 {
@@ -15,8 +16,6 @@ namespace DX12
 
 	void DX12::constent_buffer_resource::initialize(Device* device, std::uint32_t size)
 	{
-		//ƒAƒ‰ƒCƒƒ“ƒg
-		size = (size + 0xff) & ~0xff;
-		buffer_resource::initialize(device, size);
+		buffer_resource::initialize(device, Alignment<std::uint32_t>(size, 256));
 	}
 }
