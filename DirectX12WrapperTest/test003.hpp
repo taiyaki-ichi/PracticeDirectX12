@@ -116,7 +116,7 @@ namespace test003
 			100.f
 		);
 		
-		constent_buffer_resource sceneDataConstantBuffer{};
+		constant_buffer_resource sceneDataConstantBuffer{};
 		sceneDataConstantBuffer.initialize(&device, sizeof(SceneData));
 		map(&sceneDataConstantBuffer, SceneData{ view,proj });
 	

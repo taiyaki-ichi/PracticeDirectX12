@@ -4,7 +4,7 @@
 
 namespace DX12
 {
-	class constent_buffer_resource : public buffer_resource
+	class constant_buffer_resource : public buffer_resource
 	{
 	public:
 		void initialize(Device* device, std::uint32_t size);
@@ -14,7 +14,7 @@ namespace DX12
 	//
 	//
 
-	void DX12::constent_buffer_resource::initialize(Device* device, std::uint32_t size)
+	void DX12::constant_buffer_resource::initialize(Device* device, std::uint32_t size)
 	{
 		buffer_resource::initialize(device, Alignment<std::uint32_t>(size, 256));
 	}
