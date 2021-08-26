@@ -45,8 +45,8 @@ namespace test003
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.get_frame_buffer_resource(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.get_frame_buffer_resource(1), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(1), 0, 0);
 
 		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/bunny.off");
 		
@@ -144,7 +144,7 @@ namespace test003
 			command.SetViewport(viewport);
 			command.SetScissorRect(scissorRect);
 
-			command.Barrior(&swapChain.get_frame_buffer_resource(backBufferIndex), resource_state::RenderTarget);
+			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
 			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
 
 			command.ClearDepthView(depthStencilDescriptorHeap.get_CPU_handle(), 1.f);
@@ -179,7 +179,7 @@ namespace test003
 				command.DrawIndexedInstanced(face.size() * 3);
 			}
 
-			command.Barrior(&swapChain.get_frame_buffer_resource(backBufferIndex), resource_state::Common);
+			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::Common);
 
 			command.Close();
 			command.Execute();

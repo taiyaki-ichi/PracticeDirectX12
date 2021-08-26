@@ -43,8 +43,8 @@ namespace test002
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.get_frame_buffer_resource(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.get_frame_buffer_resource(1), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(1), 0, 0);
 
 		std::array<Vertex, 4> vertex{ {
 			{-0.8f,-0.8f,0.f,0.f,1.f},
@@ -118,7 +118,7 @@ namespace test002
 			command.SetViewport(viewport);
 			command.SetScissorRect(scissorRect);
 
-			command.Barrior(&swapChain.get_frame_buffer_resource(backBufferIndex), resource_state::RenderTarget);
+			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
 			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
 
 			command.SetRenderTarget(rtvDescriptorHeap.get_CPU_handle(backBufferIndex));
@@ -133,7 +133,7 @@ namespace test002
 			command.SetIndexBuffer(&indexBuffer);
 			command.DrawIndexedInstanced(6);
 
-			command.Barrior(&swapChain.get_frame_buffer_resource(backBufferIndex), resource_state::Common);
+			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::Common);
 
 			command.Close();
 			command.Execute();

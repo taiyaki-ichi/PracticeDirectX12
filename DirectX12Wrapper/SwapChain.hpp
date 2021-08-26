@@ -35,7 +35,7 @@ namespace DX12
 		//現在控えているBackBufferのインデックスの取得
 		std::uint32_t GetCurrentBackBufferIndex();
 
-		frame_buffer_resource<typeless_format<8,4>>& get_frame_buffer_resource(std::uint32_t index);
+		frame_buffer_resource<typeless_format<8,4>>& GetFrameBuffer(std::uint32_t index);
 
 	};
 
@@ -95,7 +95,7 @@ namespace DX12
 
 
 	template<std::size_t FrameBufferNum>
-	inline frame_buffer_resource<typeless_format<8,4>>& DX12::SwapChain<FrameBufferNum>::get_frame_buffer_resource(std::uint32_t index)
+	inline frame_buffer_resource<typeless_format<8,4>>& DX12::SwapChain<FrameBufferNum>::GetFrameBuffer(std::uint32_t index)
 	{
 		return frameBuffer[index];
 	}

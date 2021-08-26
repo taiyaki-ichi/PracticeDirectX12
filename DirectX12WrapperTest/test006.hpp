@@ -5,11 +5,11 @@
 #include"Shader.hpp"
 #include"RootSignature/RootSignature.hpp"
 #include"PipelineState.hpp"
-#include"Resource/ShaderResource.hpp"
-#include"DescriptorHeap/DescriptorHeap.hpp"
-#include"Resource/VertexBuffer.hpp"
-#include"Resource/IndexBuffer.hpp"
-#include"Resource/UploadTextureResource.hpp"
+#include"Resource/shader_resource.hpp"
+#include"DescriptorHeap.hpp"
+#include"Resource/vertex_buffer_resource.hpp"
+#include"Resource/index_buffer_resource.hpp"
+#include"Resource/map.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include<stb_image.h>
@@ -38,10 +38,10 @@ namespace test006
 
 		auto swapChain = command.CreateSwapChain(&device, hwnd);
 
-		DescriptorHeap<DescriptorHeapTypeTag::RTV> rtvDescriptorHeap{};
-		rtvDescriptorHeap.Initialize(&device, 2);
-		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(0));
-		rtvDescriptorHeap.PushBackView(&device, &swapChain.GetFrameBuffer(1));
+		descriptor_heap_RTV rtvDescriptorHeap{};
+		rtvDescriptorHeap.initialize(&device, 2);
+		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(1), 0, 0);
 
 
 		Shader cs{};
@@ -57,18 +57,19 @@ namespace test006
 		computePipelineState.Initialize(&device, &computeRootsignature, &cs);
 
 		int x, y, n;
-		ShaderResource textureResource{};
+		shader_resource<typeless_format<8, 4>> textureResource{};
 		{
-			std::uint8_t* data = stbi_load("../../Assets/icon.png", &x, &y, &n, 0);
-			UploadTextureResource uploadResource{};
-			uploadResource.Initialize(&device, x * 4, y);
-			uploadResource.Map(data, x * 4, y);
-			textureResource.Initialize(&device, x, y, { Type::UnsignedNormalizedFloat8,4 }, 1);
+			std::uint8_t* data = stbi_load("../../Assets/icon.png", &x, &y, &n, 4);
+			buffer_resource uploadResource{};
+			uploadResource.initialize(&device, TextureDataPitchAlignment(x * 4) * y);
+			map(&uploadResource, data, x * 4, y, TextureDataPitchAlignment(x * 4));
+
+			textureResource.initialize(&device, x, y, 1, 1);
 
 			command.Reset(0);
-			command.Barrior(&textureResource, ResourceState::CopyDest);
+			command.Barrior(&textureResource, resource_state::CopyDest);
 			command.CopyTexture(&device, &uploadResource, &textureResource);
-			command.Barrior(&textureResource, ResourceState::PixcelShaderResource);
+			command.Barrior(&textureResource, resource_state::PixcelShaderResource);
 			command.Close();
 			command.Execute();
 			command.Fence(0);
@@ -77,27 +78,23 @@ namespace test006
 			stbi_image_free(data);
 		}
 
-		ShaderResource float4ShaderResource{};
-		float4ShaderResource.Initialize(&device, x, y, { Type::UnsignedNormalizedFloat8,4 }, 1, { { 0.f,0.f,0.f,0.f } });
+		shader_resource<typeless_format<8,4>,resource_flag::AllowUnorderdAccess> float4ShaderResource{};
+		float4ShaderResource.initialize(&device, x, y, 1, 0);
 
-		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> computeDescriptorHeap{};
-		computeDescriptorHeap.Initialize(&device, 2);
-		computeDescriptorHeap.PushBackView(&device, &textureResource);
-		computeDescriptorHeap.PushBackView<ViewTypeTag::UnorderedAccessResource>(&device, &float4ShaderResource);
-
-		DescriptorHeap<DescriptorHeapTypeTag::RTV> clearDescriptorHeap{};
-		clearDescriptorHeap.Initialize(&device, 1);
-		clearDescriptorHeap.PushBackView(&device, &float4ShaderResource);
+		descriptor_heap_CBV_SRV_UAV computeDescriptorHeap{};
+		computeDescriptorHeap.initialize(&device, 2);
+		computeDescriptorHeap.push_back_texture2D_SRV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &textureResource, 1, 0, 0, 0.f);
+		computeDescriptorHeap.push_back_texture2D_UAV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &float4ShaderResource, 0, 0);
 
 
 		//
 		command.Reset(0);
-		command.Barrior(&float4ShaderResource, ResourceState::UnorderedAccessResource);
+		command.Barrior(&float4ShaderResource, resource_state::UnorderedAccessResource);
 		command.SetComputeRootSignature(&computeRootsignature);
 		command.SetDescriptorHeap(&computeDescriptorHeap);
-		command.SetComputeRootDescriptorTable(0, computeDescriptorHeap.GetGPUHandle());
+		command.SetComputeRootDescriptorTable(0, computeDescriptorHeap.get_GPU_handle());
 		command.SetPipelineState(&computePipelineState);
-		command.Barrior(&float4ShaderResource, ResourceState::PixcelShaderResource);
+		command.Barrior(&float4ShaderResource, resource_state::PixcelShaderResource);
 		command.Dispatch(x, y, 1);
 		command.Close();
 		command.Execute();
@@ -117,18 +114,17 @@ namespace test006
 			0,1,2,2,1,3
 		};
 
-		VertexBuffer vertexBuffer{};
-		vertexBuffer.Initialize(&device, vertex.size(), sizeof(decltype(vertex)::value_type));
-		vertexBuffer.Map(vertex);
+		vertex_buffer_resource vertexBuffer{};
+		vertexBuffer.initialize(&device, sizeof(vertex), sizeof(vertex[0]));
+		map(&vertexBuffer, vertex);
 
-		IndexBuffer indexBuffer{};
-		indexBuffer.Initialize(&device, index.size());
-		indexBuffer.Map(index);
+		index_buffer_resource indexBuffer{};
+		indexBuffer.initialize(&device, sizeof(index), { component_type::UINT,32,1 });
+		map(&indexBuffer, index);
 
-		DescriptorHeap<DescriptorHeapTypeTag::CBV_SRV_UAV> descriptorHeap{};
-		descriptorHeap.Initialize(&device, 1);
-
-		descriptorHeap.PushBackView(&device, &float4ShaderResource);
+		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
+		descriptorHeap.initialize(&device, 1);
+		descriptorHeap.push_back_texture2D_SRV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &float4ShaderResource, 1, 0, 0, 0.f);
 
 		RootSignature rootSignature{};
 		rootSignature.Initialize(&device, { {DescriptorRangeType::SRV} }, { StaticSamplerType::Standard });
@@ -141,8 +137,8 @@ namespace test006
 
 		PipelineState pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
-			{ {"POSITION", {Type::Float32,3}} ,{"TEXCOOD",{Type::Float32,2}} },
-			{ {Type::UnsignedNormalizedFloat8,4} }, false, false, PrimitiveTopology::Triangle
+			{ {"POSITION", component_type::FLOAT,32,3} ,{"TEXCOOD",component_type::FLOAT,32,2} },
+			{ {component_type::UNSIGNED_NORMALIZE_FLOAT,8,4} }, false, false, PrimitiveTopology::Triangle
 		);
 
 
@@ -157,22 +153,22 @@ namespace test006
 			command.SetViewport(viewport);
 			command.SetScissorRect(scissorRect);
 
-			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::RenderTarget);
-			command.ClearRenderTargetView(rtvDescriptorHeap.GetCPUHandle(backBufferIndex), { 0.5f,0.5f,0.5f,1.f });
+			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
+			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5f,0.5f,0.5f,1.f });
 
-			command.SetRenderTarget(rtvDescriptorHeap.GetCPUHandle(backBufferIndex));
+			command.SetRenderTarget(rtvDescriptorHeap.get_CPU_handle(backBufferIndex));
 
 			command.SetPipelineState(&pipelineState);
 			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
 
 			command.SetGraphicsRootSignature(&rootSignature);
 			command.SetDescriptorHeap(&descriptorHeap);
-			command.SetGraphicsRootDescriptorTable(0, descriptorHeap.GetGPUHandle());
+			command.SetGraphicsRootDescriptorTable(0, descriptorHeap.get_GPU_handle());
 			command.SetVertexBuffer(&vertexBuffer);
 			command.SetIndexBuffer(&indexBuffer);
 			command.DrawIndexedInstanced(6);
 
-			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), ResourceState::Common);
+			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::Common);
 
 			command.Close();
 			command.Execute();
