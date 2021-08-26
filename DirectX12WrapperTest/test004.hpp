@@ -371,9 +371,9 @@ namespace test004
 
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.initialize(&device, 2);
-		depthStencilDescriptorHeap.push_back_textre2D_DSV<component_type::FLOAT>(&device, &depthBuffer, 0);
+		depthStencilDescriptorHeap.push_back_texture2D_DSV<component_type::FLOAT>(&device, &depthBuffer, 0);
 		//Ç±Ç±Ç…ViewÇçÏÇ¡ÇƒÇµÇ‹Ç®Ç§
-		depthStencilDescriptorHeap.push_back_textre2D_array_DSV<component_type::FLOAT>(&device, &cubemapDepthBuffer, 6, 0, 0);
+		depthStencilDescriptorHeap.push_back_texture2D_array_DSV<component_type::FLOAT>(&device, &cubemapDepthBuffer, 6, 0, 0);
 	
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };

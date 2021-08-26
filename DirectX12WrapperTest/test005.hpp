@@ -138,7 +138,7 @@ namespace test005
 
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.initialize(&device, 1);
-		depthStencilDescriptorHeap.push_back_textre2D_DSV<component_type::FLOAT>(&device, &depthStencilBufferResource, 0);
+		depthStencilDescriptorHeap.push_back_texture2D_DSV<component_type::FLOAT>(&device, &depthStencilBufferResource, 0);
 
 
 		constant_buffer_resource sceneDataConstantBuffer{};

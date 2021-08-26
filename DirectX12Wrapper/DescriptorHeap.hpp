@@ -79,10 +79,10 @@ namespace DX12
 		void initialize(Device* device, std::uint32_t size);
 
 		template<component_type ViewComponentType,typename Resource>
-		void push_back_textre2D_DSV(Device*, Resource*, std::uint32_t mipSlice);
+		void push_back_texture2D_DSV(Device*, Resource*, std::uint32_t mipSlice);
 
 		template<component_type ViewComponentType,typename Resource>
-		void push_back_textre2D_array_DSV(Device*, Resource*, std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice);
+		void push_back_texture2D_array_DSV(Device*, Resource*, std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice);
 	};
 
 	class descriptor_heap_RTV : public descriptor_heap_base
@@ -267,7 +267,7 @@ namespace DX12
 	}
 
 	template<component_type ViewComponentType,typename Resource>
-	inline void descriptor_heap_DSV::push_back_textre2D_DSV(Device* device, Resource* resource, std::uint32_t mipSlice)
+	inline void descriptor_heap_DSV::push_back_texture2D_DSV(Device* device, Resource* resource, std::uint32_t mipSlice)
 	{
 		static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 		//ここのフォーマットのstaticassert
@@ -276,7 +276,7 @@ namespace DX12
 	}
 
 	template<component_type ViewComponentType,typename Resource>
-	inline void descriptor_heap_DSV::push_back_textre2D_array_DSV(Device* device, Resource* resource, 
+	inline void descriptor_heap_DSV::push_back_texture2D_array_DSV(Device* device, Resource* resource, 
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice)
 	{
 		static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);

@@ -146,7 +146,7 @@ namespace test007
 
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.initialize(&device, 1);
-		depthStencilDescriptorHeap.push_back_textre2D_DSV<component_type::FLOAT>(&device, &depthBuffer, 0);
+		depthStencilDescriptorHeap.push_back_texture2D_DSV<component_type::FLOAT>(&device, &depthBuffer, 0);
 
 
 		constant_buffer_resource sceneDataConstantBuffer{};
@@ -337,7 +337,7 @@ namespace test007
 
 		descriptor_heap_DSV groundDepthStencilDescriptorHeap{};
 		groundDepthStencilDescriptorHeap.initialize(&device, 1);
-		groundDepthStencilDescriptorHeap.push_back_textre2D_DSV<component_type::FLOAT>(&device, &groundDepthBuffer, 0);
+		groundDepthStencilDescriptorHeap.push_back_texture2D_DSV<component_type::FLOAT>(&device, &groundDepthBuffer, 0);
 
 		descriptor_heap_RTV groundDepthRTVDescriptorHeap{};
 		groundDepthRTVDescriptorHeap.initialize(&device, 1);
