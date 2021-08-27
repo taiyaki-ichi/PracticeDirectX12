@@ -80,8 +80,8 @@ namespace test008
 
 
 		//‹¤—L‚·‚éSceneData‚ÌConstantBuffer
-		constant_buffer_resource sceneDataConstantBuffer{};
-		sceneDataConstantBuffer.initialize(&device, sizeof(SceneData));
+		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
+		sceneDataConstantBuffer.initialize(&device);
 
 
 
@@ -124,13 +124,13 @@ namespace test008
 			groundIndexNum = index.size();
 		}
 
-		constant_buffer_resource groundDataConstantBuffer{};
-		groundDataConstantBuffer.initialize(&device, sizeof(GroundData));
+		constant_buffer_resource<GroundData> groundDataConstantBuffer{};
+		groundDataConstantBuffer.initialize(&device);
 
 		descriptor_heap_CBV_SRV_UAV groundDescriptorHeap{};
 		groundDescriptorHeap.initialize(&device, 3);
-		groundDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer, sizeof(GroundData));
-		groundDescriptorHeap.push_back_CBV(&device, &groundDataConstantBuffer, sizeof(GroundData));
+		groundDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer);
+		groundDescriptorHeap.push_back_CBV(&device, &groundDataConstantBuffer);
 		groundDescriptorHeap.push_back_texture2D_SRV(&device, &shadowMap, 1, 0, 0, 0.f);
 
 		RootSignature groundRootSignature{};
@@ -191,13 +191,13 @@ namespace test008
 			map(&bunnyIndexBuffer, faceList.begin(), faceList.end());
 		}
 
-		constant_buffer_resource bunnyDataConstantBuffer{};
-		bunnyDataConstantBuffer.initialize(&device, sizeof(BunnyData));
+		constant_buffer_resource<BunnyData> bunnyDataConstantBuffer{};
+		bunnyDataConstantBuffer.initialize(&device);
 
 		descriptor_heap_CBV_SRV_UAV bunnyDescriptorHeap{};
 		bunnyDescriptorHeap.initialize(&device, 3);
-		bunnyDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer, sizeof(SceneData));
-		bunnyDescriptorHeap.push_back_CBV(&device, &bunnyDataConstantBuffer, sizeof(BunnyData));
+		bunnyDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer);
+		bunnyDescriptorHeap.push_back_CBV(&device, &bunnyDataConstantBuffer);
 		bunnyDescriptorHeap.push_back_texture2D_SRV(&device, &shadowMap, 1, 0, 0, 0.f);
 
 		RootSignature bunnyRootSignature{};

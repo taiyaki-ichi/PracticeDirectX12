@@ -87,8 +87,8 @@ namespace test009
 
 
 		//‹¤—L‚·‚éSceneData‚ÌConstantBuffer
-		constant_buffer_resource sceneDataConstantBuffer{};
-		sceneDataConstantBuffer.initialize(&device, sizeof(SceneData));
+		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
+		sceneDataConstantBuffer.initialize(&device);
 
 
 
@@ -105,8 +105,8 @@ namespace test009
 		shader_resource<format<component_type::FLOAT, 32, 2>, resource_flag::AllowUnorderdAccess> gaussianBlurShadowMap{};
 		gaussianBlurShadowMap.initialize(&device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, 1, 1);
 
-		constant_buffer_resource shadowMapDataConstantBuffer{};
-		shadowMapDataConstantBuffer.initialize(&device, sizeof(ShadowMapData));
+		constant_buffer_resource<ShadowMapData> shadowMapDataConstantBuffer{};
+		shadowMapDataConstantBuffer.initialize(&device);
 		map(&shadowMapDataConstantBuffer, ShadowMapData{ SHADOW_MAP_EDGE,SHADOW_MAP_EDGE });
 
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> shadowMapDepthBuffer{};
@@ -124,7 +124,7 @@ namespace test009
 		computeGaussianBlurDescriptorHeap.initialize(&device, 3);
 		computeGaussianBlurDescriptorHeap.push_back_texture2D_SRV(&device, &shadowMap, 1, 0, 0, 0.f);
 		computeGaussianBlurDescriptorHeap.push_back_texture2D_UAV(&device, &gaussianBlurShadowMap, 0, 0);
-		computeGaussianBlurDescriptorHeap.push_back_CBV(&device, &shadowMapDataConstantBuffer, sizeof(ShadowMapData));
+		computeGaussianBlurDescriptorHeap.push_back_CBV(&device, &shadowMapDataConstantBuffer);
 
 		Shader computeGaussianCS{};
 		computeGaussianCS.Intialize(L"Shader/ComputeShader004.hlsl", "main", "cs_5_1");
@@ -163,13 +163,13 @@ namespace test009
 			groundIndexNum = index.size();
 		}
 
-		constant_buffer_resource groundDataConstantBuffer{};
-		groundDataConstantBuffer.initialize(&device, sizeof(GroundData));
+		constant_buffer_resource<GroundData> groundDataConstantBuffer{};
+		groundDataConstantBuffer.initialize(&device);
 
 		descriptor_heap_CBV_SRV_UAV groundDescriptorHeap{};
 		groundDescriptorHeap.initialize(&device, 3);
-		groundDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer, sizeof(SceneData));
-		groundDescriptorHeap.push_back_CBV(&device, &groundDataConstantBuffer, sizeof(GroundData));
+		groundDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer);
+		groundDescriptorHeap.push_back_CBV(&device, &groundDataConstantBuffer);
 		//groundDescriptorHeap.PushBackView(&device, &shadowMap);
 		groundDescriptorHeap.push_back_texture2D_SRV(&device, &gaussianBlurShadowMap, 1, 0, 0, 0.f);
 
@@ -234,13 +234,13 @@ namespace test009
 			map(&bunnyIndexBuffer, faceList.begin(), faceList.end());
 		}
 
-		constant_buffer_resource bunnyDataConstantBuffer{};
-		bunnyDataConstantBuffer.initialize(&device, sizeof(BunnyData));
+		constant_buffer_resource<BunnyData> bunnyDataConstantBuffer{};
+		bunnyDataConstantBuffer.initialize(&device);
 
 		descriptor_heap_CBV_SRV_UAV bunnyDescriptorHeap{};
 		bunnyDescriptorHeap.initialize(&device, 3);
-		bunnyDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer, sizeof(SceneData));
-		bunnyDescriptorHeap.push_back_CBV(&device, &bunnyDataConstantBuffer, sizeof(BunnyData));
+		bunnyDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer);
+		bunnyDescriptorHeap.push_back_CBV(&device, &bunnyDataConstantBuffer);
 		//bunnyDescriptorHeap.PushBackView(&device, &shadowMap);
 		bunnyDescriptorHeap.push_back_texture2D_SRV(&device, &gaussianBlurShadowMap, 1, 0, 0, 0.f);
 

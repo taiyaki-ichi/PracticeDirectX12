@@ -95,20 +95,20 @@ namespace test004
 	template<std::size_t ColorObjectNum>
 	class ColorObjectModel
 	{
-		std::array<constant_buffer_resource, ColorObjectNum> colorBunnyDataConstantBuffer{};
+		std::array<constant_buffer_resource<ColorObjectData>, ColorObjectNum> colorBunnyDataConstantBuffer{};
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 
 	public:
-		void Initialize(Device* device, constant_buffer_resource* sceneDataConstantBuffer, constant_buffer_resource* cubemapSceneDataConstantBuffer)
+		void Initialize(Device* device, constant_buffer_resource<SceneData>* sceneDataConstantBuffer, constant_buffer_resource<CubemapSceneData>* cubemapSceneDataConstantBuffer)
 		{
 			for (std::size_t i = 0; i < ColorObjectNum; i++)
-				colorBunnyDataConstantBuffer[i].initialize(device, sizeof(ColorObjectData));
+				colorBunnyDataConstantBuffer[i].initialize(device);
 
 			descriptorHeap.initialize(device, 2 + ColorObjectNum);
-			descriptorHeap.push_back_CBV(device, sceneDataConstantBuffer, sizeof(SceneData));
+			descriptorHeap.push_back_CBV(device, sceneDataConstantBuffer);
 			for (std::size_t i = 0; i < ColorObjectNum; i++)
-				descriptorHeap.push_back_CBV(device, &colorBunnyDataConstantBuffer[i], sizeof(ColorObjectData));
-			descriptorHeap.push_back_CBV(device, cubemapSceneDataConstantBuffer, sizeof(CubemapSceneData));
+				descriptorHeap.push_back_CBV(device, &colorBunnyDataConstantBuffer[i]);
+			descriptorHeap.push_back_CBV(device, cubemapSceneDataConstantBuffer);
 		}
 
 		template<typename T>
@@ -184,7 +184,7 @@ namespace test004
 
 	class MirrorObjectModel
 	{
-		constant_buffer_resource worldConstantBuffer{};
+		constant_buffer_resource<XMMATRIX> worldConstantBuffer{};
 		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>, resource_flag::AllowRenderTarget> cubemapShaderResource{};
 
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
@@ -192,15 +192,15 @@ namespace test004
 	public:
 		static constexpr std::array<float, 4> CUBEMAP_CLEAR_VALUE{ 0.5f,0.5f,0.5f,1.f };
 
-		void Initialize(Device* device, constant_buffer_resource* sceneConstantBufferResource)
+		void Initialize(Device* device, constant_buffer_resource<SceneData>* sceneConstantBufferResource)
 		{
-			worldConstantBuffer.initialize(device, sizeof(XMMATRIX));
+			worldConstantBuffer.initialize(device);
 
 			cubemapShaderResource.initialize(device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, 6, 1, { {0.5f,0.5f,0.5f,1.f} });
 
 			descriptorHeap.initialize(device, 3);
-			descriptorHeap.push_back_CBV(device, sceneConstantBufferResource, sizeof(SceneData));
-			descriptorHeap.push_back_CBV(device, &worldConstantBuffer, sizeof(XMMATRIX));
+			descriptorHeap.push_back_CBV(device, sceneConstantBufferResource);
+			descriptorHeap.push_back_CBV(device, &worldConstantBuffer);
 			descriptorHeap.push_back_texture_cube_array_SRV(device, &cubemapShaderResource, 6, 0, 1, 0, 0, 0.f);
 		}
 
@@ -304,11 +304,11 @@ namespace test004
 		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(1), 0, 0);
 
 
-		constant_buffer_resource sceneDataConstantBuffer{};
-		sceneDataConstantBuffer.initialize(&device, sizeof(SceneData));
+		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
+		sceneDataConstantBuffer.initialize(&device);
 
-		constant_buffer_resource cubemapSceneDataConstant{};
-		cubemapSceneDataConstant.initialize(&device, sizeof(CubemapSceneData));
+		constant_buffer_resource<CubemapSceneData> cubemapSceneDataConstant{};
+		cubemapSceneDataConstant.initialize(&device);
 
 
 		Mesh bunnyMesh{};

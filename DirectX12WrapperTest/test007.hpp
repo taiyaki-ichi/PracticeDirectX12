@@ -144,8 +144,8 @@ namespace test007
 		depthStencilDescriptorHeap.push_back_texture2D_DSV(&device, &depthBuffer, 0);
 
 
-		constant_buffer_resource sceneDataConstantBuffer{};
-		sceneDataConstantBuffer.initialize(&device, sizeof(SceneData));
+		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
+		sceneDataConstantBuffer.initialize(&device);
 
 
 		Shader groundVS{};
@@ -175,8 +175,8 @@ namespace test007
 		);
 
 
-		constant_buffer_resource groundDataConstantBuffer{};
-		groundDataConstantBuffer.initialize(&device, sizeof(GroundData));
+		constant_buffer_resource<GroundData> groundDataConstantBuffer{};
+		groundDataConstantBuffer.initialize(&device);
 		map(&groundDataConstantBuffer, GroundData{ XMMatrixIdentity() });
 		
 
@@ -236,8 +236,8 @@ namespace test007
 
 		descriptor_heap_CBV_SRV_UAV groundDescriptorHeap{};
 		groundDescriptorHeap.initialize(&device, 7);
-		groundDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer, sizeof(SceneData));
-		groundDescriptorHeap.push_back_CBV(&device, &groundDataConstantBuffer, sizeof(GroundData));
+		groundDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer);
+		groundDescriptorHeap.push_back_CBV(&device, &groundDataConstantBuffer);
 		groundDescriptorHeap.push_back_texture2D_SRV(&device, &heightMapResource, 1, 0, 0, 0.f);
 		groundDescriptorHeap.push_back_texture2D_SRV(&device, &normalMapResource, 1, 0, 0, 0.f);
 		groundDescriptorHeap.push_back_texture2D_SRV(&device, &groundDepthTextureResource, 1, 0, 0, 0.f);
@@ -345,11 +345,11 @@ namespace test007
 		Shader sphereDepthPS{};
 		sphereDepthPS.Intialize(L"Shader/Sphere/DepthPixelShader.hlsl", "main", "ps_5_1");
 
-		constant_buffer_resource sphereDataConstantBuffer{};
-		sphereDataConstantBuffer.initialize(&device, sizeof(SphereData));
+		constant_buffer_resource<SphereData> sphereDataConstantBuffer{};
+		sphereDataConstantBuffer.initialize(&device);
 
-		constant_buffer_resource upCameraMatrixConstantBuffer{};
-		upCameraMatrixConstantBuffer.initialize(&device, sizeof(XMMATRIX));
+		constant_buffer_resource<XMMATRIX> upCameraMatrixConstantBuffer{};
+		upCameraMatrixConstantBuffer.initialize(&device);
 
 		RootSignature sphereRootSignature{};
 		sphereRootSignature.Initialize(&device,
@@ -372,9 +372,9 @@ namespace test007
 
 		descriptor_heap_CBV_SRV_UAV sphereDescriptorHeap{};
 		sphereDescriptorHeap.initialize(&device, 3);
-		sphereDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer, sizeof(SceneData));
-		sphereDescriptorHeap.push_back_CBV(& device, & sphereDataConstantBuffer, sizeof(SphereData));
-		sphereDescriptorHeap.push_back_CBV(&device, &upCameraMatrixConstantBuffer, sizeof(XMMATRIX));
+		sphereDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer);
+		sphereDescriptorHeap.push_back_CBV(& device, & sphereDataConstantBuffer);
+		sphereDescriptorHeap.push_back_CBV(&device, &upCameraMatrixConstantBuffer);
 
 
 		constexpr std::size_t SNOW_NUM = 8000;
@@ -392,8 +392,8 @@ namespace test007
 			map(&snowVertexBuffer, v.begin(), v.end());
 		}
 
-		constant_buffer_resource snowDataConstantBuffer{};
-		snowDataConstantBuffer.initialize(&device, sizeof(SnowData));
+		constant_buffer_resource<SnowData> snowDataConstantBuffer{};
+		snowDataConstantBuffer.initialize(&device);
 
 
 		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> snowTextureShader{};
@@ -421,8 +421,8 @@ namespace test007
 
 		descriptor_heap_CBV_SRV_UAV snowDescriptorHeap{};
 		snowDescriptorHeap.initialize(&device, 3);
-		snowDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer, sizeof(SceneData));
-		snowDescriptorHeap.push_back_CBV(&device, &snowDataConstantBuffer, sizeof(SnowData));
+		snowDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer);
+		snowDescriptorHeap.push_back_CBV(&device, &snowDataConstantBuffer);
 		snowDescriptorHeap.push_back_texture2D_SRV(&device, &snowTextureShader, 1, 0, 0, 0.f);
 
 		RootSignature snowRootSignature{};

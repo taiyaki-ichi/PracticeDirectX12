@@ -137,8 +137,8 @@ namespace test005
 		depthStencilDescriptorHeap.push_back_texture2D_DSV(&device, &depthStencilBufferResource, 0);
 
 
-		constant_buffer_resource sceneDataConstantBuffer{};
-		sceneDataConstantBuffer.initialize(&device, sizeof(SceneData));
+		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
+		sceneDataConstantBuffer.initialize(&device);
 
 		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> heightMapTextureResource{};
 		{
@@ -186,7 +186,7 @@ namespace test005
 
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 		descriptorHeap.initialize(&device, 3);
-		descriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer, sizeof(SceneData));
+		descriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer);
 		descriptorHeap.push_back_texture2D_SRV(&device, &heightMapTextureResource, 1, 0, 0, 0.f);
 		descriptorHeap.push_back_texture2D_SRV(&device, &normalMapTextureResource, 1, 0, 0, 0.f);
 

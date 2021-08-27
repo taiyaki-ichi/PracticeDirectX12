@@ -50,8 +50,9 @@ namespace DX12
 		void initialize(Device* device, std::uint32_t size);
 
 
+		//
 		template<typename Resource>
-		void push_back_CBV(Device*, Resource*, std::uint32_t sizeInBytes);
+		void push_back_CBV(Device*, Resource*);
 
 		template<typename Resource>
 		void push_back_texture2D_SRV(Device*, Resource*,
@@ -195,9 +196,9 @@ namespace DX12
 	}
 
 	template<typename Resource>
-	inline void descriptor_heap_CBV_SRV_UAV::push_back_CBV(Device* device, Resource* resource, std::uint32_t sizeInBytes)
+	inline void descriptor_heap_CBV_SRV_UAV::push_back_CBV(Device* device, Resource* resource)
 	{
-		push_back_view(device, resource, create_CBV, Alignment<std::uint32_t>(sizeInBytes, 256));
+		push_back_view(device, resource, create_CBV, resource->get_size());
 	}
 
 	template<typename Resource>

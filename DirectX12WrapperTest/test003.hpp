@@ -108,15 +108,15 @@ namespace test003
 			100.f
 		);
 		
-		constant_buffer_resource sceneDataConstantBuffer{};
-		sceneDataConstantBuffer.initialize(&device, sizeof(SceneData));
+		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
+		sceneDataConstantBuffer.initialize(&device);
 		map(&sceneDataConstantBuffer, SceneData{ view,proj });
 	
 		
 		//SceneDataをシェーダに渡す用
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 		descriptorHeap.initialize(&device, 1);
-		descriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer, sizeof(SceneData));
+		descriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer);
 
 		
 		std::size_t cnt = 0;
