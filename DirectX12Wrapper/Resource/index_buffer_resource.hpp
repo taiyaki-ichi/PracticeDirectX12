@@ -9,7 +9,7 @@ namespace DX12
 		D3D12_INDEX_BUFFER_VIEW index_buffer_view{};
 
 	public:
-		void initialize(Device* device, std::uint32_t size, format f);
+		void initialize(Device* device, std::uint32_t size, dynamic_format f);
 
 		const D3D12_INDEX_BUFFER_VIEW& get_view() const noexcept;
 	};
@@ -18,7 +18,7 @@ namespace DX12
 	//
 	//
 
-	void index_buffer_resource::initialize(Device* device, std::uint32_t size, format f)
+	void index_buffer_resource::initialize(Device* device, std::uint32_t size, dynamic_format f)
 	{
 		buffer_resource::initialize(device, size);
 

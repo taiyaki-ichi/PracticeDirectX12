@@ -3,7 +3,7 @@
 
 namespace DX12
 {
-	template<typename TypelessFormat>
+	template<typename Format>
 	class frame_buffer_resource
 	{
 		ID3D12Resource* resource_ptr = nullptr;
@@ -31,7 +31,7 @@ namespace DX12
 		void set_state(resource_state) noexcept;
 
 		static constexpr resource_dimention dimention = resource_dimention::Texture2D;
-		using typeless_format = TypelessFormat;
+		using format = Format;
 		static constexpr resource_heap_property heap_property = resource_heap_property::Default;//
 		static constexpr D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;//
 	};
@@ -40,21 +40,21 @@ namespace DX12
 	//
 	//
 
-	template<typename TypelessFormat>
-	inline frame_buffer_resource<TypelessFormat>::~frame_buffer_resource()
+	template<typename Format>
+	inline frame_buffer_resource<Format>::~frame_buffer_resource()
 	{
 		if (resource_ptr)
 			resource_ptr->Release();
 	}
 
-	template<typename TypelessFormat>
-	inline void frame_buffer_resource<TypelessFormat>::initialize(ID3D12Resource* r)
+	template<typename Format>
+	inline void frame_buffer_resource<Format>::initialize(ID3D12Resource* r)
 	{
 		resource_ptr = r;
 	}
 
-	template<typename TypelessFormat>
-	inline frame_buffer_resource<TypelessFormat>::frame_buffer_resource(frame_buffer_resource&& rhs) noexcept
+	template<typename Format>
+	inline frame_buffer_resource<Format>::frame_buffer_resource(frame_buffer_resource&& rhs) noexcept
 	{
 		resource_ptr = rhs.resource_ptr;
 		state = rhs.state;
@@ -63,8 +63,8 @@ namespace DX12
 		rhs.resource_ptr = nullptr;
 	}
 
-	template<typename TypelessFormat>
-	inline frame_buffer_resource<TypelessFormat>& frame_buffer_resource<TypelessFormat>::operator=(frame_buffer_resource&& rhs) noexcept
+	template<typename Format>
+	inline frame_buffer_resource<Format>& frame_buffer_resource<Format>::operator=(frame_buffer_resource&& rhs) noexcept
 	{
 		resource_ptr = rhs.resource_ptr;
 		state = rhs.state;
@@ -75,26 +75,26 @@ namespace DX12
 		return *this;
 	}
 
-	template<typename TypelessFormat>
-	inline ID3D12Resource* frame_buffer_resource<TypelessFormat>::get()
+	template<typename Format>
+	inline ID3D12Resource* frame_buffer_resource<Format>::get()
 	{
 		return resource_ptr;
 	}
 
-	template<typename TypelessFormat>
-	inline D3D12_CLEAR_VALUE* frame_buffer_resource<TypelessFormat>::get_clear_value()
+	template<typename Format>
+	inline D3D12_CLEAR_VALUE* frame_buffer_resource<Format>::get_clear_value()
 	{
 		return clear_value;
 	}
 
-	template<typename TypelessFormat>
-	inline resource_state frame_buffer_resource<TypelessFormat>::get_state() const noexcept
+	template<typename Format>
+	inline resource_state frame_buffer_resource<Format>::get_state() const noexcept
 	{
 		return state;
 	}
 
-	template<typename TypelessFormat>
-	inline void frame_buffer_resource<TypelessFormat>::set_state(resource_state s) noexcept
+	template<typename Format>
+	inline void frame_buffer_resource<Format>::set_state(resource_state s) noexcept
 	{
 		state = s;
 	}

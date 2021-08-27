@@ -40,8 +40,8 @@ namespace test006
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(1), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(1), 0, 0);
 
 
 		Shader cs{};
@@ -57,7 +57,7 @@ namespace test006
 		computePipelineState.Initialize(&device, &computeRootsignature, &cs);
 
 		int x, y, n;
-		shader_resource<typeless_format<8, 4>> textureResource{};
+		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> textureResource{};
 		{
 			std::uint8_t* data = stbi_load("../../Assets/icon.png", &x, &y, &n, 4);
 			buffer_resource uploadResource{};
@@ -78,13 +78,13 @@ namespace test006
 			stbi_image_free(data);
 		}
 
-		shader_resource<typeless_format<8,4>,resource_flag::AllowUnorderdAccess> float4ShaderResource{};
+		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>, resource_flag::AllowUnorderdAccess> float4ShaderResource{};
 		float4ShaderResource.initialize(&device, x, y, 1, 0);
 
 		descriptor_heap_CBV_SRV_UAV computeDescriptorHeap{};
 		computeDescriptorHeap.initialize(&device, 2);
-		computeDescriptorHeap.push_back_texture2D_SRV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &textureResource, 1, 0, 0, 0.f);
-		computeDescriptorHeap.push_back_texture2D_UAV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &float4ShaderResource, 0, 0);
+		computeDescriptorHeap.push_back_texture2D_SRV(&device, &textureResource, 1, 0, 0, 0.f);
+		computeDescriptorHeap.push_back_texture2D_UAV(&device, &float4ShaderResource, 0, 0);
 
 
 		//
@@ -124,7 +124,7 @@ namespace test006
 
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 		descriptorHeap.initialize(&device, 1);
-		descriptorHeap.push_back_texture2D_SRV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &float4ShaderResource, 1, 0, 0, 0.f);
+		descriptorHeap.push_back_texture2D_SRV(&device, &float4ShaderResource, 1, 0, 0, 0.f);
 
 		RootSignature rootSignature{};
 		rootSignature.Initialize(&device, { {DescriptorRangeType::SRV} }, { StaticSamplerType::Standard });

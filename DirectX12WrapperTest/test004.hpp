@@ -185,7 +185,7 @@ namespace test004
 	class MirrorObjectModel
 	{
 		constant_buffer_resource worldConstantBuffer{};
-		shader_resource<typeless_format<8, 4>, resource_flag::AllowRenderTarget> cubemapShaderResource{};
+		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>, resource_flag::AllowRenderTarget> cubemapShaderResource{};
 
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 
@@ -208,7 +208,7 @@ namespace test004
 			descriptorHeap.initialize(device, 3);
 			descriptorHeap.push_back_CBV(device, sceneConstantBufferResource, sizeof(SceneData));
 			descriptorHeap.push_back_CBV(device, &worldConstantBuffer, sizeof(XMMATRIX));
-			descriptorHeap.push_back_texture_cube_array_SRV<component_type::UNSIGNED_NORMALIZE_FLOAT>(device, &cubemapShaderResource, 6, 0, 1, 0, 0, 0.f);
+			descriptorHeap.push_back_texture_cube_array_SRV(device, &cubemapShaderResource, 6, 0, 1, 0, 0, 0.f);
 		}
 
 		template<typename T>
@@ -307,8 +307,8 @@ namespace test004
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(1), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(1), 0, 0);
 
 
 		constant_buffer_resource sceneDataConstantBuffer{};
@@ -358,22 +358,22 @@ namespace test004
 		depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
 		depthClearValue.DepthStencil.Depth = 1.f;
 
-		shader_resource<typeless_format<32,1>,resource_flag::AllowDepthStencil> cubemapDepthBuffer{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> cubemapDepthBuffer{};
 		cubemapDepthBuffer.initialize(&device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, 6, 1, &depthClearValue);
 
 		descriptor_heap_RTV cubemapRtvDescriptorHeap{};
 		cubemapRtvDescriptorHeap.initialize(&device, 1);
-		cubemapRtvDescriptorHeap.push_back_texture2D_array_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &mirrorObjectModel.GetCubemapShaderResource(), 6, 0, 0, 0);
+		cubemapRtvDescriptorHeap.push_back_texture2D_array_RTV(&device, &mirrorObjectModel.GetCubemapShaderResource(), 6, 0, 0, 0);
 
 
-		shader_resource<typeless_format<32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
 		depthBuffer.initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, &depthClearValue);
 
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.initialize(&device, 2);
-		depthStencilDescriptorHeap.push_back_texture2D_DSV<component_type::FLOAT>(&device, &depthBuffer, 0);
+		depthStencilDescriptorHeap.push_back_texture2D_DSV(&device, &depthBuffer, 0);
 		//Ç±Ç±Ç…ViewÇçÏÇ¡ÇƒÇµÇ‹Ç®Ç§
-		depthStencilDescriptorHeap.push_back_texture2D_array_DSV<component_type::FLOAT>(&device, &cubemapDepthBuffer, 6, 0, 0);
+		depthStencilDescriptorHeap.push_back_texture2D_array_DSV(&device, &cubemapDepthBuffer, 6, 0, 0);
 	
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };

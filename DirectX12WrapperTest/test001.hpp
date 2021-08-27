@@ -34,8 +34,8 @@ namespace test001
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(1), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(1), 0, 0);
 
 		
 		std::array<std::array<float, 3>, 3> vertex{

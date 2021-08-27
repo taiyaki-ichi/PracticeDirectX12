@@ -68,20 +68,20 @@ namespace test008
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(1), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(1), 0, 0);
 
 		//
 		D3D12_CLEAR_VALUE depthClearValue{};
 		depthClearValue.DepthStencil.Depth = 1.f;
 		depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
 
-		shader_resource<typeless_format<32,1>,resource_flag::AllowDepthStencil> depthBuffer{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
 		depthBuffer.initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, &depthClearValue);
 
 		descriptor_heap_DSV dsvDescriptorHeap{};
 		dsvDescriptorHeap.initialize(&device, 1);
-		dsvDescriptorHeap.push_back_texture2D_DSV<component_type::FLOAT>(&device, &depthBuffer, 0);
+		dsvDescriptorHeap.push_back_texture2D_DSV(&device, &depthBuffer, 0);
 
 
 		//‹¤—L‚·‚éSceneData‚ÌConstantBuffer
@@ -94,12 +94,12 @@ namespace test008
 		//ShadowMap
 		//
 
-		shader_resource<typeless_format<32, 1>, resource_flag::AllowDepthStencil> shadowMap{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> shadowMap{};
 		shadowMap.initialize(&device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, 1, 1, &depthClearValue);
 
 		descriptor_heap_DSV shadowMapDescriptorHeap{};
 		shadowMapDescriptorHeap.initialize(&device, 1);
-		shadowMapDescriptorHeap.push_back_texture2D_DSV<component_type::FLOAT>(&device, &shadowMap, 0);
+		shadowMapDescriptorHeap.push_back_texture2D_DSV(&device, &shadowMap, 0);
 
 
 		//
@@ -136,7 +136,7 @@ namespace test008
 		groundDescriptorHeap.initialize(&device, 3);
 		groundDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer, sizeof(GroundData));
 		groundDescriptorHeap.push_back_CBV(&device, &groundDataConstantBuffer, sizeof(GroundData));
-		groundDescriptorHeap.push_back_texture2D_SRV<component_type::FLOAT>(&device, &shadowMap, 1, 0, 0, 0.f);
+		groundDescriptorHeap.push_back_texture2D_SRV(&device, &shadowMap, 1, 0, 0, 0.f);
 
 		RootSignature groundRootSignature{};
 		groundRootSignature.Initialize(&device,
@@ -203,7 +203,7 @@ namespace test008
 		bunnyDescriptorHeap.initialize(&device, 3);
 		bunnyDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer, sizeof(SceneData));
 		bunnyDescriptorHeap.push_back_CBV(&device, &bunnyDataConstantBuffer, sizeof(BunnyData));
-		bunnyDescriptorHeap.push_back_texture2D_SRV<component_type::FLOAT>(&device, &shadowMap, 1, 0, 0, 0.f);
+		bunnyDescriptorHeap.push_back_texture2D_SRV(&device, &shadowMap, 1, 0, 0, 0.f);
 
 		RootSignature bunnyRootSignature{};
 		bunnyRootSignature.Initialize(&device,

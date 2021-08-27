@@ -60,8 +60,9 @@ namespace DX12
 
 
 
-	template<std::uint32_t ComponentSize, std::uint8_t ComponentNum>
-	struct typeless_format {
+	template<component_type ComponentType, std::uint32_t ComponentSize, std::uint8_t ComponentNum>
+	struct format {
+		static constexpr component_type component_type = ComponentType;
 		static constexpr std::uint32_t component_size = ComponentSize;
 		static constexpr std::uint32_t component_num = ComponentNum;
 	};
@@ -69,13 +70,13 @@ namespace DX12
 	struct unknow_format {};
 
 
-	template<typename TypelessFormat>
+	template<typename Format>
 	inline constexpr std::optional<DXGI_FORMAT> get_resource_format()
 	{
-		if constexpr (std::is_same_v<TypelessFormat, unknow_format>)
+		if constexpr (std::is_same_v<Format, unknow_format>)
 			return DXGI_FORMAT_UNKNOWN;
 		else
-			return get_dxgi_format(component_type::TYPELSEE, TypelessFormat::component_size, TypelessFormat::component_num);
+			return get_dxgi_format(component_type::TYPELSEE, Format::component_size, Format::component_num);
 	}
 
 
@@ -91,7 +92,7 @@ namespace DX12
 
 	using clear_type_variant = std::variant<std::array<float, 3>, float>;
 
-	template<resource_dimention ResourceDimention, typename TypelessFormat, resource_heap_property HeapProperty, resource_flag... Flags>
+	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag... Flags>
 	class resource {
 
 		ID3D12Resource* resource_ptr = nullptr;
@@ -120,7 +121,7 @@ namespace DX12
 		void set_state(resource_state) noexcept;
 
 		static constexpr resource_dimention dimention = ResourceDimention;
-		using typeless_format = TypelessFormat;
+		using format = Format;
 		static constexpr resource_heap_property heap_property = HeapProperty;
 		static constexpr D3D12_RESOURCE_FLAGS flags = []() {
 			if constexpr (sizeof...(Flags) > 0) return (static_cast<D3D12_RESOURCE_FLAGS>(Flags) | ...);
@@ -128,7 +129,7 @@ namespace DX12
 		}();
 
 
-		static_assert(get_resource_format<TypelessFormat>());
+		static_assert(get_resource_format<Format>());
 	};
 
 
@@ -136,15 +137,15 @@ namespace DX12
 	//
 	//
 
-	template<resource_dimention ResourceDimention, typename TypelessFormat, resource_heap_property HeapProperty, resource_flag... Flags>
-	inline resource<ResourceDimention, TypelessFormat, HeapProperty, Flags...>::~resource()
+	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag... Flags>
+	inline resource<ResourceDimention, Format, HeapProperty, Flags...>::~resource()
 	{
 		if (resource_ptr)
 			resource_ptr->Release();
 	}
 
-	template<resource_dimention ResourceDimention, typename TypelessFormat, resource_heap_property HeapProperty, resource_flag... Flags>
-	inline resource<ResourceDimention, TypelessFormat, HeapProperty, Flags...>::resource(resource&& rhs) noexcept
+	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag... Flags>
+	inline resource<ResourceDimention, Format, HeapProperty, Flags...>::resource(resource&& rhs) noexcept
 	{
 		resource_ptr = rhs.resource_ptr;
 		state = rhs.state;
@@ -153,8 +154,8 @@ namespace DX12
 		rhs.resource_ptr = nullptr;
 	}
 
-	template<resource_dimention ResourceDimention, typename TypelessFormat, resource_heap_property HeapProperty, resource_flag ...Flags>
-	inline resource<ResourceDimention, TypelessFormat, HeapProperty, Flags...>& resource<ResourceDimention, TypelessFormat, HeapProperty, Flags...>::operator=(resource<ResourceDimention, TypelessFormat, HeapProperty, Flags...>&& rhs) noexcept
+	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag ...Flags>
+	inline resource<ResourceDimention, Format, HeapProperty, Flags...>& resource<ResourceDimention, Format, HeapProperty, Flags...>::operator=(resource<ResourceDimention, Format, HeapProperty, Flags...>&& rhs) noexcept
 	{
 		resource_ptr = rhs.resource_ptr;
 		state = rhs.state;
@@ -165,8 +166,8 @@ namespace DX12
 		return *this;
 	}
 
-	template<resource_dimention ResourceDimention, typename TypelessFormat, resource_heap_property HeapProperty, resource_flag ...Flags>
-	inline void resource<ResourceDimention, TypelessFormat, HeapProperty, Flags...>::initialize(Device* device,
+	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag ...Flags>
+	inline void resource<ResourceDimention, Format, HeapProperty, Flags...>::initialize(Device* device,
 		std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize, std::uint16_t mipLevels, const D3D12_CLEAR_VALUE* clearValue)
 	{
 		//‚Æ‚è‚ ‚¦‚¸
@@ -182,7 +183,7 @@ namespace DX12
 		res_desc.Height = height;
 		res_desc.DepthOrArraySize = depthOrArraySize;
 		res_desc.MipLevels = mipLevels;
-		res_desc.Format = get_resource_format<TypelessFormat>().value();
+		res_desc.Format = get_resource_format<Format>().value();
 		res_desc.SampleDesc.Count = 1;
 		res_desc.Flags = flags;
 		res_desc.Layout = get_texture_layout<ResourceDimention>();
@@ -211,14 +212,14 @@ namespace DX12
 		}
 	}
 
-	template<resource_dimention ResourceDimention, typename TypelessFormat, resource_heap_property HeapProperty, resource_flag ...Flags>
-	inline ID3D12Resource* resource<ResourceDimention, TypelessFormat, HeapProperty, Flags...>::get()
+	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag ...Flags>
+	inline ID3D12Resource* resource<ResourceDimention, Format, HeapProperty, Flags...>::get()
 	{
 		return resource_ptr;
 	}
 
-	template<resource_dimention ResourceDimention, typename TypelessFormat, resource_heap_property HeapProperty, resource_flag ...Flags>
-	inline D3D12_CLEAR_VALUE* resource<ResourceDimention, TypelessFormat, HeapProperty, Flags...>::get_clear_value()
+	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag ...Flags>
+	inline D3D12_CLEAR_VALUE* resource<ResourceDimention, Format, HeapProperty, Flags...>::get_clear_value()
 	{
 		if (clear_value)
 			return &clear_value.value();
@@ -226,14 +227,14 @@ namespace DX12
 			return nullptr;
 	}
 
-	template<resource_dimention ResourceDimention, typename TypelessFormat, resource_heap_property HeapProperty, resource_flag ...Flags>
-	inline resource_state resource<ResourceDimention, TypelessFormat, HeapProperty, Flags...>::get_state() const noexcept
+	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag ...Flags>
+	inline resource_state resource<ResourceDimention, Format, HeapProperty, Flags...>::get_state() const noexcept
 	{
 		return state;
 	}
 
-	template<resource_dimention ResourceDimention, typename TypelessFormat, resource_heap_property HeapProperty, resource_flag ...Flags>
-	inline void resource<ResourceDimention, TypelessFormat, HeapProperty, Flags...>::set_state(resource_state s) noexcept
+	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag ...Flags>
+	inline void resource<ResourceDimention, Format, HeapProperty, Flags...>::set_state(resource_state s) noexcept
 	{
 		state = s;
 	}

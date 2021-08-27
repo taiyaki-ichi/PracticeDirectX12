@@ -43,8 +43,8 @@ namespace test002
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(1), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(1), 0, 0);
 
 		std::array<Vertex, 4> vertex{ {
 			{-0.8f,-0.8f,0.f,0.f,1.f},
@@ -68,7 +68,7 @@ namespace test002
 		int x, y, n;
 		std::uint8_t* data = stbi_load("../../Assets/icon.png", &x, &y, &n, 0);
 
-		shader_resource<typeless_format<8, 4>> textureResource{};
+		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> textureResource{};
 		{
 			buffer_resource uploadResource{};
 			uploadResource.initialize(&device, TextureDataPitchAlignment(x * 4) * y);
@@ -89,7 +89,7 @@ namespace test002
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 		descriptorHeap.initialize(&device, 1);
 
-		descriptorHeap.push_back_texture2D_SRV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &textureResource, 1, 0, 0, 0.f);
+		descriptorHeap.push_back_texture2D_SRV(&device, &textureResource, 1, 0, 0, 0.f);
 
 		RootSignature rootSignature{};
 		rootSignature.Initialize(&device, { {DescriptorRangeType::SRV} }, { StaticSamplerType::Standard });

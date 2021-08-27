@@ -102,8 +102,8 @@ namespace test005
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(1), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(1), 0, 0);
 
 		Shader vs{};
 		vs.Intialize(L"Shader/Ground/VertexShader.hlsl", "main", "vs_5_0");
@@ -133,18 +133,18 @@ namespace test005
 		depthClearValue.DepthStencil.Depth = 1.f;
 		depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
 
-		shader_resource<typeless_format<32, 1>,resource_flag::AllowDepthStencil> depthStencilBufferResource{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthStencilBufferResource{};
 		depthStencilBufferResource.initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, &depthClearValue);
 
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.initialize(&device, 1);
-		depthStencilDescriptorHeap.push_back_texture2D_DSV<component_type::FLOAT>(&device, &depthStencilBufferResource, 0);
+		depthStencilDescriptorHeap.push_back_texture2D_DSV(&device, &depthStencilBufferResource, 0);
 
 
 		constant_buffer_resource sceneDataConstantBuffer{};
 		sceneDataConstantBuffer.initialize(&device, sizeof(SceneData));
 
-		shader_resource<typeless_format<8, 4>> heightMapTextureResource{};
+		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> heightMapTextureResource{};
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/heightmap.png", &textureWidth, &textureHeight, &n, 4);
@@ -166,7 +166,7 @@ namespace test005
 			stbi_image_free(data);
 		}
 
-		shader_resource<typeless_format<8, 4>> normalMapTextureResource{};
+		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> normalMapTextureResource{};
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/normalmap.png", &textureWidth, &textureHeight, &n, 4);
@@ -191,8 +191,8 @@ namespace test005
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 		descriptorHeap.initialize(&device, 3);
 		descriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer, sizeof(SceneData));
-		descriptorHeap.push_back_texture2D_SRV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &heightMapTextureResource, 1, 0, 0, 0.f);
-		descriptorHeap.push_back_texture2D_SRV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &normalMapTextureResource, 1, 0, 0, 0.f);
+		descriptorHeap.push_back_texture2D_SRV(&device, &heightMapTextureResource, 1, 0, 0, 0.f);
+		descriptorHeap.push_back_texture2D_SRV(&device, &normalMapTextureResource, 1, 0, 0, 0.f);
 
 
 		auto [vertexList, indexList] = GetGroundPatch();

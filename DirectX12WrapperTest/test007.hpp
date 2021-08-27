@@ -134,19 +134,19 @@ namespace test007
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, FRAME_BUFFER_NUM);
 		for (std::size_t i = 0; i < FRAME_BUFFER_NUM; i++)
-			rtvDescriptorHeap.push_back_texture2D_RTV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &swapChain.GetFrameBuffer(i), 0, 0);
+			rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(i), 0, 0);
 
 		//
 		D3D12_CLEAR_VALUE depthClearValue{};
 		depthClearValue.DepthStencil.Depth = 1.f;
 		depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
 
-		shader_resource<typeless_format<32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
 		depthBuffer.initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, &depthClearValue);
 
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.initialize(&device, 1);
-		depthStencilDescriptorHeap.push_back_texture2D_DSV<component_type::FLOAT>(&device, &depthBuffer, 0);
+		depthStencilDescriptorHeap.push_back_texture2D_DSV(&device, &depthBuffer, 0);
 
 
 		constant_buffer_resource sceneDataConstantBuffer{};
@@ -185,17 +185,17 @@ namespace test007
 		map(&groundDataConstantBuffer, GroundData{ XMMatrixIdentity() });
 		
 
-		shader_resource<typeless_format<32, 1>, resource_flag::AllowUnorderdAccess> heightMapResource{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowUnorderdAccess> heightMapResource{};
 		heightMapResource.initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1);
 
-		shader_resource<typeless_format<32, 1>, resource_flag::AllowUnorderdAccess> elapsedTimeMapResource{};
+		shader_resource<format<component_type::UINT, 32, 1>, resource_flag::AllowUnorderdAccess> elapsedTimeMapResource{};
 		elapsedTimeMapResource.initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1);
 
-		shader_resource<typeless_format<8, 4>,resource_flag::AllowUnorderdAccess> normalMapResource{};
+		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>, resource_flag::AllowUnorderdAccess> normalMapResource{};
 		normalMapResource.initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1);
 
 
-		shader_resource<typeless_format<8, 4>> groundDepthTextureResource{};
+		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> groundDepthTextureResource{};
 		{
 			int x, y, n;
 			std::uint8_t* data = stbi_load("../../Assets/Snow_001_SD/Snow_001_DISP.png", &x, &y, &n, 4);
@@ -217,7 +217,7 @@ namespace test007
 			stbi_image_free(data);
 		}
 
-		shader_resource<typeless_format<8, 4>> groundNormalTextureResource{};
+		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> groundNormalTextureResource{};
 		{
 			int x, y, n;
 			std::uint8_t* data = stbi_load("../../Assets/Snow_001_SD/Snow_001_NORM.jpg", &x, &y, &n, 4);
@@ -243,11 +243,11 @@ namespace test007
 		groundDescriptorHeap.initialize(&device, 7);
 		groundDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer, sizeof(SceneData));
 		groundDescriptorHeap.push_back_CBV(&device, &groundDataConstantBuffer, sizeof(GroundData));
-		groundDescriptorHeap.push_back_texture2D_SRV<component_type::FLOAT>(&device, &heightMapResource, 1, 0, 0, 0.f);
-		groundDescriptorHeap.push_back_texture2D_SRV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &normalMapResource, 1, 0, 0, 0.f);
-		groundDescriptorHeap.push_back_texture2D_SRV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &groundDepthTextureResource, 1, 0, 0, 0.f);
-		groundDescriptorHeap.push_back_texture2D_SRV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &groundNormalTextureResource, 1, 0, 0, 0.f);
-		groundDescriptorHeap.push_back_texture2D_SRV<component_type::UINT>(&device, &elapsedTimeMapResource, 1, 0, 0, 0.f);
+		groundDescriptorHeap.push_back_texture2D_SRV(&device, &heightMapResource, 1, 0, 0, 0.f);
+		groundDescriptorHeap.push_back_texture2D_SRV(&device, &normalMapResource, 1, 0, 0, 0.f);
+		groundDescriptorHeap.push_back_texture2D_SRV(&device, &groundDepthTextureResource, 1, 0, 0, 0.f);
+		groundDescriptorHeap.push_back_texture2D_SRV(&device, &groundNormalTextureResource, 1, 0, 0, 0.f);
+		groundDescriptorHeap.push_back_texture2D_SRV(&device, &elapsedTimeMapResource, 1, 0, 0, 0.f);
 
 		auto [vertexList, indexList] = GetGroundPatch();
 
@@ -266,14 +266,14 @@ namespace test007
 		grounDepthClearValue.Color[0] = 0.f;
 
 
-		shader_resource<typeless_format<32,1>,resource_flag::AllowRenderTarget> groundDepthShaderResource{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowRenderTarget> groundDepthShaderResource{};
 		groundDepthShaderResource.initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, &grounDepthClearValue);
 
 		descriptor_heap_CBV_SRV_UAV computeHeightDescriptorHeap{};
 		computeHeightDescriptorHeap.initialize(&device, 3);
-		computeHeightDescriptorHeap.push_back_texture2D_UAV<component_type::FLOAT>(&device, &heightMapResource, 0, 0);
-		computeHeightDescriptorHeap.push_back_texture2D_UAV<component_type::UINT>(&device, &elapsedTimeMapResource, 0, 0);
-		computeHeightDescriptorHeap.push_back_texture2D_SRV<component_type::FLOAT>(&device, &groundDepthShaderResource, 1, 0, 0, 0.f);
+		computeHeightDescriptorHeap.push_back_texture2D_UAV(&device, &heightMapResource, 0, 0);
+		computeHeightDescriptorHeap.push_back_texture2D_UAV(&device, &elapsedTimeMapResource, 0, 0);
+		computeHeightDescriptorHeap.push_back_texture2D_SRV(&device, &groundDepthShaderResource, 1, 0, 0, 0.f);
 
 		Shader computeHeightCS{};
 		computeHeightCS.Intialize(L"Shader/ComputeShader002.hlsl", "main", "cs_5_1");
@@ -289,8 +289,8 @@ namespace test007
 
 		descriptor_heap_CBV_SRV_UAV computeNormalDescriptorHeap{};
 		computeNormalDescriptorHeap.initialize(&device, 2);
-		computeNormalDescriptorHeap.push_back_texture2D_SRV<component_type::FLOAT>(&device, &heightMapResource, 1, 0, 0, 0.f);
-		computeNormalDescriptorHeap.push_back_texture2D_UAV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &normalMapResource, 0, 0);
+		computeNormalDescriptorHeap.push_back_texture2D_SRV(&device, &heightMapResource, 1, 0, 0, 0.f);
+		computeNormalDescriptorHeap.push_back_texture2D_UAV(&device, &normalMapResource, 0, 0);
 
 		Shader computeNormalCS{};
 		computeNormalCS.Intialize(L"Shader/ComputeShader003.hlsl", "main", "cs_5_1");
@@ -332,16 +332,16 @@ namespace test007
 		}
 
 
-		shader_resource<typeless_format<32, 1>, resource_flag::AllowDepthStencil> groundDepthBuffer{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> groundDepthBuffer{};
 		groundDepthBuffer.initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, &depthClearValue);
 
 		descriptor_heap_DSV groundDepthStencilDescriptorHeap{};
 		groundDepthStencilDescriptorHeap.initialize(&device, 1);
-		groundDepthStencilDescriptorHeap.push_back_texture2D_DSV<component_type::FLOAT>(&device, &groundDepthBuffer, 0);
+		groundDepthStencilDescriptorHeap.push_back_texture2D_DSV(&device, &groundDepthBuffer, 0);
 
 		descriptor_heap_RTV groundDepthRTVDescriptorHeap{};
 		groundDepthRTVDescriptorHeap.initialize(&device, 1);
-		groundDepthRTVDescriptorHeap.push_back_texture2D_RTV<component_type::FLOAT>(&device, &groundDepthShaderResource, 0, 0);
+		groundDepthRTVDescriptorHeap.push_back_texture2D_RTV(&device, &groundDepthShaderResource, 0, 0);
 
 
 		Shader sphereVS{};
@@ -407,7 +407,7 @@ namespace test007
 		snowDataConstantBuffer.initialize(&device, sizeof(SnowData));
 
 
-		shader_resource<typeless_format<8,4>> snowTextureShader{};
+		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> snowTextureShader{};
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/snow.png", &textureWidth, &textureHeight, &n, 4);
@@ -434,7 +434,7 @@ namespace test007
 		snowDescriptorHeap.initialize(&device, 3);
 		snowDescriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer, sizeof(SceneData));
 		snowDescriptorHeap.push_back_CBV(&device, &snowDataConstantBuffer, sizeof(SnowData));
-		snowDescriptorHeap.push_back_texture2D_SRV<component_type::UNSIGNED_NORMALIZE_FLOAT>(&device, &snowTextureShader, 1, 0, 0, 0.f);
+		snowDescriptorHeap.push_back_texture2D_SRV(&device, &snowTextureShader, 1, 0, 0, 0.f);
 
 		RootSignature snowRootSignature{};
 		snowRootSignature.Initialize(&device,

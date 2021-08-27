@@ -44,7 +44,7 @@ namespace DX12
 		PipelineState& operator=(PipelineState&&) noexcept;
 
 		void Initialize(Device*, RootSignature*, ShaderDesc,
-			const std::vector<vertex_layout>& vertexLayouts, const std::vector<format>& renderTargetFormats,
+			const std::vector<vertex_layout>& vertexLayouts, const std::vector<dynamic_format>& renderTargetFormats,
 			bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology
 		);
 
@@ -76,7 +76,7 @@ namespace DX12
 	}
 
 	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, ShaderDesc shaderDesc, const std::vector<vertex_layout>& vertexLayouts, 
-		const std::vector<format>& renderTargetFormats, bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology)
+		const std::vector<dynamic_format>& renderTargetFormats, bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology)
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineDesc{};
 

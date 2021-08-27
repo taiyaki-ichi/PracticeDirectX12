@@ -63,7 +63,7 @@ namespace dev
 	};
 
 
-	template<resource_dimention ResourceDimention,typename TypelessFormat,resource_heap_property HeapProperty,resource_flag... Flags>
+	template<resource_dimention ResourceDimention,typename Format,resource_heap_property HeapProperty,resource_flag... Flags>
 	class resource {
 
 		ID3D12Resource* resource = nullptr;
@@ -82,7 +82,7 @@ namespace dev
 		void SetState(resource_state) noexcept;
 
 		static constexpr resource_dimention dimention = ResourceDimention;
-		using format = TypelessFormat;
+		using format = Format;
 		static constexpr resource_heap_property = HeapProperty;
 		static constexpr D3D12_RESOURCE_FLAGS flags = []() {
 			if constexpr (sizeof...(Nums) > 0) return static_cast<D3D12_RESOURCE_FLAGS>(flags) + ...;

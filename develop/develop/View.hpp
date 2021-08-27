@@ -82,12 +82,12 @@ namespace dev
 		device->CreateConstantBufferView(&desc, cpuHandle);
 	}
 
-	template<component_type ViewComponentType,typename typeless_format>
+	template<component_type ViewComponentType,typename format>
 	inline void CreateTexture2DShaderResourceView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSline, float resourceMinLODClamp)
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
-		desc.Format = get_view_format<ViewComponentType, typeless_format::componentSize, typeless_format::componentNum>();
+		desc.Format = get_view_format<ViewComponentType, format::componentSize, format::componentNum>();
 		desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 		desc.Texture2D.MipLevels = mipLevels;
@@ -97,12 +97,12 @@ namespace dev
 		device->CreateShaderResourceView(resource, &desc, cpuHandle);
 	}
 
-	template<component_type ViewComponentType,typename typeless_format>
+	template<component_type ViewComponentType,typename format>
 	inline void CreateTexture2DArrayShaderResourceView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSlice, float resourceMinLODClamp)
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
-		desc.Format = get_view_format<ViewComponentType, typeless_format::componentSize, typeless_format::componentNum>();
+		desc.Format = get_view_format<ViewComponentType, format::componentSize, format::componentNum>();
 		desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 		desc.Texture2DArray.ArraySize = arraySize;
@@ -114,12 +114,12 @@ namespace dev
 		device->CreateShaderResourceView(resource, &desc, cpuHandle);
 	}
 
-	template<component_type ViewComponentType, typename typeless_format>
+	template<component_type ViewComponentType, typename format>
 	inline void CreateTextureCubeShaderResourceView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSlice, float resourceMinLODClamp)
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
-		desc.Format = get_view_format<ViewComponentType, typeless_format::componentSize, typeless_format::componentNum>();
+		desc.Format = get_view_format<ViewComponentType, format::componentSize, format::componentNum>();
 		desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
 		desc.Texture2DArray.ArraySize = arraySize;
@@ -131,35 +131,35 @@ namespace dev
 		device->CreateShaderResourceView(resource, &desc, cpuHandle);
 	}
 
-	template<component_type ViewComponentType,typename typeless_format>
+	template<component_type ViewComponentType,typename format>
 	inline void CreateTextre2DUnorderedAccessResourceView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		ID3D12Resource* counterResource, std::uint32_t mipSlice, std::uint32_t planeSlice)
 	{
 		D3D12_UNORDERED_ACCESS_VIEW_DESC desc{};
-		desc.Format = get_view_format<ViewComponentType, typeless_format::componentSize, typeless_format::componentNum>();
+		desc.Format = get_view_format<ViewComponentType, format::componentSize, format::componentNum>();
 		desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
 		desc.Texture2D.MipSlice = mipSlice;
 		desc.Texture2D.PlaneSlice = planeSlice;
 		device->CreateUnorderedAccessView(resource, counterResource, &desc, cpuHandle);
 	}
 
-	template<typename typeless_format>
+	template<typename format>
 	inline void CreateTexture2DDepthStencilView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		std::uint32_t mipSlice)
 	{
 		D3D12_DEPTH_STENCIL_VIEW_DESC desc{};
-		desc.Format = get_depth_stencil_view_format<typeless_format::componentSize, typeless_format::componentNum>();
+		desc.Format = get_depth_stencil_view_format<format::componentSize, format::componentNum>();
 		desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 		desc.Texture2D.MipSlice = mipSlice;
 		device->CreateDepthStencilView(resource, &desc, cpuHandle);
 	}
 	
-	template<typename typeless_format>
+	template<typename format>
 	inline void CreateTexture2DArrayDepthStencilView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice)
 	{
 		D3D12_DEPTH_STENCIL_VIEW_DESC desc{};
-		desc.Format = get_depth_stencil_view_format<typeless_format::componentSize, typeless_format::componentNum>();
+		desc.Format = get_depth_stencil_view_format<format::componentSize, format::componentNum>();
 		desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
 		desc.Texture2DArray.ArraySize = arraySize;
 		desc.Texture2DArray.FirstArraySlice = firstArraySlice;
@@ -167,24 +167,24 @@ namespace dev
 		device->CreateDepthStencilView(resource, &desc, cpuHandle);
 	}
 
-	template<component_type ViewComponentType, typename typeless_format>
+	template<component_type ViewComponentType, typename format>
 	inline void CreateTextre2DRenderTargetView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		std::uint32_t mipSlice, std::uint32_t planeSlice)
 	{
 		D3D12_RENDER_TARGET_VIEW_DESC desc{};
-		desc.Format = get_view_format<ViewComponentType, typeless_format::componentSize, typeless_format::componentNum>();
+		desc.Format = get_view_format<ViewComponentType, format::componentSize, format::componentNum>();
 		desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 		desc.Texture2D.MipSlice = mipSlice;
 		desc.Texture2D.PlaneSlice = planeSlice;
 		device->CreateRenderTargetView(resource, &desc, cpuHandle);
 	}
 
-	template<component_type ViewComponentType, typename typeless_format>
+	template<component_type ViewComponentType, typename format>
 	inline void CreateTextre2DArrayRenderTargetView(ID3D12Device* device, ID3D12Resource* resource, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle,
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice, std::uint32_t planeSlice)
 	{
 		D3D12_RENDER_TARGET_VIEW_DESC desc{};
-		desc.Format = get_view_format<ViewComponentType, typeless_format::componentSize, typeless_format::componentNum>();
+		desc.Format = get_view_format<ViewComponentType, format::componentSize, format::componentNum>();
 		desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
 		desc.Texture2DArray.ArraySize = arraySize;
 		desc.Texture2DArray.FirstArraySlice = firstArraySlice;
