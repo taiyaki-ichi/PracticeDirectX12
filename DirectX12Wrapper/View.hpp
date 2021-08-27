@@ -100,7 +100,7 @@ namespace DX12
 		std::uint32_t mipSlice)
 	{
 		D3D12_DEPTH_STENCIL_VIEW_DESC desc{};
-		desc.Format = get_depth_stencil_view_format(ComponentType, ComponentSize, ComponentNum).value();
+		desc.Format = get_depth_stencil_dxgi_format(ComponentType, ComponentSize, ComponentNum).value();
 		desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 		desc.Texture2D.MipSlice = mipSlice;
 		device->CreateDepthStencilView(resource, &desc, cpuHandle);
@@ -111,7 +111,7 @@ namespace DX12
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice)
 	{
 		D3D12_DEPTH_STENCIL_VIEW_DESC desc{};
-		desc.Format = get_depth_stencil_view_format(ComponentType, ComponentSize, ComponentNum).value();
+		desc.Format = get_depth_stencil_dxgi_format(ComponentType, ComponentSize, ComponentNum).value();
 		desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
 		desc.Texture2DArray.ArraySize = arraySize;
 		desc.Texture2DArray.FirstArraySlice = firstArraySlice;

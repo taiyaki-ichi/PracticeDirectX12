@@ -136,13 +136,8 @@ namespace test007
 		for (std::size_t i = 0; i < FRAME_BUFFER_NUM; i++)
 			rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(i), 0, 0);
 
-		//
-		D3D12_CLEAR_VALUE depthClearValue{};
-		depthClearValue.DepthStencil.Depth = 1.f;
-		depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
-
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
-		depthBuffer.initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, &depthClearValue);
+		depthBuffer.initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { {1.f} });
 
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.initialize(&device, 1);
@@ -260,14 +255,8 @@ namespace test007
 		map(&indexBuffer, indexList.begin(), indexList.end());
 
 
-		//
-		D3D12_CLEAR_VALUE grounDepthClearValue{};
-		grounDepthClearValue.Format = DXGI_FORMAT_R32_FLOAT;
-		grounDepthClearValue.Color[0] = 0.f;
-
-
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowRenderTarget> groundDepthShaderResource{};
-		groundDepthShaderResource.initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, &grounDepthClearValue);
+		groundDepthShaderResource.initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, { {0.f} });
 
 		descriptor_heap_CBV_SRV_UAV computeHeightDescriptorHeap{};
 		computeHeightDescriptorHeap.initialize(&device, 3);
@@ -333,7 +322,7 @@ namespace test007
 
 
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> groundDepthBuffer{};
-		groundDepthBuffer.initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, &depthClearValue);
+		groundDepthBuffer.initialize(&device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, { {1.f} });
 
 		descriptor_heap_DSV groundDepthStencilDescriptorHeap{};
 		groundDepthStencilDescriptorHeap.initialize(&device, 1);

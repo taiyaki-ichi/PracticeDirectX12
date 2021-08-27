@@ -78,13 +78,8 @@ namespace test009
 		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(1), 0, 0);
 
 
-		//
-		D3D12_CLEAR_VALUE depthClearValue{};
-		depthClearValue.DepthStencil.Depth = 1.f;
-		depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
-
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
-		depthBuffer.initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, &depthClearValue);
+		depthBuffer.initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { {1.f} });
 
 		descriptor_heap_DSV dsvDescriptorHeap{};
 		dsvDescriptorHeap.initialize(&device, 1);
@@ -102,17 +97,9 @@ namespace test009
 		//
 
 
-		//
-		D3D12_CLEAR_VALUE shadowDepthClearValue{};
-		shadowDepthClearValue.Format = DXGI_FORMAT_R32G32_FLOAT;
-		shadowDepthClearValue.Color[0] = 1.f;
-		shadowDepthClearValue.Color[1] = 1.f;
-		shadowDepthClearValue.Color[2] = 1.f;
-		shadowDepthClearValue.Color[3] = 1.f;
-
 		//float
 		shader_resource<format<component_type::FLOAT, 32, 2>, resource_flag::AllowRenderTarget> shadowMap{};
-		shadowMap.initialize(&device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, 1, 1, &shadowDepthClearValue);
+		shadowMap.initialize(&device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, 1, 1, { {1.f,1.f} });
 
 		//float
 		shader_resource<format<component_type::FLOAT, 32, 2>, resource_flag::AllowUnorderdAccess> gaussianBlurShadowMap{};
@@ -122,12 +109,8 @@ namespace test009
 		shadowMapDataConstantBuffer.initialize(&device, sizeof(ShadowMapData));
 		map(&shadowMapDataConstantBuffer, ShadowMapData{ SHADOW_MAP_EDGE,SHADOW_MAP_EDGE });
 
-		//
-		shadowDepthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
-		shadowDepthClearValue.DepthStencil.Depth = 1.f;
-
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> shadowMapDepthBuffer{};
-		shadowMapDepthBuffer.initialize(&device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, 1, 1, &shadowDepthClearValue);
+		shadowMapDepthBuffer.initialize(&device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, 1, 1, { {1.f} });
 
 		descriptor_heap_DSV shadowMapDSVDescriptorHeap{};
 		shadowMapDSVDescriptorHeap.initialize(&device, 1);
@@ -360,7 +343,7 @@ namespace test009
 			command.Barrior(&shadowMap, resource_state::RenderTarget);
 
 			command.ClearDepthView(shadowMapDSVDescriptorHeap.get_CPU_handle(), 1.f);
-			command.ClearRenderTargetView(shadowMapRTVDescriptorHeap.get_CPU_handle(), { 1,1,1,1 });
+			command.ClearRenderTargetView(shadowMapRTVDescriptorHeap.get_CPU_handle(), { 1,1 });
 			command.SetRenderTarget(shadowMapRTVDescriptorHeap.get_CPU_handle(), shadowMapDSVDescriptorHeap.get_CPU_handle());
 			command.SetViewport(shadowMapViewport);
 			command.SetScissorRect(shadowMapScissorRect);

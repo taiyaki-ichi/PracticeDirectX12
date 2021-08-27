@@ -67,7 +67,11 @@ namespace DX12
 		static constexpr std::uint32_t component_num = ComponentNum;
 	};
 
-	struct unknow_format {};
+	struct unknow_format {
+		//
+		static constexpr std::uint32_t component_size = 0;
+		static constexpr std::uint32_t component_num = 0;
+	};
 
 
 	template<typename Format>
@@ -98,7 +102,9 @@ namespace DX12
 		ID3D12Resource* resource_ptr = nullptr;
 
 		resource_state state{};
-		std::optional<D3D12_CLEAR_VALUE> clear_value{};
+
+		//
+		std::optional<std::array<float, Format::component_num>> clear_value{};
 
 	public:
 		resource() = default;
@@ -111,7 +117,8 @@ namespace DX12
 		resource& operator=(resource&&) noexcept;
 
 		//claerValue‚Í‰¼
-		void initialize(Device*, std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize, std::uint16_t mipLevels, const D3D12_CLEAR_VALUE* clearValue = nullptr);
+		void initialize(Device*, std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize,
+			std::uint16_t mipLevels, std::optional<std::array<float, Format::component_num>> clearValue = std::nullopt);
 
 		ID3D12Resource* get();
 
@@ -129,7 +136,9 @@ namespace DX12
 		}();
 
 
-		static_assert(get_resource_format<Format>());
+		//AllowDepthStencil‚ÆAllowRenderTarget‚ð2‚Â‚Æ‚àŽw’è‚·‚é‚±‚Æ‚Í‚Å‚«‚È‚¢
+		static_assert(!(flags& static_cast<D3D12_RESOURCE_FLAGS>(resource_flag::AllowDepthStencil) &&
+			flags& static_cast<D3D12_RESOURCE_FLAGS>(resource_flag::AllowRenderTarget)));
 	};
 
 
@@ -168,7 +177,7 @@ namespace DX12
 
 	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag ...Flags>
 	inline void resource<ResourceDimention, Format, HeapProperty, Flags...>::initialize(Device* device,
-		std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize, std::uint16_t mipLevels, const D3D12_CLEAR_VALUE* clearValue)
+		std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize, std::uint16_t mipLevels, std::optional<std::array<float, Format::component_num>> clearValue)
 	{
 		//‚Æ‚è‚ ‚¦‚¸
 		D3D12_HEAP_PROPERTIES heap_prop{};
@@ -188,8 +197,20 @@ namespace DX12
 		res_desc.Flags = flags;
 		res_desc.Layout = get_texture_layout<ResourceDimention>();
 
+		clear_value = clearValue;
+		D3D12_CLEAR_VALUE cv{};
 		if (clearValue)
-			clear_value = *clearValue;
+		{
+			if constexpr (flags & static_cast<D3D12_RESOURCE_FLAGS>(resource_flag::AllowDepthStencil)) {
+				cv.Format = get_depth_stencil_dxgi_format(Format::component_type, Format::component_size, Format::component_num).value();
+				cv.DepthStencil.Depth = clearValue.value()[0];
+			}
+
+			if constexpr (flags & static_cast<D3D12_RESOURCE_FLAGS>(resource_flag::AllowRenderTarget)) {
+				cv.Format = get_dxgi_format(Format::component_type, Format::component_size, Format::component_num).value();
+				std::copy(clearValue.value().begin(), clearValue.value().end(), std::begin(cv.Color));
+			}
+		}
 
 		//‚Æ‚è‚ ‚¦‚¸
 		if constexpr (HeapProperty == resource_heap_property::Upload)
@@ -205,7 +226,7 @@ namespace DX12
 			D3D12_HEAP_FLAG_NONE,
 			&res_desc,
 			static_cast<D3D12_RESOURCE_STATES>(state),
-			clearValue,
+			(clearValue) ? &cv : nullptr,
 			IID_PPV_ARGS(&resource_ptr))))
 		{
 			throw  "";

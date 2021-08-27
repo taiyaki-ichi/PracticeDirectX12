@@ -17,6 +17,6 @@ namespace DX12
 
 	void DX12::buffer_resource::initialize(Device* device, std::uint32_t size)
 	{
-		resource::initialize(device, size, 1, 1, 1, nullptr);
+		resource::initialize(device, size, 1, 1, 1);
 	}
 }

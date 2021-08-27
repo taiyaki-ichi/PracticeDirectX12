@@ -82,7 +82,7 @@ namespace DX12
 
 
 	//DepthStencil‚ÌDescriptorHeap‚ÉView‚ğì‚é‚Ég—p
-	inline constexpr std::optional<DXGI_FORMAT> get_depth_stencil_view_format(component_type componentType, std::uint8_t componentSize, std::uint8_t componentNum) {
+	inline constexpr std::optional<DXGI_FORMAT> get_depth_stencil_dxgi_format(component_type componentType, std::uint8_t componentSize, std::uint8_t componentNum) {
 
 		switch (get_format_hash(componentType,componentSize,componentNum))
 		{

@@ -59,17 +59,17 @@ namespace dev
 
 	//DepthStencilÇÃDescriptorHeapÇ…ViewÇçÏÇÈéûÇ…égóp
 	template<std::uint8_t ComponentSize, std::uint8_t component_num>
-	constexpr DXGI_FORMAT get_depth_stencil_view_format() {
+	constexpr DXGI_FORMAT get_depth_stencil_dxgi_format() {
 		static_assert(false, "invalid template argument");
 	}
 
 	template<>
-	constexpr DXGI_FORMAT get_depth_stencil_view_format<16,1>() {
+	constexpr DXGI_FORMAT get_depth_stencil_dxgi_format<16,1>() {
 		return DXGI_FORMAT_D16_UNORM;
 	}
 
 	template<>
-	constexpr DXGI_FORMAT get_depth_stencil_view_format<32, 1>() {
+	constexpr DXGI_FORMAT get_depth_stencil_dxgi_format<32, 1>() {
 		return DXGI_FORMAT_D32_FLOAT;;
 	}
 
@@ -148,7 +148,7 @@ namespace dev
 		std::uint32_t mipSlice)
 	{
 		D3D12_DEPTH_STENCIL_VIEW_DESC desc{};
-		desc.Format = get_depth_stencil_view_format<format::componentSize, format::componentNum>();
+		desc.Format = get_depth_stencil_dxgi_format<format::componentSize, format::componentNum>();
 		desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 		desc.Texture2D.MipSlice = mipSlice;
 		device->CreateDepthStencilView(resource, &desc, cpuHandle);
@@ -159,7 +159,7 @@ namespace dev
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice)
 	{
 		D3D12_DEPTH_STENCIL_VIEW_DESC desc{};
-		desc.Format = get_depth_stencil_view_format<format::componentSize, format::componentNum>();
+		desc.Format = get_depth_stencil_dxgi_format<format::componentSize, format::componentNum>();
 		desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
 		desc.Texture2DArray.ArraySize = arraySize;
 		desc.Texture2DArray.FirstArraySlice = firstArraySlice;

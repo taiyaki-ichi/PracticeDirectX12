@@ -196,14 +196,7 @@ namespace test004
 		{
 			worldConstantBuffer.initialize(device, sizeof(XMMATRIX));
 
-			D3D12_CLEAR_VALUE clearValue{};
-			clearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			clearValue.Color[0] = 0.5f;
-			clearValue.Color[1] = 0.5f;
-			clearValue.Color[2] = 0.5f;
-			clearValue.Color[3] = 1.f;
-
-			cubemapShaderResource.initialize(device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, 6, 1, &clearValue);
+			cubemapShaderResource.initialize(device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, 6, 1, { {0.5f,0.5f,0.5f,1.f} });
 
 			descriptorHeap.initialize(device, 3);
 			descriptorHeap.push_back_CBV(device, sceneConstantBufferResource, sizeof(SceneData));
@@ -354,12 +347,8 @@ namespace test004
 		MirrorObjectRenderer mirrorObjectRenderer{};
 		mirrorObjectRenderer.Initialize(&device);
 
-		D3D12_CLEAR_VALUE depthClearValue{};
-		depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
-		depthClearValue.DepthStencil.Depth = 1.f;
-
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> cubemapDepthBuffer{};
-		cubemapDepthBuffer.initialize(&device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, 6, 1, &depthClearValue);
+		cubemapDepthBuffer.initialize(&device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, 6, 1, { {1.f} });
 
 		descriptor_heap_RTV cubemapRtvDescriptorHeap{};
 		cubemapRtvDescriptorHeap.initialize(&device, 1);
@@ -367,7 +356,7 @@ namespace test004
 
 
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
-		depthBuffer.initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, &depthClearValue);
+		depthBuffer.initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { {1.f} });
 
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.initialize(&device, 2);

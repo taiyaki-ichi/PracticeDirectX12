@@ -85,17 +85,9 @@ namespace test003
 		drawNormalPipelineState.Initialize(&device, &rootSignature, { &vertexShader, &drawNormalPixelShader,&drawNormalGeometryShader },
 			{ {"POSITION", component_type::FLOAT,32,3} }, { {component_type::UNSIGNED_NORMALIZE_FLOAT,8,4} }, true, false, PrimitiveTopology::Triangle
 		);
-		
-		D3D12_CLEAR_VALUE depthClearValue{};
-		depthClearValue.DepthStencil.Depth = 1.f;
-		depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
-		depthClearValue.Color[0] = 1.f;
-		depthClearValue.Color[1] = 1.f;
-		depthClearValue.Color[2] = 1.f;
-		depthClearValue.Color[3] = 1.f;
-		
+
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
-		depthBuffer.initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, &depthClearValue);
+		depthBuffer.initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { { 1.f } });
 		
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.initialize(&device, 1);
