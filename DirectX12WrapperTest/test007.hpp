@@ -246,8 +246,8 @@ namespace test007
 
 		auto [vertexList, indexList] = GetGroundPatch();
 
-		vertex_buffer_resource vertexBuffer{};
-		vertexBuffer.initialize(&device, vertexList.size() * sizeof(Vertex), sizeof(Vertex));
+		vertex_buffer_resource<format<component_type::FLOAT,32,3>,format<component_type::FLOAT,32,2>> vertexBuffer{};
+		vertexBuffer.initialize(&device, vertexList.size());
 		map(&vertexBuffer, vertexList.begin(), vertexList.end());
 
 		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
@@ -295,7 +295,7 @@ namespace test007
 
 
 
-		vertex_buffer_resource sphereVertexBuffer{};
+		vertex_buffer_resource<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3 >> sphereVertexBuffer{};
 		index_buffer_resource<format<component_type::UINT,32,1>> sphereIndexBuffer{};
 		std::size_t sphereFaceNum{};
 		{
@@ -313,7 +313,7 @@ namespace test007
 
 			sphereFaceNum = faceList.size();
 
-			sphereVertexBuffer.initialize(&device, posNormalList.size() * sizeof(Vertex2), sizeof(Vertex2));
+			sphereVertexBuffer.initialize(&device, posNormalList.size());
 			map(&sphereVertexBuffer, posNormalList.begin(), posNormalList.end());
 
 			sphereIndexBuffer.initialize(&device, faceList.size() * 3);
@@ -379,7 +379,7 @@ namespace test007
 
 		constexpr std::size_t SNOW_NUM = 8000;
 		constexpr float SNOW_RANGE = 8.f;
-		vertex_buffer_resource snowVertexBuffer{};
+		vertex_buffer_resource<format<component_type::FLOAT,32,3>> snowVertexBuffer{};
 		{
 			std::random_device seed_gen;
 			std::default_random_engine engine(seed_gen());
@@ -388,7 +388,7 @@ namespace test007
 			v.reserve(SNOW_NUM);
 			for (std::size_t i = 0; i < SNOW_NUM; i++)
 				v.emplace_back(std::array<float, 3>{dist(engine), dist(engine), dist(engine)});
-			snowVertexBuffer.initialize(&device, sizeof(float) * 3 * SNOW_NUM, sizeof(float) * 3);
+			snowVertexBuffer.initialize(&device, SNOW_NUM);
 			map(&snowVertexBuffer, v.begin(), v.end());
 		}
 

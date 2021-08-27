@@ -49,7 +49,7 @@ namespace test004
 	{
 		std::size_t faceNum{};
 
-		vertex_buffer_resource vertexBuffer{};
+		vertex_buffer_resource<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>> vertexBuffer{};
 		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
 
 		struct Vertex {
@@ -73,7 +73,7 @@ namespace test004
 
 			faceNum = faceList.size();
 
-			vertexBuffer.initialize(device, sizeof(Vertex) * posNormalList.size() * 3, sizeof(Vertex));
+			vertexBuffer.initialize(device, posNormalList.size());
 			map(&vertexBuffer, posNormalList.begin(), posNormalList.end());
 
 			indexBuffer.initialize(device, faceList.size() * 3);

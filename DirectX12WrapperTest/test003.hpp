@@ -50,8 +50,8 @@ namespace test003
 
 		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/bunny.off");
 		
-		vertex_buffer_resource vertexBuffer{};
-		vertexBuffer.initialize(&device, sizeof(float) * vertex.size() * 3, sizeof(vertex[0]));
+		vertex_buffer_resource<format<component_type::FLOAT,32,3>> vertexBuffer{};
+		vertexBuffer.initialize(&device, vertex.size());
 		map(&vertexBuffer, vertex.begin(), vertex.end());
 		
 		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};

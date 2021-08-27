@@ -57,8 +57,8 @@ namespace test002
 			0,1,2,2,1,3
 		};
 
-		vertex_buffer_resource vertexBuffer{};
-		vertexBuffer.initialize(&device, sizeof(vertex), sizeof(vertex[0]));
+		vertex_buffer_resource<format<component_type::FLOAT,32,3>,format<component_type::FLOAT,32,2>> vertexBuffer{};
+		vertexBuffer.initialize(&device, vertex.size());
 		map(&vertexBuffer, vertex);
 
 		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};

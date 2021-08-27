@@ -140,7 +140,7 @@ namespace test009
 		//Ground
 		//
 
-		vertex_buffer_resource groundVertexBuffer{};
+		vertex_buffer_resource<format<component_type::FLOAT,32,3>> groundVertexBuffer{};
 		{
 			std::array<std::array<float, 3>, 4> vertex{ {
 				{-1.f,0.f,-1.f},
@@ -148,7 +148,7 @@ namespace test009
 				{1.f,0.f,-1.f},
 				{1.f,0.f,1.f}
 				} };
-			groundVertexBuffer.initialize(&device, sizeof(vertex), sizeof(vertex[0]));
+			groundVertexBuffer.initialize(&device, vertex.size());
 			map(&groundVertexBuffer, std::move(vertex));
 		}
 
@@ -209,7 +209,7 @@ namespace test009
 		//Bunny
 		//
 
-		vertex_buffer_resource bunnyVertexBuffer{};
+		vertex_buffer_resource<format<component_type::FLOAT,32,3>, format<component_type::FLOAT, 32, 3>> bunnyVertexBuffer{};
 		index_buffer_resource<format<component_type::UINT,32,1>> bunnyIndexBuffer{};
 		std::uint32_t bunnyIndexNum{};
 		{
@@ -227,7 +227,7 @@ namespace test009
 
 			bunnyIndexNum = faceList.size() * 3;
 
-			bunnyVertexBuffer.initialize(&device, posNormalList.size() * sizeof(BunnyVertex), sizeof(BunnyVertex));
+			bunnyVertexBuffer.initialize(&device, posNormalList.size());
 			map(&bunnyVertexBuffer, posNormalList.begin(), posNormalList.end());
 
 			bunnyIndexBuffer.initialize(&device, faceList.size() * 3);

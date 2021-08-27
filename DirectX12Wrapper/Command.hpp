@@ -77,7 +77,8 @@ namespace DX12
 		void SetScissorRect(const D3D12_RECT& rect);
 		void SetScissorRect(std::uint32_t num, D3D12_RECT* rectPtr);
 
-		void SetVertexBuffer(vertex_buffer_resource*);
+		template<typename... Formats>
+		void SetVertexBuffer(vertex_buffer_resource<Formats...>*);
 
 		template<typename Format>
 		void SetIndexBuffer(index_buffer_resource<Format>*);
@@ -377,7 +378,8 @@ namespace DX12
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::SetVertexBuffer(vertex_buffer_resource* vbr)
+	template<typename... Formats>
+	inline void Command<FrameLatencyNum>::SetVertexBuffer(vertex_buffer_resource<Formats...>* vbr)
 	{
 		list->IASetVertexBuffers(0, 1, &vbr->get_view());
 	}

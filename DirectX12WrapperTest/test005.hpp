@@ -193,8 +193,8 @@ namespace test005
 
 		auto [vertexList, indexList] = GetGroundPatch();
 
-		vertex_buffer_resource vertexBuffer{};
-		vertexBuffer.initialize(&device, vertexList.size()*sizeof(Vertex), sizeof(Vertex));
+		vertex_buffer_resource<format<component_type::FLOAT,32,3>,format<component_type::FLOAT,32,2>> vertexBuffer{};
+		vertexBuffer.initialize(&device, vertexList.size());
 		map(&vertexBuffer, vertexList.begin(), vertexList.end());
 
 		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};

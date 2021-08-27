@@ -42,8 +42,8 @@ namespace test001
 			{{-0.8f,-0.8f,0.f},{-0.8f,0.8f,0.f},{0.8f,-0.8f,0.f}}
 		};
 
-		vertex_buffer_resource vertexBuffer{};
-		vertexBuffer.initialize(&device, sizeof(vertex), sizeof(vertex[0]));
+		vertex_buffer_resource<format<component_type::FLOAT, 32, 3>> vertexBuffer{};
+		vertexBuffer.initialize(&device, vertex.size());
 		map(&vertexBuffer, vertex);
 
 		RootSignature rootSignature{};
