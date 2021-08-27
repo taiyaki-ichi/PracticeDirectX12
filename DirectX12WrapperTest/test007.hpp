@@ -508,15 +508,11 @@ namespace test007
 
 
 			//
-			command.Barrior(&depthBuffer, resource_state::DepthWrite);
-			command.Barrior(&groundDepthBuffer, resource_state::DepthWrite);
-
-
-			//
 			//sphere‚Ìdepth‚Ì•`ŽÊ
 			//
 
 			command.Barrior(&groundDepthShaderResource, resource_state::RenderTarget);
+			command.Barrior(&groundDepthBuffer, resource_state::DepthWrite);
 			command.SetViewport(depthViewport);
 			command.SetScissorRect(depthScissorRect);
 			command.ClearRenderTargetView(groundDepthRTVDescriptorHeap.get_CPU_handle(), { 0.f });
@@ -566,6 +562,7 @@ namespace test007
 			//
 
 			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
+			command.Barrior(&depthBuffer, resource_state::DepthWrite);
 
 			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
 			command.ClearDepthView(depthStencilDescriptorHeap.get_CPU_handle(), 1.f);

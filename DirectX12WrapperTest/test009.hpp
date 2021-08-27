@@ -331,16 +331,11 @@ namespace test009
 
 
 			//
-			command.Barrior(&depthBuffer, resource_state::DepthWrite);
-			command.Barrior(&shadowMapDepthBuffer, resource_state::DepthWrite);
-			
-
-
-			//
 			//ShadowMap
 			//
 
 			command.Barrior(&shadowMap, resource_state::RenderTarget);
+			command.Barrior(&shadowMapDepthBuffer, resource_state::DepthWrite);
 
 			command.ClearDepthView(shadowMapDSVDescriptorHeap.get_CPU_handle(), 1.f);
 			command.ClearRenderTargetView(shadowMapRTVDescriptorHeap.get_CPU_handle(), { 1,1 });
@@ -387,6 +382,7 @@ namespace test009
 			//
 
 			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
+			command.Barrior(&depthBuffer, resource_state::DepthWrite);
 
 			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
 			command.ClearDepthView(dsvDescriptorHeap.get_CPU_handle(), 1.f);

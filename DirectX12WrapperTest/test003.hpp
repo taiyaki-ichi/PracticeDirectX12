@@ -131,14 +131,13 @@ namespace test003
 			auto backBufferIndex = swapChain.GetCurrentBackBufferIndex();
 			command.Reset(backBufferIndex);
 
-			command.Barrior(&depthBuffer, resource_state::DepthWrite);
-
 			command.SetViewport(viewport);
 			command.SetScissorRect(scissorRect);
 
 			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
 			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
 
+			command.Barrior(&depthBuffer, resource_state::DepthWrite);
 			command.ClearDepthView(depthStencilDescriptorHeap.get_CPU_handle(), 1.f);
 
 			command.SetRenderTarget(rtvDescriptorHeap.get_CPU_handle(backBufferIndex),depthStencilDescriptorHeap.get_CPU_handle());

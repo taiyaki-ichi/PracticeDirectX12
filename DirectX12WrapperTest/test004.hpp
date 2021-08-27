@@ -403,16 +403,13 @@ namespace test004
 			auto backBufferIndex = swapChain.GetCurrentBackBufferIndex();
 			command.Reset(backBufferIndex);
 
-			//
-			command.Barrior(&depthBuffer, resource_state::DepthWrite);
-			command.Barrior(&cubemapDepthBuffer, resource_state::DepthWrite);
-
 			//Cubemap
 			{
 				command.SetViewport(cubemapViewport);
 				command.SetScissorRect(cubemapScissorRect);
 
 				command.Barrior(&mirrorObjectModel.GetCubemapShaderResource(), resource_state::RenderTarget);
+				command.Barrior(&cubemapDepthBuffer, resource_state::DepthWrite);
 
 				command.ClearRenderTargetView(cubemapRtvDescriptorHeap.get_CPU_handle(), MirrorObjectModel::CUBEMAP_CLEAR_VALUE);
 				command.ClearDepthView(depthStencilDescriptorHeap.get_CPU_handle(1), 1.f);
@@ -440,6 +437,7 @@ namespace test004
 				command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
 				command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5f,0.5f,0.5f,1.f });
 
+				command.Barrior(&depthBuffer, resource_state::DepthWrite);
 				command.ClearDepthView(depthStencilDescriptorHeap.get_CPU_handle(), 1.f);
 
 				command.SetRenderTarget(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), depthStencilDescriptorHeap.get_CPU_handle());
