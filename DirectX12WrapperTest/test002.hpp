@@ -61,8 +61,8 @@ namespace test002
 		vertexBuffer.initialize(&device, sizeof(vertex), sizeof(vertex[0]));
 		map(&vertexBuffer, vertex);
 
-		index_buffer_resource indexBuffer{};
-		indexBuffer.initialize(&device, sizeof(index), { component_type::UINT,32,1 });
+		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
+		indexBuffer.initialize(&device, index.size());
 		map(&indexBuffer, index);
 
 		int x, y, n;

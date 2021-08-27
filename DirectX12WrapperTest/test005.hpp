@@ -197,8 +197,8 @@ namespace test005
 		vertexBuffer.initialize(&device, vertexList.size()*sizeof(Vertex), sizeof(Vertex));
 		map(&vertexBuffer, vertexList.begin(), vertexList.end());
 
-		index_buffer_resource indexBuffer{};
-		indexBuffer.initialize(&device, indexList.size()*sizeof(std::uint32_t), { component_type::UINT,32,1 });
+		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
+		indexBuffer.initialize(&device, indexList.size());
 		map(&indexBuffer, indexList.begin(),indexList.end());
 
 

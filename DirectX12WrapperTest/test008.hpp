@@ -113,13 +113,13 @@ namespace test008
 			map(&groundVertexBuffer, std::move(vertex));
 		}
 
-		index_buffer_resource groundIndexBuffer{};
+		index_buffer_resource<format<component_type::UINT,32,1>> groundIndexBuffer{};
 		std::uint32_t groundIndexNum{};
 		{
 			std::array<std::uint32_t, 6> index{
 				0,1,2,2,1,3
 			};
-			groundIndexBuffer.initialize(&device, sizeof(index), { component_type::UINT,32,1 });
+			groundIndexBuffer.initialize(&device, index.size());
 			map(&groundIndexBuffer, std::move(index));
 			groundIndexNum = index.size();
 		}
@@ -167,7 +167,7 @@ namespace test008
 		//
 
 		vertex_buffer_resource bunnyVertexBuffer{};
-		index_buffer_resource bunnyIndexBuffer{};
+		index_buffer_resource<format<component_type::UINT,32,1>> bunnyIndexBuffer{};
 		std::uint32_t bunnyIndexNum{};
 		{
 			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/bun_zipper.off");
@@ -187,7 +187,7 @@ namespace test008
 			bunnyVertexBuffer.initialize(&device, posNormalList.size() * sizeof(BunnyVertex), sizeof(BunnyVertex));
 			map(&bunnyVertexBuffer, posNormalList.begin(), posNormalList.end());
 
-			bunnyIndexBuffer.initialize(&device, faceList.size() * sizeof(std::uint32_t) * 3, { component_type::UINT,32 ,1 });
+			bunnyIndexBuffer.initialize(&device, faceList.size() * 3);
 			map(&bunnyIndexBuffer, faceList.begin(), faceList.end());
 		}
 

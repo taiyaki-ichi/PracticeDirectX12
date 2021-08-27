@@ -250,8 +250,8 @@ namespace test007
 		vertexBuffer.initialize(&device, vertexList.size() * sizeof(Vertex), sizeof(Vertex));
 		map(&vertexBuffer, vertexList.begin(), vertexList.end());
 
-		index_buffer_resource indexBuffer{};
-		indexBuffer.initialize(&device, indexList.size() * sizeof(std::uint32_t), { component_type::UINT,32,1 });
+		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
+		indexBuffer.initialize(&device, indexList.size());
 		map(&indexBuffer, indexList.begin(), indexList.end());
 
 
@@ -296,7 +296,7 @@ namespace test007
 
 
 		vertex_buffer_resource sphereVertexBuffer{};
-		index_buffer_resource sphereIndexBuffer{};
+		index_buffer_resource<format<component_type::UINT,32,1>> sphereIndexBuffer{};
 		std::size_t sphereFaceNum{};
 		{
 			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/sphere.off");
@@ -316,7 +316,7 @@ namespace test007
 			sphereVertexBuffer.initialize(&device, posNormalList.size() * sizeof(Vertex2), sizeof(Vertex2));
 			map(&sphereVertexBuffer, posNormalList.begin(), posNormalList.end());
 
-			sphereIndexBuffer.initialize(&device, faceList.size() * 3 * sizeof(std::uint32_t), { component_type::UINT,32,1 });
+			sphereIndexBuffer.initialize(&device, faceList.size() * 3);
 			map(&sphereIndexBuffer, faceList.begin(), faceList.end());
 		}
 

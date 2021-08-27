@@ -54,8 +54,8 @@ namespace test003
 		vertexBuffer.initialize(&device, sizeof(float) * vertex.size() * 3, sizeof(vertex[0]));
 		map(&vertexBuffer, vertex.begin(), vertex.end());
 		
-		index_buffer_resource indexBuffer{};
-		indexBuffer.initialize(&device, sizeof(float) * face.size() * 3, { component_type::UINT,32,1 });
+		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
+		indexBuffer.initialize(&device, face.size() * 3);
 		map(&indexBuffer, face.begin(), face.end());
 
 		RootSignature rootSignature{};
