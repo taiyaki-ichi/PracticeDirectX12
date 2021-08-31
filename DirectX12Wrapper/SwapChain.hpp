@@ -1,5 +1,7 @@
 #pragma once
 #include"Resource/frame_buffer_resource.hpp"
+//
+#include"PipelineState.hpp"
 #include<array>
 #include<d3d12.h>
 #include<dxgi1_6.h>
@@ -37,6 +39,7 @@ namespace DX12
 
 		frame_buffer_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>>& GetFrameBuffer(std::uint32_t index);
 
+		using render_target_format = render_target_formats<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>>;
 	};
 
 	//

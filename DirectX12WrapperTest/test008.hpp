@@ -41,10 +41,7 @@ namespace test008
 		XMMATRIX world;
 	};
 
-	struct BunnyVertex {
-		std::array<float, 3> pos;
-		std::array<float, 3> normal;
-	};
+	using BunnyVertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>>;
 
 	constexpr std::uint32_t BUNNY_NUM = 3;
 
@@ -148,16 +145,14 @@ namespace test008
 		Shader groundShadowMapVS{};
 		groundShadowMapVS.Intialize(L"Shader/Ground3/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
 
-		PipelineState groundPipelineState{};
+		PipelineState<vertex_layout<format<component_type::FLOAT,32,3>>,decltype(swapChain)::render_target_format> groundPipelineState{};
 		groundPipelineState.Initialize(&device, &groundRootSignature, { &groundVS,&groundPS },
-			{ {"POSITION",component_type::FLOAT,32,3} }, { {component_type::UNSIGNED_NORMALIZE_FLOAT,8,4 } },
-			true, false, PrimitiveTopology::Triangle
+			{ "POSITION" }, true, false, PrimitiveTopology::Triangle
 		);
 
-		PipelineState groundShadowMapPipelineState{};
+		PipelineState<vertex_layout<format<component_type::FLOAT, 32, 3>>, render_target_formats<>> groundShadowMapPipelineState{};
 		groundShadowMapPipelineState.Initialize(&device, &groundRootSignature, { &groundShadowMapVS },
-			{ {"POSITION",component_type::FLOAT, 32,3} }, {},
-			true, false, PrimitiveTopology::Triangle
+			{ "POSITION" }, true, false, PrimitiveTopology::Triangle
 		);
 
 
@@ -174,7 +169,7 @@ namespace test008
 			//auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/sphere.off");
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
-			std::vector<BunnyVertex> posNormalList{};
+			std::vector<BunnyVertexLayout::type> posNormalList{};
 			posNormalList.reserve(vertexList.size());
 			XMFLOAT3 tmpFloat3;
 			for (std::size_t i = 0; i < vertexList.size(); i++) {
@@ -215,16 +210,15 @@ namespace test008
 		Shader bunnyShadowMapVS{};
 		bunnyShadowMapVS.Intialize(L"Shader/Bunny/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
 
-		PipelineState bunnyPipelineState{};
+		PipelineState<BunnyVertexLayout,decltype(swapChain)::render_target_format> bunnyPipelineState{};
 		bunnyPipelineState.Initialize(&device, &bunnyRootSignature, { &bunnyVS,&bunnyPS },
-			{ {"POSITION",component_type::FLOAT,32,3},{"NORMAL",component_type::FLOAT,32,3} }, { {component_type::UNSIGNED_NORMALIZE_FLOAT,8,4} },
+			{ "POSITION","NORMAL" },
 			true, false, PrimitiveTopology::Triangle
 		);
 
-		PipelineState bunnyShadowMapPipelineState{};
+		PipelineState<BunnyVertexLayout,render_target_formats<>> bunnyShadowMapPipelineState{};
 		bunnyShadowMapPipelineState.Initialize(&device, &bunnyRootSignature, { &bunnyShadowMapVS },
-			{ {"POSITION",component_type::FLOAT,32,3},{"NORMAL",component_type::FLOAT,32,3} }, {},
-			true, false, PrimitiveTopology::Triangle
+			{ "POSITION","NORMAL"},true, false, PrimitiveTopology::Triangle
 		);
 
 

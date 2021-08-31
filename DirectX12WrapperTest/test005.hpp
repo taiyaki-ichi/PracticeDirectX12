@@ -40,14 +40,12 @@ namespace test005
 		XMFLOAT4 tessRange;
 	};
 
-	struct Vertex {
-		float x, y, z;
-		float uvX, uvY;
-	};
 
-	inline std::pair<std::vector<Vertex>,std::vector<std::uint32_t>> GetGroundPatch()
+	using VertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 2>>;
+
+	inline std::pair<std::vector<VertexLayout::type>,std::vector<std::uint32_t>> GetGroundPatch()
 	{
-		std::vector<Vertex> vertexList{};
+		std::vector<VertexLayout::type> vertexList{};
 		std::vector<std::uint32_t> indexList{};
 
 		constexpr float EDGE = 200.f;
@@ -59,7 +57,7 @@ namespace test005
 			for (std::size_t x = 0; x < DIVIDE + 1; x++) {
 				auto posX = EDGE * x / DIVIDE;
 				auto posZ = EDGE * z / DIVIDE;
-				vertexList.push_back(Vertex{ posX,0.f,posZ,posX / EDGE,posZ / EDGE });
+				vertexList.push_back({ {posX,0.f,posZ},{posX / EDGE,posZ / EDGE } });
 			}
 		}
 
@@ -80,8 +78,8 @@ namespace test005
 		}
 
 		for (auto& v : vertexList) {
-			v.x -= EDGE / 2.f;
-			v.z -= EDGE / 2.f;
+			std::get<0>(v)[0] -= EDGE / 2.f;
+			std::get<0>(v)[2] -= EDGE / 2.f;
 		}
 
 		return { std::move(vertexList),std::move(indexList) };
@@ -123,10 +121,9 @@ namespace test005
 			{ StaticSamplerType::Standard }
 		);
 
-		PipelineState pipelineState{};
+		PipelineState<VertexLayout,SwapChain<2>::render_target_format> pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vs, &ps,nullptr,&hs, &ds },
-			{ {"POSITION",component_type::FLOAT,32,3},{"TEXCOOD",component_type::FLOAT,32,2} },
-			{ {component_type::UNSIGNED_NORMALIZE_FLOAT,8,4} }, true, false, PrimitiveTopology::Patch
+			{ "POSITION","TEXCOOD" }, true, false, PrimitiveTopology::Patch
 		);
 
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthStencilBufferResource{};
@@ -193,7 +190,7 @@ namespace test005
 
 		auto [vertexList, indexList] = GetGroundPatch();
 
-		vertex_buffer_resource<format<component_type::FLOAT,32,3>,format<component_type::FLOAT,32,2>> vertexBuffer{};
+		VertexLayout::resource_type vertexBuffer{};
 		vertexBuffer.initialize(&device, vertexList.size());
 		map(&vertexBuffer, vertexList.begin(), vertexList.end());
 

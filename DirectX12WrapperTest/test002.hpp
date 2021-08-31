@@ -19,10 +19,6 @@
 //テクスチャの表示をする
 namespace test002
 {
-	struct Vertex {
-		float x, y, z;
-		float u, v;
-	};
 
 	inline int main()
 	{
@@ -46,20 +42,22 @@ namespace test002
 		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(0), 0, 0);
 		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(1), 0, 0);
 
-		std::array<Vertex, 4> vertex{ {
-			{-0.8f,-0.8f,0.f,0.f,1.f},
-			{-0.8f,0.8f,0.f,0.f,0.f},
-			{0.8f,-0.8f,0.f,1.f,1.f},
-			{0.8f,0.8f,0.f,1.f,0.f}
+		using VertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 2>>;
+
+		std::array<VertexLayout::type, 4> vertex{ {
+			{{-0.8f,-0.8f,0.f},{0.f,1.f}},
+			{{-0.8f,0.8f,0.f},{0.f,0.f}},
+			{{0.8f,-0.8f,0.f},{1.f,1.f}},
+			{{0.8f,0.8f,0.f},{1.f,0.f}}
 			} };
 
 		std::array<std::uint32_t, 6> index{
 			0,1,2,2,1,3
 		};
 
-		vertex_buffer_resource<format<component_type::FLOAT,32,3>,format<component_type::FLOAT,32,2>> vertexBuffer{};
+		VertexLayout::resource_type vertexBuffer{};
 		vertexBuffer.initialize(&device, vertex.size());
-		map(&vertexBuffer, vertex);
+		map(&vertexBuffer, vertex.begin(),vertex.end());
 
 		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
 		indexBuffer.initialize(&device, index.size());
@@ -100,10 +98,10 @@ namespace test002
 		Shader pixelShader{};
 		pixelShader.Intialize(L"Shader/PixelShader002.hlsl", "main", "ps_5_0");
 
-		PipelineState pipelineState{};
+		PipelineState<VertexLayout,SwapChain<2>::render_target_format> pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
-			{ {"POSITION", component_type::FLOAT,32,3} ,{"TEXCOOD",component_type::FLOAT ,32,2} },
-			{ {component_type::UNSIGNED_NORMALIZE_FLOAT,8,4} }, false, false, PrimitiveTopology::Triangle
+			{ "POSITION", "TEXCOOD" }
+			, false, false, PrimitiveTopology::Triangle
 		);
 
 

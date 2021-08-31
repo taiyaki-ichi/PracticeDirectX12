@@ -37,8 +37,9 @@ namespace test001
 		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(0), 0, 0);
 		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(1), 0, 0);
 
-		
-		std::array<std::array<float, 3>, 3> vertex{
+		using VertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>>;
+
+		std::array<VertexLayout::type, 3> vertex{
 			{{-0.8f,-0.8f,0.f},{-0.8f,0.8f,0.f},{0.8f,-0.8f,0.f}}
 		};
 
@@ -55,9 +56,9 @@ namespace test001
 		Shader pixelShader{};
 		pixelShader.Intialize(L"Shader/PixelShader001.hlsl", "main", "ps_5_0");
 
-		PipelineState pipelineState{};
+		PipelineState<VertexLayout,SwapChain<2>::render_target_format> pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
-			{ {"POSITION", component_type::FLOAT,32,3} }, { {component_type::UNSIGNED_NORMALIZE_FLOAT,8,4} }, false, false, PrimitiveTopology::Triangle
+			{ "POSITION" }, false, false, PrimitiveTopology::Triangle
 		);
 
 

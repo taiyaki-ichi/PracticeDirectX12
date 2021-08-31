@@ -45,17 +45,15 @@ namespace test004
 
 	constexpr std::size_t FRAME_LATENCY_NUM = 2;
 
+	using MeshVertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>>;
+
 	class Mesh
 	{
 		std::size_t faceNum{};
 
-		vertex_buffer_resource<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>> vertexBuffer{};
+		MeshVertexLayout::resource_type vertexBuffer{};
 		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
 
-		struct Vertex {
-			std::array<float, 3> pos;
-			std::array<float, 3> normal;
-		};
 
 	public:
 		void Initialize(Device* device,const char* fileName)
@@ -63,7 +61,7 @@ namespace test004
 			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>(fileName);
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
-			std::vector<Vertex> posNormalList{};
+			std::vector<MeshVertexLayout::type> posNormalList{};
 			posNormalList.reserve(vertexList.size());
 			XMFLOAT3 tmpFloat3;
 			for (std::size_t i = 0; i < vertexList.size(); i++) {
@@ -129,8 +127,8 @@ namespace test004
 	class ColorObjectRenderer
 	{
 		RootSignature rootSignature{};
-		PipelineState standerdPipelineState{};
-		PipelineState cubemapPipelineState{};
+		PipelineState<MeshVertexLayout, SwapChain<2>::render_target_format> standerdPipelineState{};
+		PipelineState<MeshVertexLayout, SwapChain<2>::render_target_format> cubemapPipelineState{};
 
 	public:
 		void Initialize(Device* device)
@@ -148,8 +146,7 @@ namespace test004
 				ps.Intialize(L"Shader/ColorObject/PixelShader.hlsl", "main", "ps_5_0");
 
 				standerdPipelineState.Initialize(device, &rootSignature, { &vs, &ps },
-					{ {"POSITION", component_type::FLOAT,32,3 },{"NORMAL",component_type::FLOAT,32,3 } },
-					{ {component_type::UNSIGNED_NORMALIZE_FLOAT,8,4} }, true, false, PrimitiveTopology::Triangle
+					{ "POSITION","NORMAL" }, true, false, PrimitiveTopology::Triangle
 				);
 			}
 
@@ -164,16 +161,15 @@ namespace test004
 				ps.Intialize(L"Shader/ColorObjectForCubemap/PixelShader.hlsl", "main", "ps_5_0");
 
 				cubemapPipelineState.Initialize(device, &rootSignature, { &vs, &ps,&gs },
-					{ {"POSITION", component_type::FLOAT,32,3 } ,{"NORMAL",component_type::FLOAT,32,3 } },
-					{ {component_type::UNSIGNED_NORMALIZE_FLOAT,8,4} }, true, false, PrimitiveTopology::Triangle
+					{ "POSITION","NORMAL" }, true, false, PrimitiveTopology::Triangle
 				);
 			}
 		}
 
-		PipelineState& GetStanderdPipelineState() noexcept {
+		auto& GetStanderdPipelineState() noexcept {
 			return standerdPipelineState;
 		}
-		PipelineState& GetCubemapPipelineState() noexcept {
+		auto& GetCubemapPipelineState() noexcept {
 			return cubemapPipelineState;
 		}
 		RootSignature& GetRootSignature() noexcept {
@@ -224,7 +220,7 @@ namespace test004
 	class MirrorObjectRenderer
 	{
 		RootSignature rootSignature{};
-		PipelineState pipelineState{};
+		PipelineState<MeshVertexLayout,SwapChain<2>::render_target_format> pipelineState{};
 
 	public:
 		void Initialize(Device* device)
@@ -241,15 +237,14 @@ namespace test004
 			ps.Intialize(L"Shader/MirrorObject/PixelShader.hlsl", "main", "ps_5_0");
 
 			pipelineState.Initialize(device, &rootSignature, { &vs, &ps },
-				{ {"POSITION", component_type::FLOAT,32,3 },{"NORMAL",component_type::FLOAT,32,3 } },
-				{ {component_type::UNSIGNED_NORMALIZE_FLOAT,8,4} }, true, false, PrimitiveTopology::Triangle
+				{ "POSITION", "NORMAL" }, true, false, PrimitiveTopology::Triangle
 			);
 		}
 
-		PipelineState& GetPipelineState() noexcept {
+		auto& GetPipelineState() noexcept {
 			return pipelineState;
 		}
-		RootSignature& GetRootSignature() noexcept {
+		auto& GetRootSignature() noexcept {
 			return rootSignature;
 		}
 	};

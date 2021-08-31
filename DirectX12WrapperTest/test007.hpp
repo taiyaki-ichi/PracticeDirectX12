@@ -49,15 +49,8 @@ namespace test007
 		XMMATRIX world;
 	};
 
-	struct Vertex {
-		float x, y, z;
-		float uvX, uvY;
-	};
-
-	struct Vertex2 {
-		std::array<float, 3> pos;
-		std::array<float, 3> normal;
-	};
+	using VertexLayout1 = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 2>>;
+	using VertexLayout2 = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>>;
 
 	struct SphereData {
 		std::array<XMMATRIX, 2> world;
@@ -77,9 +70,9 @@ namespace test007
 
 	constexpr std::size_t FRAME_BUFFER_NUM = 3;
 
-	inline std::pair<std::vector<Vertex>, std::vector<std::uint32_t>> GetGroundPatch()
+	inline std::pair<std::vector<VertexLayout1::type>, std::vector<std::uint32_t>> GetGroundPatch()
 	{
-		std::vector<Vertex> vertexList{};
+		std::vector<VertexLayout1::type> vertexList{};
 		std::vector<std::uint32_t> indexList{};
 
 		constexpr std::size_t DIVIDE = 10;
@@ -90,7 +83,7 @@ namespace test007
 			for (std::size_t x = 0; x < DIVIDE + 1; x++) {
 				auto posX = GROUND_EDGE * x / DIVIDE;
 				auto posZ = GROUND_EDGE * z / DIVIDE;
-				vertexList.push_back(Vertex{ posX,0.f,posZ,posX / GROUND_EDGE,posZ / GROUND_EDGE });
+				vertexList.push_back({ { posX,0.f,posZ},{posX / GROUND_EDGE,posZ / GROUND_EDGE} });
 			}
 		}
 
@@ -111,8 +104,8 @@ namespace test007
 		}
 
 		for (auto& v : vertexList) {
-			v.x -= GROUND_EDGE / 2.f;
-			v.z -= GROUND_EDGE / 2.f;
+			std::get<0>(v)[0] -= GROUND_EDGE / 2.f;
+			std::get<0>(v)[2] -= GROUND_EDGE / 2.f;
 		}
 
 		return { std::move(vertexList),std::move(indexList) };
@@ -168,10 +161,9 @@ namespace test007
 			{ StaticSamplerType::Standard }
 		);
 
-		PipelineState groundPipelineState{};
+		PipelineState<VertexLayout1,decltype(swapChain)::render_target_format> groundPipelineState{};
 		groundPipelineState.Initialize(&device, &groundRootSignature, { &groundVS, &grooundPS ,nullptr,&groundHS, &groundDS },
-			{ {"POSITION",component_type::FLOAT,32,3},{"TEXCOOD",component_type::FLOAT,32,2} },
-			{ {component_type::UNSIGNED_NORMALIZE_FLOAT ,8,4 } }, true, false, PrimitiveTopology::Patch
+			{ "POSITION","TEXCOOD" }, true, false, PrimitiveTopology::Patch
 		);
 
 
@@ -246,7 +238,7 @@ namespace test007
 
 		auto [vertexList, indexList] = GetGroundPatch();
 
-		vertex_buffer_resource<format<component_type::FLOAT,32,3>,format<component_type::FLOAT,32,2>> vertexBuffer{};
+		VertexLayout1::resource_type vertexBuffer{};
 		vertexBuffer.initialize(&device, vertexList.size());
 		map(&vertexBuffer, vertexList.begin(), vertexList.end());
 
@@ -273,7 +265,8 @@ namespace test007
 			{}
 		);
 
-		PipelineState computeHeightPipelineState{};
+		//
+		PipelineState<VertexLayout1,decltype(swapChain)::render_target_format> computeHeightPipelineState{};
 		computeHeightPipelineState.Initialize(&device, &computeHeightRootSignature, &computeHeightCS);
 
 		descriptor_heap_CBV_SRV_UAV computeNormalDescriptorHeap{};
@@ -290,7 +283,8 @@ namespace test007
 			{}
 		);
 
-		PipelineState computeNormalPipelineState{};
+		//
+		PipelineState<VertexLayout1, decltype(swapChain)::render_target_format> computeNormalPipelineState{};
 		computeNormalPipelineState.Initialize(&device, &computeNormalRootSignature, &computeNormalCS);
 
 
@@ -303,7 +297,7 @@ namespace test007
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
 
-			std::vector<Vertex2> posNormalList{};
+			std::vector<VertexLayout2::type> posNormalList{};
 			posNormalList.reserve(vertexList.size());
 			XMFLOAT3 tmpFloat3;
 			for (std::size_t i = 0; i < vertexList.size(); i++) {
@@ -357,16 +351,14 @@ namespace test007
 			{}
 		);
 
-		PipelineState spherePipelineState{};
+		PipelineState<VertexLayout2,decltype(swapChain)::render_target_format> spherePipelineState{};
 		spherePipelineState.Initialize(&device, &sphereRootSignature, { &sphereVS, &spherePS },
-			{ {"POSITION",component_type::FLOAT,32,3},{"NORMAL",component_type::FLOAT,32,3} },
-			{ {component_type::UNSIGNED_NORMALIZE_FLOAT,8,4} }, true, false, PrimitiveTopology::Triangle
+			{ "POSITION","NORMAL" }, true, false, PrimitiveTopology::Triangle
 		);
 
-		PipelineState sphereDepthPipelineState{};
+		PipelineState<VertexLayout2,render_target_formats<format<component_type::FLOAT,32,1>>> sphereDepthPipelineState{};
 		sphereDepthPipelineState.Initialize(&device, &sphereRootSignature, { &sphereDepthVS, &sphereDepthPS },
-			{ {"POSITION",component_type::FLOAT,32,3},{"NORMAL",component_type::FLOAT,32,3 } },
-			{ {component_type::FLOAT,32,1} }, true, false, PrimitiveTopology::Triangle
+			{ "POSITION","NORMAL" }, true, false, PrimitiveTopology::Triangle
 		);
 
 
@@ -440,10 +432,9 @@ namespace test007
 		Shader snowGS{};
 		snowGS.Intialize(L"Shader/Snow/GeometryShader.hlsl", "main", "gs_5_1");
 
-		PipelineState snowPipelineState{};
+		PipelineState<vertex_layout<format<component_type::FLOAT,32,3>>,decltype(swapChain)::render_target_format> snowPipelineState{};
 		snowPipelineState.Initialize(&device, &snowRootSignature, { &snowVS, &snowPS,&snowGS },
-			{ {"POSITION",component_type::FLOAT,32,3} }, { {component_type::UNSIGNED_NORMALIZE_FLOAT,8,4} },
-			false, true, PrimitiveTopology::PointList
+			{ "POSITION" }, false, true, PrimitiveTopology::PointList
 		);
 
 

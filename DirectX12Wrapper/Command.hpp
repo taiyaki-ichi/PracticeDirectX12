@@ -63,8 +63,8 @@ namespace DX12
 
 		void Close();
 
-
-		void SetPipelineState(PipelineState*);
+		template<typename VertexLayout,typename RenderTargetFormats>
+		void SetPipelineState(PipelineState<VertexLayout,RenderTargetFormats>*);
 
 		//OMSetRenderTargetsの最適化について、どのターゲットのViewもおなじディスクリプタヒープ連続して生成されていないとみなしている
 		void SetRenderTarget(std::optional<D3D12_CPU_DESCRIPTOR_HANDLE> renderTargetHandle, std::optional<D3D12_CPU_DESCRIPTOR_HANDLE> depthStencilHandle = std::nullopt);
@@ -325,7 +325,8 @@ namespace DX12
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::SetPipelineState(PipelineState* ps)
+	template<typename VertexLayout, typename RenderTargetFormats>
+	inline void Command<FrameLatencyNum>::SetPipelineState(PipelineState<VertexLayout,RenderTargetFormats>* ps)
 	{
 		list->SetPipelineState(ps->Get());
 	}

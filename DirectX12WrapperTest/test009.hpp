@@ -41,10 +41,16 @@ namespace test009
 		XMMATRIX world;
 	};
 
+	/*
 	struct BunnyVertex {
 		std::array<float, 3> pos;
 		std::array<float, 3> normal;
 	};
+	*/
+	
+	using BunnyVertex = std::tuple<std::array<float, 3>, std::array<float, 3>>;
+
+	using BunnyVertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>>;
 
 	constexpr std::uint32_t BUNNY_NUM = 3;
 
@@ -132,7 +138,8 @@ namespace test009
 		RootSignature computeGaussianBlurRootSignature{};
 		computeGaussianBlurRootSignature.Initialize(&device, { {DescriptorRangeType::SRV,DescriptorRangeType::UAV,DescriptorRangeType::CBV} }, {});
 
-		PipelineState computeGaussianBlurPipelineState{};
+		//
+		PipelineState<BunnyVertexLayout,render_target_formats<>> computeGaussianBlurPipelineState{};
 		computeGaussianBlurPipelineState.Initialize(&device, &computeGaussianBlurRootSignature, &computeGaussianCS);
 
 
@@ -191,16 +198,14 @@ namespace test009
 		Shader groundShadowMapPS{};
 		groundShadowMapPS.Intialize(L"Shader/Ground4/ShadowMapPixelShader.hlsl", "main", "ps_5_1");
 
-		PipelineState groundPipelineState{};
+		PipelineState<vertex_layout<format<component_type::FLOAT,32,3>>,decltype(swapChain)::render_target_format> groundPipelineState{};
 		groundPipelineState.Initialize(&device, &groundRootSignature, { &groundVS,&groundPS },
-			{ {"POSITION",component_type::FLOAT,32,3} }, { {component_type::UNSIGNED_NORMALIZE_FLOAT,8,4 } },
-			true, false, PrimitiveTopology::Triangle
+			{ "POSITION",},true, false, PrimitiveTopology::Triangle
 		);
 
-		PipelineState groundShadowMapPipelineState{};
+		PipelineState<vertex_layout<format<component_type::FLOAT, 32, 3>>, render_target_formats<format<component_type::FLOAT, 32, 2>>> groundShadowMapPipelineState{};
 		groundShadowMapPipelineState.Initialize(&device, &groundRootSignature, { &groundShadowMapVS,&groundShadowMapPS },
-			{ {"POSITION",component_type::FLOAT,32,3} }, { {component_type::FLOAT,32,2} },
-			true, false, PrimitiveTopology::Triangle
+			{ "POSITION" }, true, false, PrimitiveTopology::Triangle
 		);
 
 
@@ -262,16 +267,14 @@ namespace test009
 		Shader bunnyShadowMapPS{};
 		bunnyShadowMapPS.Intialize(L"Shader/Bunny2/ShadowMapPixelShader.hlsl", "main", "ps_5_1");
 
-		PipelineState bunnyPipelineState{};
+		PipelineState<BunnyVertexLayout,decltype(swapChain)::render_target_format> bunnyPipelineState{};
 		bunnyPipelineState.Initialize(&device, &bunnyRootSignature, { &bunnyVS,&bunnyPS },
-			{ {"POSITION",component_type::FLOAT,32,3},{"NORMAL",component_type::FLOAT,32,3} }, { {component_type::UNSIGNED_NORMALIZE_FLOAT,8,4} },
-			true, false, PrimitiveTopology::Triangle
+			{ "POSITION","NORMAL" }, true, false, PrimitiveTopology::Triangle
 		);
 
-		PipelineState bunnyShadowMapPipelineState{};
+		PipelineState<BunnyVertexLayout,render_target_formats<format<component_type::FLOAT,32,2>>> bunnyShadowMapPipelineState{};
 		bunnyShadowMapPipelineState.Initialize(&device, &bunnyRootSignature, { &bunnyShadowMapVS ,&bunnyShadowMapPS },
-			{ {"POSITION",component_type::FLOAT,32,3},{"NORMAL",component_type::FLOAT,32,3} }, { {component_type::FLOAT,32,2} },
-			true, false, PrimitiveTopology::Triangle
+			{ "POSITION","NORMAL" }, true, false, PrimitiveTopology::Triangle
 		);
 
 

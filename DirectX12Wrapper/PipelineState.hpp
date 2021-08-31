@@ -4,15 +4,69 @@
 #include"Shader.hpp"
 #include"Device.hpp"
 #include"PrimitiveTopology.hpp"
+#include"Resource/vertex_buffer_resource.hpp"
 #include<d3d12.h>
 #include<dxgi1_6.h>
 #include<vector>
+#include<array>
 
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
 
 namespace DX12
 {
+	template<component_type Type,std::uint32_t Size,std::uint32_t Num>
+	struct converte_format {
+		//static_assert(false);
+		using type;
+	};
+
+	template<std::uint32_t Num>
+	struct converte_format<component_type::FLOAT, 32, Num> {
+		using type = std::array<float, Num>;
+	};
+
+	template<std::uint32_t Num>
+	struct converte_format<component_type::UINT, 32, Num> {
+		using type = std::array<std::uint32_t, Num>;
+	};
+
+	template<std::uint32_t Num>
+	struct converte_format<component_type::UINT, 16, Num> {
+		using type = std::array<std::uint16_t, Num>;
+	};
+
+	template<std::uint32_t Num>
+	struct converte_format<component_type::UINT, 8, Num> {
+		using type = std::array<std::uint8_t, Num>;
+	};
+
+	template<std::size_t Num,typename... Formats>
+	struct vertex_layout_format_type {
+		using type = std::tuple<typename converte_format<Formats::component_type, Formats::component_size, Formats::component_num>::type...>;
+	};
+
+	template<typename Formats>
+	struct vertex_layout_format_type<1,Formats> {
+		using type = typename converte_format<Formats::component_type, Formats::component_size, Formats::component_num>::type;
+	};
+
+	template<typename... Formats>
+	struct vertex_layout
+	{
+		constexpr static std::size_t format_num = sizeof...(Formats);
+		using format_tuple = std::tuple<Formats...>;
+		using type = typename vertex_layout_format_type<sizeof...(Formats), Formats...>::type;
+		using resource_type = vertex_buffer_resource<Formats...>;
+	};
+
+	template<typename... Formats>
+	struct render_target_formats 
+	{
+		constexpr static std::size_t format_num = sizeof...(Formats);
+		using format_tuple = std::tuple<Formats...>;
+	};
+
 	struct ShaderDesc {
 		Shader* vertexShader = nullptr;
 		Shader* pixcelShader = nullptr;
@@ -21,14 +75,40 @@ namespace DX12
 		Shader* domainShader = nullptr;
 	};
 
-	struct vertex_layout
+	template<std::size_t I, typename VertexLayout>
+	inline constexpr void get_input_element_desc_impl(std::array<const char*, VertexLayout::format_num>& vertexName,
+		std::array<D3D12_INPUT_ELEMENT_DESC, VertexLayout::format_num>& result)
 	{
-		const char* name;
-		component_type type;
-		std::uint32_t size;
-		std::uint32_t num;
-	};
+		result[I].SemanticName = vertexName[I];
+		result[I].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+		result[I].InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
 
+		using Format = std::remove_reference_t<decltype(std::get<I>(std::declval<typename VertexLayout::format_tuple>()))>;
+		result[I].Format = get_dxgi_format(Format::component_type, Format::component_size, Format::component_num).value();
+
+		if constexpr (I + 1 < VertexLayout::format_num)
+			get_input_element_desc_impl<I + 1, VertexLayout>(vertexName, result);
+	}
+	
+	template<typename VertexLayout>
+	inline constexpr std::array<D3D12_INPUT_ELEMENT_DESC, VertexLayout::format_num> get_input_element_desc(std::array<const char*, VertexLayout::format_num>& vertexName)
+	{
+		std::array<D3D12_INPUT_ELEMENT_DESC, VertexLayout::format_num> result{};
+		get_input_element_desc_impl<0, VertexLayout>(vertexName, result);
+		return result;
+	}
+
+	template<std::size_t I, typename RenderTargetFormats>
+	inline constexpr void get_render_target_format(DXGI_FORMAT (&result)[8] )
+	{
+		using Format = std::remove_reference_t<decltype(std::get<I>(std::declval<typename RenderTargetFormats::format_tuple>()))>;
+		result[I] = get_dxgi_format(Format::component_type, Format::component_size, Format::component_num).value();
+
+		if constexpr (I + 1 < RenderTargetFormats::format_num)
+			get_render_target_format<I + 1, RenderTargetFormats>(result);
+	}
+
+	template<typename VertexLayout,typename ResnderTargetFormats>
 	class PipelineState
 	{
 		ID3D12PipelineState* pipelineState = nullptr;
@@ -44,7 +124,7 @@ namespace DX12
 		PipelineState& operator=(PipelineState&&) noexcept;
 
 		void Initialize(Device*, RootSignature*, ShaderDesc,
-			const std::vector<vertex_layout>& vertexLayouts, const std::vector<dynamic_format>& renderTargetFormats,
+			std::array<const char*,VertexLayout::format_num> vertexName,
 			bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology
 		);
 
@@ -60,23 +140,28 @@ namespace DX12
 	//
 	//
 
-	PipelineState::~PipelineState() {
+	template<typename VertexLayout, typename ResnderTargetFormats>
+	PipelineState<VertexLayout,ResnderTargetFormats>::~PipelineState() {
 		if (pipelineState)
 			pipelineState->Release();
 	}
 
-	inline PipelineState::PipelineState(PipelineState&& rhs) noexcept {
+	template<typename VertexLayout, typename ResnderTargetFormats>
+	inline PipelineState<VertexLayout, ResnderTargetFormats>::PipelineState(PipelineState&& rhs) noexcept {
 		pipelineState = rhs.pipelineState;
 		rhs.pipelineState = nullptr;
 	}
-	inline PipelineState& PipelineState::operator=(PipelineState&& rhs) noexcept {
+
+	template<typename VertexLayout, typename ResnderTargetFormats>
+	inline PipelineState<VertexLayout, ResnderTargetFormats>& PipelineState<VertexLayout, ResnderTargetFormats>::operator=(PipelineState&& rhs) noexcept {
 		pipelineState = rhs.pipelineState;
 		rhs.pipelineState = nullptr;
 		return *this;
 	}
 
-	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, ShaderDesc shaderDesc, const std::vector<vertex_layout>& vertexLayouts, 
-		const std::vector<dynamic_format>& renderTargetFormats, bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology)
+	template<typename VertexLayout, typename ResnderTargetFormats>
+	inline void PipelineState<VertexLayout, ResnderTargetFormats>::Initialize(Device* device, RootSignature* rootSignature, ShaderDesc shaderDesc, 
+		std::array<const char*, VertexLayout::format_num> vertexName, bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology)
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineDesc{};
 
@@ -101,15 +186,7 @@ namespace DX12
 			graphicsPipelineDesc.DS.BytecodeLength = shaderDesc.domainShader->Get()->GetBufferSize();
 		}
 
-		std::vector<D3D12_INPUT_ELEMENT_DESC> inputElementDescs(vertexLayouts.size(), D3D12_INPUT_ELEMENT_DESC{});
-		std::uint32_t alignedByteOffset = 0;
-		for (std::uint32_t i = 0; i < vertexLayouts.size(); i++)
-		{
-			inputElementDescs[i].SemanticName = vertexLayouts[i].name;
-			inputElementDescs[i].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-			inputElementDescs[i].InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-			inputElementDescs[i].Format = get_dxgi_format(vertexLayouts[i].type, vertexLayouts[i].size, vertexLayouts[i].num).value();
-		}
+		auto inputElementDescs = get_input_element_desc<VertexLayout>(vertexName);
 
 		graphicsPipelineDesc.InputLayout.pInputElementDescs = inputElementDescs.data();
 		graphicsPipelineDesc.InputLayout.NumElements = inputElementDescs.size();
@@ -165,10 +242,9 @@ namespace DX12
 
 		graphicsPipelineDesc.BlendState = blendDesc;
 
-
-		graphicsPipelineDesc.NumRenderTargets = renderTargetFormats.size();
-		for (std::uint32_t i = 0; i < renderTargetFormats.size(); i++)
-			graphicsPipelineDesc.RTVFormats[i] = get_dxgi_format(renderTargetFormats[i].type, renderTargetFormats[i].size, renderTargetFormats[i].num).value();
+		graphicsPipelineDesc.NumRenderTargets = ResnderTargetFormats::format_num;
+		if constexpr (ResnderTargetFormats::format_num > 0)
+			get_render_target_format<0, ResnderTargetFormats>(graphicsPipelineDesc.RTVFormats);
 
 
 		//デプスステンシル
@@ -196,8 +272,8 @@ namespace DX12
 
 	}
 
-
-	inline void PipelineState::Initialize(Device* device, RootSignature* rootSignature, Shader* computeShader)
+	template<typename VertexLayout, typename ResnderTargetFormats>
+	inline void PipelineState<VertexLayout, ResnderTargetFormats>::Initialize(Device* device, RootSignature* rootSignature, Shader* computeShader)
 	{
 		D3D12_COMPUTE_PIPELINE_STATE_DESC computePipelineDesc{};
 		computePipelineDesc.CS.pShaderBytecode = computeShader->Get()->GetBufferPointer();
@@ -208,7 +284,8 @@ namespace DX12
 			throw "";
 	}
 
-	inline ID3D12PipelineState* PipelineState::Get() const noexcept
+	template<typename VertexLayout, typename ResnderTargetFormats>
+	inline ID3D12PipelineState* PipelineState<VertexLayout, ResnderTargetFormats>::Get() const noexcept
 	{
 		return pipelineState;
 	}
