@@ -52,7 +52,7 @@ namespace test006
 		);
 
 		//
-		PipelineState<VertexLayout,SwapChain<2>::render_target_format> computePipelineState{};
+		compute_pipeline_state computePipelineState{};
 		computePipelineState.Initialize(&device, &computeRootsignature, &cs);
 
 		int x, y, n;
@@ -134,7 +134,7 @@ namespace test006
 		Shader pixelShader{};
 		pixelShader.Intialize(L"Shader/PixelShader002.hlsl", "main", "ps_5_0");
 
-		PipelineState<VertexLayout,SwapChain<2>::render_target_format> pipelineState{};
+		graphics_pipeline_state<VertexLayout,SwapChain<2>::render_target_format> pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
 			{ "POSITION","TEXCOOD" }, false, false, PrimitiveTopology::Triangle
 		);

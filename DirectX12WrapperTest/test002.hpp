@@ -98,7 +98,7 @@ namespace test002
 		Shader pixelShader{};
 		pixelShader.Intialize(L"Shader/PixelShader002.hlsl", "main", "ps_5_0");
 
-		PipelineState<VertexLayout,SwapChain<2>::render_target_format> pipelineState{};
+		graphics_pipeline_state<VertexLayout,SwapChain<2>::render_target_format> pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
 			{ "POSITION", "TEXCOOD" }
 			, false, false, PrimitiveTopology::Triangle

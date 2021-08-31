@@ -15,6 +15,14 @@
 
 namespace DX12
 {
+
+	enum class semantics
+	{
+		POSITION,
+		NORMAl,
+		TEXDOORD,
+	};
+
 	template<component_type Type,std::uint32_t Size,std::uint32_t Num>
 	struct converte_format {
 		//static_assert(false);
@@ -108,31 +116,51 @@ namespace DX12
 			get_render_target_format<I + 1, RenderTargetFormats>(result);
 	}
 
+
+
 	template<typename VertexLayout,typename ResnderTargetFormats>
-	class PipelineState
+	class graphics_pipeline_state
 	{
 		ID3D12PipelineState* pipelineState = nullptr;
 
 	public:
-		PipelineState() = default;
-		~PipelineState();
+		graphics_pipeline_state() = default;
+		~graphics_pipeline_state();
 
-		PipelineState(const  PipelineState&) = delete;
-		PipelineState& operator=(const PipelineState&) = delete;
+		graphics_pipeline_state(const  graphics_pipeline_state&) = delete;
+		graphics_pipeline_state& operator=(const graphics_pipeline_state&) = delete;
 
-		PipelineState(PipelineState&&) noexcept;
-		PipelineState& operator=(PipelineState&&) noexcept;
+		graphics_pipeline_state(graphics_pipeline_state&&) noexcept;
+		graphics_pipeline_state& operator=(graphics_pipeline_state&&) noexcept;
 
 		void Initialize(Device*, RootSignature*, ShaderDesc,
 			std::array<const char*,VertexLayout::format_num> vertexName,
 			bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology
 		);
 
+		ID3D12PipelineState* Get() const noexcept;
+
+	};
+
+
+	class compute_pipeline_state
+	{
+		ID3D12PipelineState* pipelineState = nullptr;
+
+	public:
+		compute_pipeline_state() = default;
+		~compute_pipeline_state();
+
+		compute_pipeline_state(const  compute_pipeline_state&) = delete;
+		compute_pipeline_state& operator=(const compute_pipeline_state&) = delete;
+
+		compute_pipeline_state(compute_pipeline_state&&) noexcept;
+		compute_pipeline_state& operator=(compute_pipeline_state&&) noexcept;
+
 		//コンピュートシェーダ用のパイプライン生成
 		void Initialize(Device*, RootSignature*, Shader* computeShader);
 
 		ID3D12PipelineState* Get() const noexcept;
-
 	};
 
 
@@ -141,26 +169,26 @@ namespace DX12
 	//
 
 	template<typename VertexLayout, typename ResnderTargetFormats>
-	PipelineState<VertexLayout,ResnderTargetFormats>::~PipelineState() {
+	graphics_pipeline_state<VertexLayout,ResnderTargetFormats>::~graphics_pipeline_state() {
 		if (pipelineState)
 			pipelineState->Release();
 	}
 
 	template<typename VertexLayout, typename ResnderTargetFormats>
-	inline PipelineState<VertexLayout, ResnderTargetFormats>::PipelineState(PipelineState&& rhs) noexcept {
+	inline graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::graphics_pipeline_state(graphics_pipeline_state&& rhs) noexcept {
 		pipelineState = rhs.pipelineState;
 		rhs.pipelineState = nullptr;
 	}
 
 	template<typename VertexLayout, typename ResnderTargetFormats>
-	inline PipelineState<VertexLayout, ResnderTargetFormats>& PipelineState<VertexLayout, ResnderTargetFormats>::operator=(PipelineState&& rhs) noexcept {
+	inline graphics_pipeline_state<VertexLayout, ResnderTargetFormats>& graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::operator=(graphics_pipeline_state&& rhs) noexcept {
 		pipelineState = rhs.pipelineState;
 		rhs.pipelineState = nullptr;
 		return *this;
 	}
 
 	template<typename VertexLayout, typename ResnderTargetFormats>
-	inline void PipelineState<VertexLayout, ResnderTargetFormats>::Initialize(Device* device, RootSignature* rootSignature, ShaderDesc shaderDesc, 
+	inline void graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::Initialize(Device* device, RootSignature* rootSignature, ShaderDesc shaderDesc, 
 		std::array<const char*, VertexLayout::format_num> vertexName, bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology)
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineDesc{};
@@ -273,7 +301,31 @@ namespace DX12
 	}
 
 	template<typename VertexLayout, typename ResnderTargetFormats>
-	inline void PipelineState<VertexLayout, ResnderTargetFormats>::Initialize(Device* device, RootSignature* rootSignature, Shader* computeShader)
+	inline ID3D12PipelineState* graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::Get() const noexcept
+	{
+		return pipelineState;
+	}
+
+	compute_pipeline_state::~compute_pipeline_state()
+	{
+		if (pipelineState)
+			pipelineState->Release();
+	}
+
+	inline compute_pipeline_state::compute_pipeline_state(compute_pipeline_state&& rhs) noexcept
+	{
+		pipelineState = rhs.pipelineState;
+		rhs.pipelineState = nullptr;
+	}
+
+	inline compute_pipeline_state& compute_pipeline_state::operator=(compute_pipeline_state&& rhs) noexcept
+	{
+		pipelineState = rhs.pipelineState;
+		rhs.pipelineState = nullptr;
+		return *this;
+	}
+
+	inline void compute_pipeline_state::Initialize(Device* device, RootSignature* rootSignature, Shader* computeShader)
 	{
 		D3D12_COMPUTE_PIPELINE_STATE_DESC computePipelineDesc{};
 		computePipelineDesc.CS.pShaderBytecode = computeShader->Get()->GetBufferPointer();
@@ -284,8 +336,7 @@ namespace DX12
 			throw "";
 	}
 
-	template<typename VertexLayout, typename ResnderTargetFormats>
-	inline ID3D12PipelineState* PipelineState<VertexLayout, ResnderTargetFormats>::Get() const noexcept
+	inline ID3D12PipelineState* compute_pipeline_state::Get() const noexcept
 	{
 		return pipelineState;
 	}

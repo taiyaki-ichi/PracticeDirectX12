@@ -145,12 +145,12 @@ namespace test008
 		Shader groundShadowMapVS{};
 		groundShadowMapVS.Intialize(L"Shader/Ground3/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
 
-		PipelineState<vertex_layout<format<component_type::FLOAT,32,3>>,decltype(swapChain)::render_target_format> groundPipelineState{};
+		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT,32,3>>,decltype(swapChain)::render_target_format> groundPipelineState{};
 		groundPipelineState.Initialize(&device, &groundRootSignature, { &groundVS,&groundPS },
 			{ "POSITION" }, true, false, PrimitiveTopology::Triangle
 		);
 
-		PipelineState<vertex_layout<format<component_type::FLOAT, 32, 3>>, render_target_formats<>> groundShadowMapPipelineState{};
+		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT, 32, 3>>, render_target_formats<>> groundShadowMapPipelineState{};
 		groundShadowMapPipelineState.Initialize(&device, &groundRootSignature, { &groundShadowMapVS },
 			{ "POSITION" }, true, false, PrimitiveTopology::Triangle
 		);
@@ -210,13 +210,13 @@ namespace test008
 		Shader bunnyShadowMapVS{};
 		bunnyShadowMapVS.Intialize(L"Shader/Bunny/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
 
-		PipelineState<BunnyVertexLayout,decltype(swapChain)::render_target_format> bunnyPipelineState{};
+		graphics_pipeline_state<BunnyVertexLayout,decltype(swapChain)::render_target_format> bunnyPipelineState{};
 		bunnyPipelineState.Initialize(&device, &bunnyRootSignature, { &bunnyVS,&bunnyPS },
 			{ "POSITION","NORMAL" },
 			true, false, PrimitiveTopology::Triangle
 		);
 
-		PipelineState<BunnyVertexLayout,render_target_formats<>> bunnyShadowMapPipelineState{};
+		graphics_pipeline_state<BunnyVertexLayout,render_target_formats<>> bunnyShadowMapPipelineState{};
 		bunnyShadowMapPipelineState.Initialize(&device, &bunnyRootSignature, { &bunnyShadowMapVS },
 			{ "POSITION","NORMAL"},true, false, PrimitiveTopology::Triangle
 		);

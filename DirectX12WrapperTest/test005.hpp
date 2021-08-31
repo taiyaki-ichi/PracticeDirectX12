@@ -121,7 +121,7 @@ namespace test005
 			{ StaticSamplerType::Standard }
 		);
 
-		PipelineState<VertexLayout,SwapChain<2>::render_target_format> pipelineState{};
+		graphics_pipeline_state<VertexLayout,SwapChain<2>::render_target_format> pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vs, &ps,nullptr,&hs, &ds },
 			{ "POSITION","TEXCOOD" }, true, false, PrimitiveTopology::Patch
 		);

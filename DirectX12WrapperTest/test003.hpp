@@ -76,12 +76,12 @@ namespace test003
 		Shader drawNormalGeometryShader{};
 		drawNormalGeometryShader.Intialize(L"Shader/GeometryShader003_DrawNormal.hlsl", "main", "gs_5_0");
 		
-		PipelineState<vertex_layout<format<component_type::FLOAT, 32, 3>>,SwapChain<2>::render_target_format> drawFacePipelineState{};
+		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT, 32, 3>>,SwapChain<2>::render_target_format> drawFacePipelineState{};
 		drawFacePipelineState.Initialize(&device, &rootSignature, { &vertexShader, &drawFacePixelShader,&drawFaceGeometryShader },
 			{ "POSITION" }, true, false, PrimitiveTopology::Triangle
 		);
 
-		PipelineState<vertex_layout<format<component_type::FLOAT, 32, 3>>, SwapChain<2>::render_target_format> drawNormalPipelineState{};
+		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT, 32, 3>>, SwapChain<2>::render_target_format> drawNormalPipelineState{};
 		drawNormalPipelineState.Initialize(&device, &rootSignature, { &vertexShader, &drawNormalPixelShader,&drawNormalGeometryShader },
 			{ "POSITION" }, true, false, PrimitiveTopology::Triangle
 		);

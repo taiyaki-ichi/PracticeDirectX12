@@ -127,8 +127,8 @@ namespace test004
 	class ColorObjectRenderer
 	{
 		RootSignature rootSignature{};
-		PipelineState<MeshVertexLayout, SwapChain<2>::render_target_format> standerdPipelineState{};
-		PipelineState<MeshVertexLayout, SwapChain<2>::render_target_format> cubemapPipelineState{};
+		graphics_pipeline_state<MeshVertexLayout, SwapChain<2>::render_target_format> standerdPipelineState{};
+		graphics_pipeline_state<MeshVertexLayout, SwapChain<2>::render_target_format> cubemapPipelineState{};
 
 	public:
 		void Initialize(Device* device)
@@ -220,7 +220,7 @@ namespace test004
 	class MirrorObjectRenderer
 	{
 		RootSignature rootSignature{};
-		PipelineState<MeshVertexLayout,SwapChain<2>::render_target_format> pipelineState{};
+		graphics_pipeline_state<MeshVertexLayout,SwapChain<2>::render_target_format> pipelineState{};
 
 	public:
 		void Initialize(Device* device)

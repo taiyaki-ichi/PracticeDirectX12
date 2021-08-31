@@ -161,7 +161,7 @@ namespace test007
 			{ StaticSamplerType::Standard }
 		);
 
-		PipelineState<VertexLayout1,decltype(swapChain)::render_target_format> groundPipelineState{};
+		graphics_pipeline_state<VertexLayout1,decltype(swapChain)::render_target_format> groundPipelineState{};
 		groundPipelineState.Initialize(&device, &groundRootSignature, { &groundVS, &grooundPS ,nullptr,&groundHS, &groundDS },
 			{ "POSITION","TEXCOOD" }, true, false, PrimitiveTopology::Patch
 		);
@@ -265,8 +265,7 @@ namespace test007
 			{}
 		);
 
-		//
-		PipelineState<VertexLayout1,decltype(swapChain)::render_target_format> computeHeightPipelineState{};
+		compute_pipeline_state computeHeightPipelineState{};
 		computeHeightPipelineState.Initialize(&device, &computeHeightRootSignature, &computeHeightCS);
 
 		descriptor_heap_CBV_SRV_UAV computeNormalDescriptorHeap{};
@@ -283,10 +282,8 @@ namespace test007
 			{}
 		);
 
-		//
-		PipelineState<VertexLayout1, decltype(swapChain)::render_target_format> computeNormalPipelineState{};
+		compute_pipeline_state computeNormalPipelineState{};
 		computeNormalPipelineState.Initialize(&device, &computeNormalRootSignature, &computeNormalCS);
-
 
 
 		vertex_buffer_resource<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3 >> sphereVertexBuffer{};
@@ -351,12 +348,12 @@ namespace test007
 			{}
 		);
 
-		PipelineState<VertexLayout2,decltype(swapChain)::render_target_format> spherePipelineState{};
+		graphics_pipeline_state<VertexLayout2,decltype(swapChain)::render_target_format> spherePipelineState{};
 		spherePipelineState.Initialize(&device, &sphereRootSignature, { &sphereVS, &spherePS },
 			{ "POSITION","NORMAL" }, true, false, PrimitiveTopology::Triangle
 		);
 
-		PipelineState<VertexLayout2,render_target_formats<format<component_type::FLOAT,32,1>>> sphereDepthPipelineState{};
+		graphics_pipeline_state<VertexLayout2,render_target_formats<format<component_type::FLOAT,32,1>>> sphereDepthPipelineState{};
 		sphereDepthPipelineState.Initialize(&device, &sphereRootSignature, { &sphereDepthVS, &sphereDepthPS },
 			{ "POSITION","NORMAL" }, true, false, PrimitiveTopology::Triangle
 		);
@@ -432,7 +429,7 @@ namespace test007
 		Shader snowGS{};
 		snowGS.Intialize(L"Shader/Snow/GeometryShader.hlsl", "main", "gs_5_1");
 
-		PipelineState<vertex_layout<format<component_type::FLOAT,32,3>>,decltype(swapChain)::render_target_format> snowPipelineState{};
+		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT,32,3>>,decltype(swapChain)::render_target_format> snowPipelineState{};
 		snowPipelineState.Initialize(&device, &snowRootSignature, { &snowVS, &snowPS,&snowGS },
 			{ "POSITION" }, false, true, PrimitiveTopology::PointList
 		);
