@@ -40,12 +40,13 @@ namespace test005
 		XMFLOAT4 tessRange;
 	};
 
+	using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
 
 	using VertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 2>>;
 
-	inline std::pair<std::vector<VertexLayout::type>,std::vector<std::uint32_t>> GetGroundPatch()
+	inline std::pair<std::vector<VertexLayout::struct_type>,std::vector<std::uint32_t>> GetGroundPatch()
 	{
-		std::vector<VertexLayout::type> vertexList{};
+		std::vector<VertexLayout::struct_type> vertexList{};
 		std::vector<std::uint32_t> indexList{};
 
 		constexpr float EDGE = 200.f;
@@ -96,7 +97,7 @@ namespace test005
 		Command command{};
 		command.Initialize(&device);
 
-		auto swapChain = command.CreateSwapChain(&device, hwnd);
+		auto swapChain = command.CreateSwapChain<FrameBufferFormat>(&device, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, 2);
@@ -121,7 +122,7 @@ namespace test005
 			{ StaticSamplerType::Standard }
 		);
 
-		graphics_pipeline_state<VertexLayout,SwapChain<2>::render_target_format> pipelineState{};
+		graphics_pipeline_state<VertexLayout,render_target_formats<FrameBufferFormat>> pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vs, &ps,nullptr,&hs, &ds },
 			{ "POSITION","TEXCOOD" }, true, false, PrimitiveTopology::Patch
 		);

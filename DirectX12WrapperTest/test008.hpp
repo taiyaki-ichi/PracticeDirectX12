@@ -41,6 +41,8 @@ namespace test008
 		XMMATRIX world;
 	};
 
+	using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
+
 	using BunnyVertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>>;
 
 	constexpr std::uint32_t BUNNY_NUM = 3;
@@ -61,7 +63,7 @@ namespace test008
 		Command command{};
 		command.Initialize(&device);
 
-		auto swapChain = command.CreateSwapChain(&device, hwnd);
+		auto swapChain = command.CreateSwapChain<FrameBufferFormat>(&device, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, 2);
@@ -145,7 +147,7 @@ namespace test008
 		Shader groundShadowMapVS{};
 		groundShadowMapVS.Intialize(L"Shader/Ground3/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
 
-		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT,32,3>>,decltype(swapChain)::render_target_format> groundPipelineState{};
+		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT,32,3>>,render_target_formats<FrameBufferFormat>> groundPipelineState{};
 		groundPipelineState.Initialize(&device, &groundRootSignature, { &groundVS,&groundPS },
 			{ "POSITION" }, true, false, PrimitiveTopology::Triangle
 		);
@@ -169,7 +171,7 @@ namespace test008
 			//auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/sphere.off");
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
-			std::vector<BunnyVertexLayout::type> posNormalList{};
+			std::vector<BunnyVertexLayout::struct_type> posNormalList{};
 			posNormalList.reserve(vertexList.size());
 			XMFLOAT3 tmpFloat3;
 			for (std::size_t i = 0; i < vertexList.size(); i++) {
@@ -210,7 +212,7 @@ namespace test008
 		Shader bunnyShadowMapVS{};
 		bunnyShadowMapVS.Intialize(L"Shader/Bunny/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
 
-		graphics_pipeline_state<BunnyVertexLayout,decltype(swapChain)::render_target_format> bunnyPipelineState{};
+		graphics_pipeline_state<BunnyVertexLayout,render_target_formats<FrameBufferFormat>> bunnyPipelineState{};
 		bunnyPipelineState.Initialize(&device, &bunnyRootSignature, { &bunnyVS,&bunnyPS },
 			{ "POSITION","NORMAL" },
 			true, false, PrimitiveTopology::Triangle

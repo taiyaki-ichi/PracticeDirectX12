@@ -45,6 +45,8 @@ namespace test004
 
 	constexpr std::size_t FRAME_LATENCY_NUM = 2;
 
+	using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
+
 	using MeshVertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>>;
 
 	class Mesh
@@ -61,7 +63,7 @@ namespace test004
 			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>(fileName);
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
-			std::vector<MeshVertexLayout::type> posNormalList{};
+			std::vector<MeshVertexLayout::struct_type> posNormalList{};
 			posNormalList.reserve(vertexList.size());
 			XMFLOAT3 tmpFloat3;
 			for (std::size_t i = 0; i < vertexList.size(); i++) {
@@ -127,8 +129,8 @@ namespace test004
 	class ColorObjectRenderer
 	{
 		RootSignature rootSignature{};
-		graphics_pipeline_state<MeshVertexLayout, SwapChain<2>::render_target_format> standerdPipelineState{};
-		graphics_pipeline_state<MeshVertexLayout, SwapChain<2>::render_target_format> cubemapPipelineState{};
+		graphics_pipeline_state<MeshVertexLayout, render_target_formats<FrameBufferFormat>> standerdPipelineState{};
+		graphics_pipeline_state<MeshVertexLayout, render_target_formats<FrameBufferFormat>> cubemapPipelineState{};
 
 	public:
 		void Initialize(Device* device)
@@ -220,7 +222,7 @@ namespace test004
 	class MirrorObjectRenderer
 	{
 		RootSignature rootSignature{};
-		graphics_pipeline_state<MeshVertexLayout,SwapChain<2>::render_target_format> pipelineState{};
+		graphics_pipeline_state<MeshVertexLayout,render_target_formats<FrameBufferFormat>> pipelineState{};
 
 	public:
 		void Initialize(Device* device)
@@ -291,7 +293,7 @@ namespace test004
 		Command command{};
 		command.Initialize(&device);
 
-		auto swapChain = command.CreateSwapChain(&device, hwnd);
+		auto swapChain = command.CreateSwapChain<FrameBufferFormat>(&device, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, 2);

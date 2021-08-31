@@ -33,6 +33,10 @@ namespace test003
 		constexpr std::size_t WINDOW_WIDTH = 1024;
 		constexpr std::size_t WINDOW_HEIGHT = 768;
 
+		using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
+
+		using VertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>>;
+
 		auto hwnd = CreateSimpleWindow(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		Device device{};
@@ -41,7 +45,7 @@ namespace test003
 		Command command{};
 		command.Initialize(&device);
 
-		auto swapChain = command.CreateSwapChain(&device, hwnd);
+		auto swapChain = command.CreateSwapChain<FrameBufferFormat>(&device, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, 2);
@@ -50,7 +54,7 @@ namespace test003
 
 		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/bunny.off");
 		
-		vertex_buffer_resource<format<component_type::FLOAT,32,3>> vertexBuffer{};
+		VertexLayout::resource_type vertexBuffer{};
 		vertexBuffer.initialize(&device, vertex.size());
 		map(&vertexBuffer, vertex.begin(), vertex.end());
 		
@@ -76,12 +80,12 @@ namespace test003
 		Shader drawNormalGeometryShader{};
 		drawNormalGeometryShader.Intialize(L"Shader/GeometryShader003_DrawNormal.hlsl", "main", "gs_5_0");
 		
-		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT, 32, 3>>,SwapChain<2>::render_target_format> drawFacePipelineState{};
+		graphics_pipeline_state<VertexLayout, render_target_formats<FrameBufferFormat>> drawFacePipelineState{};
 		drawFacePipelineState.Initialize(&device, &rootSignature, { &vertexShader, &drawFacePixelShader,&drawFaceGeometryShader },
 			{ "POSITION" }, true, false, PrimitiveTopology::Triangle
 		);
 
-		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT, 32, 3>>, SwapChain<2>::render_target_format> drawNormalPipelineState{};
+		graphics_pipeline_state<VertexLayout, render_target_formats<FrameBufferFormat>> drawNormalPipelineState{};
 		drawNormalPipelineState.Initialize(&device, &rootSignature, { &vertexShader, &drawNormalPixelShader,&drawNormalGeometryShader },
 			{ "POSITION" }, true, false, PrimitiveTopology::Triangle
 		);

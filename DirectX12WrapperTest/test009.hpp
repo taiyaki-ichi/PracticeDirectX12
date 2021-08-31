@@ -40,8 +40,8 @@ namespace test009
 	{
 		XMMATRIX world;
 	};
-	
-	using BunnyVertex = std::tuple<std::array<float, 3>, std::array<float, 3>>;
+
+	using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
 
 	using BunnyVertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>>;
 
@@ -69,7 +69,7 @@ namespace test009
 		Command command{};
 		command.Initialize(&device);
 
-		auto swapChain = command.CreateSwapChain(&device, hwnd);
+		auto swapChain = command.CreateSwapChain<FrameBufferFormat>(&device, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, 2);
@@ -190,7 +190,7 @@ namespace test009
 		Shader groundShadowMapPS{};
 		groundShadowMapPS.Intialize(L"Shader/Ground4/ShadowMapPixelShader.hlsl", "main", "ps_5_1");
 
-		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT,32,3>>,decltype(swapChain)::render_target_format> groundPipelineState{};
+		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT,32,3>>,render_target_formats<FrameBufferFormat>> groundPipelineState{};
 		groundPipelineState.Initialize(&device, &groundRootSignature, { &groundVS,&groundPS },
 			{ "POSITION",},true, false, PrimitiveTopology::Triangle
 		);
@@ -206,7 +206,7 @@ namespace test009
 		//Bunny
 		//
 
-		vertex_buffer_resource<format<component_type::FLOAT,32,3>, format<component_type::FLOAT, 32, 3>> bunnyVertexBuffer{};
+		BunnyVertexLayout::resource_type bunnyVertexBuffer{};
 		index_buffer_resource<format<component_type::UINT,32,1>> bunnyIndexBuffer{};
 		std::uint32_t bunnyIndexNum{};
 		{
@@ -214,7 +214,7 @@ namespace test009
 			//auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/sphere.off");
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
-			std::vector<BunnyVertex> posNormalList{};
+			std::vector<BunnyVertexLayout::struct_type> posNormalList{};
 			posNormalList.reserve(vertexList.size());
 			XMFLOAT3 tmpFloat3;
 			for (std::size_t i = 0; i < vertexList.size(); i++) {
@@ -259,7 +259,7 @@ namespace test009
 		Shader bunnyShadowMapPS{};
 		bunnyShadowMapPS.Intialize(L"Shader/Bunny2/ShadowMapPixelShader.hlsl", "main", "ps_5_1");
 
-		graphics_pipeline_state<BunnyVertexLayout,decltype(swapChain)::render_target_format> bunnyPipelineState{};
+		graphics_pipeline_state<BunnyVertexLayout,render_target_formats<FrameBufferFormat>> bunnyPipelineState{};
 		bunnyPipelineState.Initialize(&device, &bunnyRootSignature, { &bunnyVS,&bunnyPS },
 			{ "POSITION","NORMAL" }, true, false, PrimitiveTopology::Triangle
 		);
@@ -268,9 +268,6 @@ namespace test009
 		bunnyShadowMapPipelineState.Initialize(&device, &bunnyRootSignature, { &bunnyShadowMapVS ,&bunnyShadowMapPS },
 			{ "POSITION","NORMAL" }, true, false, PrimitiveTopology::Triangle
 		);
-
-
-
 
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };

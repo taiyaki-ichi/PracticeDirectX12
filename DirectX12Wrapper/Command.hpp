@@ -16,7 +16,7 @@
 
 namespace DX12
 {
-	template<std::size_t FrameLatencyNum=2>
+	template<std::size_t FrameLatencyNum = 2>
 	class Command
 	{
 		ID3D12CommandQueue* queue = nullptr;
@@ -39,8 +39,8 @@ namespace DX12
 
 		void Initialize(Device*);
 
-		template<std::size_t FrameBufferNum=FrameLatencyNum>
-		SwapChain<FrameBufferNum> CreateSwapChain(Device*, HWND);
+		template<typename Format,std::size_t FrameBufferNum=FrameLatencyNum>
+		SwapChain<Format,FrameBufferNum> CreateSwapChain(Device*, HWND);
 
 		template<typename SrcResource,typename DstResource>
 		void CopyTexture(Device*,SrcResource* srcResource, DstResource* dstResource);
@@ -190,8 +190,8 @@ namespace DX12
 
 
 	template<std::size_t FrameLatencyNum>
-	template<std::size_t FrameBufferNum>
-	inline SwapChain<FrameBufferNum> Command<FrameLatencyNum>::CreateSwapChain(Device* device, HWND hwnd)
+	template<typename Format,std::size_t FrameBufferNum>
+	inline SwapChain<Format,FrameBufferNum> Command<FrameLatencyNum>::CreateSwapChain(Device* device, HWND hwnd)
 	{
 		IDXGIFactory3* factory = nullptr;
 		IDXGISwapChain4* swapChain = nullptr;

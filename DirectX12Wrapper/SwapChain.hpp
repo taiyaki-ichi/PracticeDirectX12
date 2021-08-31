@@ -12,23 +12,22 @@
 namespace DX12
 {
 
-	template<std::size_t FrameBufferNum = 2>
+	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
 	class SwapChain
 	{
 		IDXGISwapChain3* swapChain;
 
-		//
-		std::array<frame_buffer_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>>, FrameBufferNum> frameBuffer{};
+		std::array<frame_buffer_resource<FrameBufferFormat>, FrameBufferNum> frameBuffer{};
 
 	public:
 		SwapChain(IDXGISwapChain3*);
 		~SwapChain();
 
-		SwapChain<FrameBufferNum>(SwapChain<FrameBufferNum> const&) = delete;
-		SwapChain<FrameBufferNum>& operator=(SwapChain<FrameBufferNum> const&) = delete;
+		SwapChain<FrameBufferFormat,FrameBufferNum>(SwapChain<FrameBufferFormat,FrameBufferNum> const&) = delete;
+		SwapChain<FrameBufferFormat,FrameBufferNum>& operator=(SwapChain<FrameBufferFormat,FrameBufferNum> const&) = delete;
 
-		SwapChain<FrameBufferNum>(SwapChain<FrameBufferNum>&&) noexcept;
-		SwapChain<FrameBufferNum>& operator=(SwapChain<FrameBufferNum>&&) noexcept;
+		SwapChain<FrameBufferFormat,FrameBufferNum>(SwapChain<FrameBufferFormat,FrameBufferNum>&&) noexcept;
+		SwapChain<FrameBufferFormat,FrameBufferNum>& operator=(SwapChain<FrameBufferFormat,FrameBufferNum>&&) noexcept;
 
 		//レンダリングされた画像を表示する
 		//また、GetCurrentBackBufferIndexの戻り値が更新される
@@ -37,17 +36,15 @@ namespace DX12
 		//現在控えているBackBufferのインデックスの取得
 		std::uint32_t GetCurrentBackBufferIndex();
 
-		frame_buffer_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>>& GetFrameBuffer(std::uint32_t index);
-
-		using render_target_format = render_target_formats<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>>;
+		frame_buffer_resource<FrameBufferFormat>& GetFrameBuffer(std::uint32_t index);
 	};
 
 	//
 	//
 	//
 
-	template<std::size_t FrameBufferNum>
-	inline SwapChain<FrameBufferNum>::SwapChain(IDXGISwapChain3* sc)
+	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
+	inline SwapChain<FrameBufferFormat,FrameBufferNum>::SwapChain(IDXGISwapChain3* sc)
 		:swapChain{sc}
 		, frameBuffer{}
 	{
@@ -60,23 +57,23 @@ namespace DX12
 		}
 	}
 
-	template<std::size_t FrameBufferNum>
-	inline SwapChain<FrameBufferNum>::~SwapChain()
+	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
+	inline SwapChain<FrameBufferFormat, FrameBufferNum>::~SwapChain()
 	{
 		if (swapChain)
 			swapChain->Release();
 	}
 
-	template<std::size_t FrameBufferNum>
-	inline SwapChain<FrameBufferNum>::SwapChain(SwapChain<FrameBufferNum>&& rhs) noexcept
+	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
+	inline SwapChain<FrameBufferFormat, FrameBufferNum>::SwapChain(SwapChain<FrameBufferFormat, FrameBufferNum>&& rhs) noexcept
 	{
 		swapChain = rhs.swapChain;
 		rhs.swapChain = nullptr;
 		frameBuffer = std::move(rhs.frameBuffer);
 	}
 
-	template<std::size_t FrameBufferNum>
-	inline SwapChain<FrameBufferNum>& SwapChain<FrameBufferNum>::operator=(SwapChain<FrameBufferNum>&& rhs) noexcept
+	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
+	inline SwapChain<FrameBufferFormat,FrameBufferNum>& SwapChain<FrameBufferFormat,FrameBufferNum>::operator=(SwapChain<FrameBufferFormat,FrameBufferNum>&& rhs) noexcept
 	{
 		swapChain = rhs.swapChain;
 		rhs.swapChain = nullptr;
@@ -84,21 +81,21 @@ namespace DX12
 		return *this;
 	}
 
-	template<std::size_t FrameBufferNum>
-	inline void SwapChain<FrameBufferNum>::Present()
+	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
+	inline void SwapChain<FrameBufferFormat,FrameBufferNum>::Present()
 	{
 		swapChain->Present(1, 0);
 	}
 
-	template<std::size_t FrameBufferNum>
-	inline std::uint32_t SwapChain<FrameBufferNum>::GetCurrentBackBufferIndex()
+	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
+	inline std::uint32_t SwapChain<FrameBufferFormat,FrameBufferNum>::GetCurrentBackBufferIndex()
 	{
 		return swapChain->GetCurrentBackBufferIndex();
 	}
 
 
-	template<std::size_t FrameBufferNum>
-	inline frame_buffer_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8,4>>& DX12::SwapChain<FrameBufferNum>::GetFrameBuffer(std::uint32_t index)
+	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
+	inline frame_buffer_resource<FrameBufferFormat>& DX12::SwapChain<FrameBufferFormat,FrameBufferNum>::GetFrameBuffer(std::uint32_t index)
 	{
 		return frameBuffer[index];
 	}

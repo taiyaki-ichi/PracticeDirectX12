@@ -49,6 +49,8 @@ namespace test007
 		XMMATRIX world;
 	};
 
+	using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
+
 	using VertexLayout1 = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 2>>;
 	using VertexLayout2 = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>>;
 
@@ -70,9 +72,9 @@ namespace test007
 
 	constexpr std::size_t FRAME_BUFFER_NUM = 3;
 
-	inline std::pair<std::vector<VertexLayout1::type>, std::vector<std::uint32_t>> GetGroundPatch()
+	inline std::pair<std::vector<VertexLayout1::struct_type>, std::vector<std::uint32_t>> GetGroundPatch()
 	{
-		std::vector<VertexLayout1::type> vertexList{};
+		std::vector<VertexLayout1::struct_type> vertexList{};
 		std::vector<std::uint32_t> indexList{};
 
 		constexpr std::size_t DIVIDE = 10;
@@ -122,7 +124,7 @@ namespace test007
 		Command<FRAME_BUFFER_NUM> command{};
 		command.Initialize(&device);
 
-		auto swapChain = command.CreateSwapChain(&device, hwnd);
+		auto swapChain = command.CreateSwapChain<FrameBufferFormat>(&device, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, FRAME_BUFFER_NUM);
@@ -161,7 +163,7 @@ namespace test007
 			{ StaticSamplerType::Standard }
 		);
 
-		graphics_pipeline_state<VertexLayout1,decltype(swapChain)::render_target_format> groundPipelineState{};
+		graphics_pipeline_state<VertexLayout1,render_target_formats<FrameBufferFormat>> groundPipelineState{};
 		groundPipelineState.Initialize(&device, &groundRootSignature, { &groundVS, &grooundPS ,nullptr,&groundHS, &groundDS },
 			{ "POSITION","TEXCOOD" }, true, false, PrimitiveTopology::Patch
 		);
@@ -294,7 +296,7 @@ namespace test007
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
 
-			std::vector<VertexLayout2::type> posNormalList{};
+			std::vector<VertexLayout2::struct_type> posNormalList{};
 			posNormalList.reserve(vertexList.size());
 			XMFLOAT3 tmpFloat3;
 			for (std::size_t i = 0; i < vertexList.size(); i++) {
@@ -348,7 +350,7 @@ namespace test007
 			{}
 		);
 
-		graphics_pipeline_state<VertexLayout2,decltype(swapChain)::render_target_format> spherePipelineState{};
+		graphics_pipeline_state<VertexLayout2,render_target_formats<FrameBufferFormat>> spherePipelineState{};
 		spherePipelineState.Initialize(&device, &sphereRootSignature, { &sphereVS, &spherePS },
 			{ "POSITION","NORMAL" }, true, false, PrimitiveTopology::Triangle
 		);
@@ -429,7 +431,7 @@ namespace test007
 		Shader snowGS{};
 		snowGS.Intialize(L"Shader/Snow/GeometryShader.hlsl", "main", "gs_5_1");
 
-		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT,32,3>>,decltype(swapChain)::render_target_format> snowPipelineState{};
+		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT,32,3>>,render_target_formats<FrameBufferFormat>> snowPipelineState{};
 		snowPipelineState.Initialize(&device, &snowRootSignature, { &snowVS, &snowPS,&snowGS },
 			{ "POSITION" }, false, true, PrimitiveTopology::PointList
 		);

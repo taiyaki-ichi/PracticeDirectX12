@@ -22,6 +22,8 @@ namespace test001
 		constexpr std::size_t WINDOW_WIDTH = 1024;
 		constexpr std::size_t WINDOW_HEIGHT = 768;
 
+		using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
+
 		auto hwnd = CreateSimpleWindow(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		Device device{};
@@ -30,7 +32,7 @@ namespace test001
 		Command command{};
 		command.Initialize(&device);
 
-		auto swapChain = command.CreateSwapChain(&device, hwnd);
+		auto swapChain = command.CreateSwapChain<FrameBufferFormat>(&device, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(&device, 2);
@@ -39,7 +41,7 @@ namespace test001
 
 		using VertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>>;
 
-		std::array<VertexLayout::type, 3> vertex{
+		std::array<VertexLayout::struct_type, 3> vertex{
 			{{-0.8f,-0.8f,0.f},{-0.8f,0.8f,0.f},{0.8f,-0.8f,0.f}}
 		};
 
@@ -56,7 +58,7 @@ namespace test001
 		Shader pixelShader{};
 		pixelShader.Intialize(L"Shader/PixelShader001.hlsl", "main", "ps_5_0");
 
-		graphics_pipeline_state<VertexLayout,SwapChain<2>::render_target_format> pipelineState{};
+		graphics_pipeline_state<VertexLayout,render_target_formats<FrameBufferFormat>> pipelineState{};
 		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
 			{ "POSITION" }, false, false, PrimitiveTopology::Triangle
 		);

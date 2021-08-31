@@ -64,7 +64,7 @@ namespace DX12
 	{
 		constexpr static std::size_t format_num = sizeof...(Formats);
 		using format_tuple = std::tuple<Formats...>;
-		using type = typename vertex_layout_format_type<sizeof...(Formats), Formats...>::type;
+		using struct_type = typename vertex_layout_format_type<sizeof...(Formats), Formats...>::type;
 		using resource_type = vertex_buffer_resource<Formats...>;
 	};
 
