@@ -70,12 +70,10 @@ namespace DX12
 		void SetRenderTarget(std::uint32_t renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget, D3D12_CPU_DESCRIPTOR_HANDLE depthStencilHandle);
 
 		void SetViewport(const D3D12_VIEWPORT& viewport);
-		//
-		void SetViewport(std::uint32_t num, D3D12_VIEWPORT* viewportPtr);
+		void SetViewport(std::initializer_list<D3D12_VIEWPORT>);
 
 		void SetScissorRect(const D3D12_RECT& rect);
-		//
-		void SetScissorRect(std::uint32_t num, D3D12_RECT* rectPtr);
+		void SetScissorRect(std::initializer_list<D3D12_RECT>);
 
 		template<typename... Formats>
 		void SetVertexBuffer(vertex_buffer_resource<Formats...>&);
@@ -337,9 +335,9 @@ namespace DX12
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::SetViewport(std::uint32_t num, D3D12_VIEWPORT* viewportPtr)
+	inline void Command<FrameLatencyNum>::SetViewport(std::initializer_list<D3D12_VIEWPORT> list)
 	{
-		list_ptr->RSSetViewports(num, viewportPtr);
+		list_ptr->RSSetViewports(list.size(), list.begin());
 	}
 
 	template<std::size_t FrameLatencyNum>
@@ -349,9 +347,9 @@ namespace DX12
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::SetScissorRect(std::uint32_t num, D3D12_RECT* rectPtr)
+	inline void Command<FrameLatencyNum>::SetScissorRect(std::initializer_list<D3D12_RECT> list)
 	{
-		list_ptr->RSSetScissorRects(num, rectPtr);
+		list_ptr->RSSetScissorRects(list.size(), list.begin());
 	}
 
 	template<std::size_t FrameLatencyNum>
