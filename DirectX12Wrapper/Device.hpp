@@ -1,4 +1,5 @@
 #pragma once
+#include"Utility.hpp"
 #include<d3d12.h>
 #include<dxgi1_6.h>
 #include<array>
@@ -11,20 +12,17 @@ namespace DX12
 
 	class Device 
 	{
-		ID3D12Device* device = nullptr;
+		release_unique_ptr<ID3D12Device> device_ptr{};
 
-		IDXGIFactory5* factory = nullptr;
-		IDXGIAdapter1* adaptor = nullptr;
+		release_unique_ptr<IDXGIFactory5> factory_ptr{};
+		release_unique_ptr<IDXGIAdapter1> adaptor_ptr{};
 
 	public:
 		Device() = default;
-		~Device();
+		~Device() = default;
 
-		Device(const Device&) = delete;
-		Device& operator=(const Device&) = delete;
-
-		Device(Device&&) noexcept;
-		Device& operator=(Device&&) noexcept;
+		Device(Device&&) = default;
+		Device& operator=(Device&&) = default;
 
 		void Initialize();
 
@@ -34,37 +32,6 @@ namespace DX12
 	//
 	//
 	//
-
-	inline Device::~Device()
-	{
-		if (device)
-			device->Release();
-		if (factory)
-			factory->Release();
-		if (adaptor)
-			adaptor->Release();
-	}
-
-	inline Device::Device(Device&& rhs) noexcept
-	{
-		device = rhs.device;
-		factory = rhs.factory;
-		adaptor = rhs.adaptor;
-		rhs.device = nullptr;
-		rhs.factory = nullptr;
-		rhs.adaptor = nullptr;
-	}
-
-	inline Device& Device::operator=(Device&& rhs) noexcept
-	{
-		device = rhs.device;
-		factory = rhs.factory;
-		adaptor = rhs.adaptor;
-		rhs.device = nullptr;
-		rhs.factory = nullptr;
-		rhs.adaptor = nullptr;
-		return *this;
-	}
 
 	inline void Device::Initialize()
 	{
@@ -78,16 +45,17 @@ namespace DX12
 			debugLayer->Release();
 		}
 #endif
-
-		if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))))
+		IDXGIFactory5* f = nullptr;
+		if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&f))))
 			throw "";
-
+		factory_ptr.reset(f);
 
 		UINT adapterIndex = 0;
 		DXGI_ADAPTER_DESC1 desc{};
+		IDXGIAdapter1* a = nullptr;
 		while (true) {
-			factory->EnumAdapters1(adapterIndex, &adaptor);
-			adaptor->GetDesc1(&desc);
+			factory_ptr->EnumAdapters1(adapterIndex, &a);
+			a->GetDesc1(&desc);
 
 			//適切なアダプタが見つかった場合
 			if (!(desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE))
@@ -98,6 +66,8 @@ namespace DX12
 			if (adapterIndex == DXGI_ERROR_NOT_FOUND)
 				throw "";
 		}
+		adaptor_ptr.reset(a);
+
 
 		std::array levels{
 			D3D_FEATURE_LEVEL_12_1,
@@ -106,17 +76,19 @@ namespace DX12
 			D3D_FEATURE_LEVEL_11_0
 		};
 
+		ID3D12Device* d = nullptr;
 		for (auto l : levels) {
-			if (SUCCEEDED(D3D12CreateDevice(adaptor, l, IID_PPV_ARGS(&device))))
+			if (SUCCEEDED(D3D12CreateDevice(a, l, IID_PPV_ARGS(&d))))
 				break;
 			if (l == levels.back())
 				throw "";
 		}
+		device_ptr.reset(d);
 	}
 
 	inline ID3D12Device* Device::Get() const noexcept
 	{
-		return device;
+		return device_ptr.get();
 	}
 
 

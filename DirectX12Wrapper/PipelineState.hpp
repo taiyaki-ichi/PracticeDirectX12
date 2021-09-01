@@ -121,17 +121,14 @@ namespace DX12
 	template<typename VertexLayout,typename ResnderTargetFormats>
 	class graphics_pipeline_state
 	{
-		ID3D12PipelineState* pipelineState = nullptr;
+		release_unique_ptr<ID3D12PipelineState> pipeline_state_ptr{};
 
 	public:
 		graphics_pipeline_state() = default;
-		~graphics_pipeline_state();
+		~graphics_pipeline_state() = default;
 
-		graphics_pipeline_state(const  graphics_pipeline_state&) = delete;
-		graphics_pipeline_state& operator=(const graphics_pipeline_state&) = delete;
-
-		graphics_pipeline_state(graphics_pipeline_state&&) noexcept;
-		graphics_pipeline_state& operator=(graphics_pipeline_state&&) noexcept;
+		graphics_pipeline_state(graphics_pipeline_state&&) = default;
+		graphics_pipeline_state& operator=(graphics_pipeline_state&&) = default;
 
 		void Initialize(Device*, RootSignature*, ShaderDesc,
 			std::array<const char*,VertexLayout::format_num> vertexName,
@@ -145,17 +142,14 @@ namespace DX12
 
 	class compute_pipeline_state
 	{
-		ID3D12PipelineState* pipelineState = nullptr;
+		release_unique_ptr<ID3D12PipelineState> pipeline_state_ptr{};
 
 	public:
 		compute_pipeline_state() = default;
-		~compute_pipeline_state();
+		~compute_pipeline_state() = default;
 
-		compute_pipeline_state(const  compute_pipeline_state&) = delete;
-		compute_pipeline_state& operator=(const compute_pipeline_state&) = delete;
-
-		compute_pipeline_state(compute_pipeline_state&&) noexcept;
-		compute_pipeline_state& operator=(compute_pipeline_state&&) noexcept;
+		compute_pipeline_state(compute_pipeline_state&&) = default;
+		compute_pipeline_state& operator=(compute_pipeline_state&&) = default;
 
 		//コンピュートシェーダ用のパイプライン生成
 		void Initialize(Device*, RootSignature*, Shader* computeShader);
@@ -168,24 +162,6 @@ namespace DX12
 	//
 	//
 
-	template<typename VertexLayout, typename ResnderTargetFormats>
-	graphics_pipeline_state<VertexLayout,ResnderTargetFormats>::~graphics_pipeline_state() {
-		if (pipelineState)
-			pipelineState->Release();
-	}
-
-	template<typename VertexLayout, typename ResnderTargetFormats>
-	inline graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::graphics_pipeline_state(graphics_pipeline_state&& rhs) noexcept {
-		pipelineState = rhs.pipelineState;
-		rhs.pipelineState = nullptr;
-	}
-
-	template<typename VertexLayout, typename ResnderTargetFormats>
-	inline graphics_pipeline_state<VertexLayout, ResnderTargetFormats>& graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::operator=(graphics_pipeline_state&& rhs) noexcept {
-		pipelineState = rhs.pipelineState;
-		rhs.pipelineState = nullptr;
-		return *this;
-	}
 
 	template<typename VertexLayout, typename ResnderTargetFormats>
 	inline void graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::Initialize(Device* device, RootSignature* rootSignature, ShaderDesc shaderDesc, 
@@ -295,34 +271,19 @@ namespace DX12
 
 		graphicsPipelineDesc.pRootSignature = rootSignature->Get();
 
-		if (FAILED(device->Get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&pipelineState))))
-			throw "";
+		{
+			ID3D12PipelineState* tmp = nullptr;
+			if (FAILED(device->Get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&tmp))))
+				throw "";
+			pipeline_state_ptr.reset(tmp);
+		}
 
 	}
 
 	template<typename VertexLayout, typename ResnderTargetFormats>
 	inline ID3D12PipelineState* graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::Get() const noexcept
 	{
-		return pipelineState;
-	}
-
-	compute_pipeline_state::~compute_pipeline_state()
-	{
-		if (pipelineState)
-			pipelineState->Release();
-	}
-
-	inline compute_pipeline_state::compute_pipeline_state(compute_pipeline_state&& rhs) noexcept
-	{
-		pipelineState = rhs.pipelineState;
-		rhs.pipelineState = nullptr;
-	}
-
-	inline compute_pipeline_state& compute_pipeline_state::operator=(compute_pipeline_state&& rhs) noexcept
-	{
-		pipelineState = rhs.pipelineState;
-		rhs.pipelineState = nullptr;
-		return *this;
+		return pipeline_state_ptr.get();
 	}
 
 	inline void compute_pipeline_state::Initialize(Device* device, RootSignature* rootSignature, Shader* computeShader)
@@ -332,12 +293,16 @@ namespace DX12
 		computePipelineDesc.CS.BytecodeLength = computeShader->Get()->GetBufferSize();
 		computePipelineDesc.pRootSignature = rootSignature->Get();
 
-		if (FAILED(device->Get()->CreateComputePipelineState(&computePipelineDesc, IID_PPV_ARGS(&pipelineState))))
-			throw "";
+		{
+			ID3D12PipelineState* tmp = nullptr;
+			if (FAILED(device->Get()->CreateComputePipelineState(&computePipelineDesc, IID_PPV_ARGS(&tmp))))
+				throw "";
+			pipeline_state_ptr.reset(tmp);
+		}
 	}
 
 	inline ID3D12PipelineState* compute_pipeline_state::Get() const noexcept
 	{
-		return pipelineState;
+		return pipeline_state_ptr.get();
 	}
 }

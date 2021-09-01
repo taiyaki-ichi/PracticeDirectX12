@@ -15,19 +15,16 @@ namespace DX12
 	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
 	class SwapChain
 	{
-		IDXGISwapChain3* swapChain;
+		release_unique_ptr<IDXGISwapChain3> swap_chain_ptr;
 
-		std::array<frame_buffer_resource<FrameBufferFormat>, FrameBufferNum> frameBuffer{};
+		std::array<frame_buffer_resource<FrameBufferFormat>, FrameBufferNum> frameBuffer;
 
 	public:
 		SwapChain(IDXGISwapChain3*);
-		~SwapChain();
+		~SwapChain() = default;
 
-		SwapChain<FrameBufferFormat,FrameBufferNum>(SwapChain<FrameBufferFormat,FrameBufferNum> const&) = delete;
-		SwapChain<FrameBufferFormat,FrameBufferNum>& operator=(SwapChain<FrameBufferFormat,FrameBufferNum> const&) = delete;
-
-		SwapChain<FrameBufferFormat,FrameBufferNum>(SwapChain<FrameBufferFormat,FrameBufferNum>&&) noexcept;
-		SwapChain<FrameBufferFormat,FrameBufferNum>& operator=(SwapChain<FrameBufferFormat,FrameBufferNum>&&) noexcept;
+		SwapChain<FrameBufferFormat, FrameBufferNum>(SwapChain<FrameBufferFormat, FrameBufferNum>&&) = default;
+		SwapChain<FrameBufferFormat, FrameBufferNum>& operator=(SwapChain<FrameBufferFormat, FrameBufferNum>&&) = default;
 
 		//レンダリングされた画像を表示する
 		//また、GetCurrentBackBufferIndexの戻り値が更新される
@@ -45,52 +42,28 @@ namespace DX12
 
 	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
 	inline SwapChain<FrameBufferFormat,FrameBufferNum>::SwapChain(IDXGISwapChain3* sc)
-		:swapChain{sc}
+		:swap_chain_ptr{sc}
 		, frameBuffer{}
 	{
 		for (std::uint32_t i = 0; i < FrameBufferNum; i++)
 		{
 			ID3D12Resource* resourcePtr = nullptr;
-			if (FAILED(swapChain->GetBuffer(static_cast<UINT>(i), IID_PPV_ARGS(&resourcePtr))))
+			if (FAILED(swap_chain_ptr->GetBuffer(static_cast<UINT>(i), IID_PPV_ARGS(&resourcePtr))))
 				throw "";
 			frameBuffer[i].initialize(resourcePtr);
 		}
 	}
 
 	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
-	inline SwapChain<FrameBufferFormat, FrameBufferNum>::~SwapChain()
-	{
-		if (swapChain)
-			swapChain->Release();
-	}
-
-	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
-	inline SwapChain<FrameBufferFormat, FrameBufferNum>::SwapChain(SwapChain<FrameBufferFormat, FrameBufferNum>&& rhs) noexcept
-	{
-		swapChain = rhs.swapChain;
-		rhs.swapChain = nullptr;
-		frameBuffer = std::move(rhs.frameBuffer);
-	}
-
-	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
-	inline SwapChain<FrameBufferFormat,FrameBufferNum>& SwapChain<FrameBufferFormat,FrameBufferNum>::operator=(SwapChain<FrameBufferFormat,FrameBufferNum>&& rhs) noexcept
-	{
-		swapChain = rhs.swapChain;
-		rhs.swapChain = nullptr;
-		frameBuffer = std::move(rhs.frameBuffer);
-		return *this;
-	}
-
-	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
 	inline void SwapChain<FrameBufferFormat,FrameBufferNum>::Present()
 	{
-		swapChain->Present(1, 0);
+		swap_chain_ptr->Present(1, 0);
 	}
 
 	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
 	inline std::uint32_t SwapChain<FrameBufferFormat,FrameBufferNum>::GetCurrentBackBufferIndex()
 	{
-		return swapChain->GetCurrentBackBufferIndex();
+		return swap_chain_ptr->GetCurrentBackBufferIndex();
 	}
 
 

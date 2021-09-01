@@ -22,17 +22,14 @@ namespace DX12
 
 	class RootSignature
 	{
-		ID3D12RootSignature* rootSignature = nullptr;
+		release_unique_ptr<ID3D12RootSignature> root_signature_ptr{};
 
 	public:
 		RootSignature() = default;
-		~RootSignature();
+		~RootSignature() = default;
 
-		RootSignature(const RootSignature&) = delete;
-		RootSignature& operator=(const RootSignature&) = delete;
-
-		RootSignature(RootSignature&&) noexcept;
-		RootSignature& operator=(RootSignature&&) noexcept;
+		RootSignature(RootSignature&&) = default;
+		RootSignature& operator=(RootSignature&&) = default;
 
 		void Initialize(Device*, const std::vector<std::vector<DescriptorRangeType>>&,const std::vector<StaticSamplerType>&);
 
@@ -43,26 +40,6 @@ namespace DX12
 	//
 	//
 	//
-
-	inline RootSignature::~RootSignature()
-	{
-		if (rootSignature)
-			rootSignature->Release();
-	}
-
-	inline RootSignature::RootSignature(RootSignature&& rhs) noexcept
-	{
-		rootSignature = rhs.rootSignature;
-		rhs.rootSignature = nullptr;
-	}
-
-	inline RootSignature& RootSignature::operator=(RootSignature&& rhs) noexcept
-	{
-		rootSignature = rhs.rootSignature;
-		rhs.rootSignature = nullptr;
-
-		return *this;
-	}
 
 	void RootSignature::Initialize(Device* device, const std::vector<std::vector<DescriptorRangeType>>& descriptorRangeTypes, 
 		const std::vector<StaticSamplerType>& staticSamplerTypes)
@@ -97,9 +74,11 @@ namespace DX12
 		}
 
 		{
-			auto result = device->Get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+			ID3D12RootSignature* tmp = nullptr;
+			auto result = device->Get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&tmp));
 			if (FAILED(result))
 				throw "";
+			root_signature_ptr.reset(tmp);
 
 			rootSigBlob->Release();
 		}
@@ -107,7 +86,7 @@ namespace DX12
 
 	inline ID3D12RootSignature* RootSignature::Get()
 	{
-		return rootSignature;
+		return root_signature_ptr.get();
 	}
 
 }

@@ -19,23 +19,20 @@ namespace DX12
 	template<std::size_t FrameLatencyNum = 2>
 	class Command
 	{
-		ID3D12CommandQueue* queue = nullptr;
-		ID3D12GraphicsCommandList* list = nullptr;
-
-		std::array<ID3D12CommandAllocator*, FrameLatencyNum> allocator{};
-		std::array<ID3D12Fence*, FrameLatencyNum> fence{};
+		release_unique_ptr<ID3D12CommandQueue> queue_ptr{};
+		release_unique_ptr<ID3D12GraphicsCommandList> list_ptr{};
+				
+		std::array<release_unique_ptr<ID3D12CommandAllocator>, FrameLatencyNum> allocator_ptrs{};
+		std::array<release_unique_ptr<ID3D12Fence>, FrameLatencyNum> fence_ptrs{};
 		std::array<std::uint64_t, FrameLatencyNum> fenceValue{};
 		HANDLE fenceEventHandle = nullptr;
 
 	public:
 		Command() = default;
-		~Command();
+		~Command() = default;
 
-		Command(const  Command<FrameLatencyNum>&) = delete;
-		Command& operator=(const Command<FrameLatencyNum>&) = delete;
-
-		Command(Command<FrameLatencyNum>&&) noexcept;
-		Command& operator=(Command<FrameLatencyNum>&&) noexcept;
+		Command(Command<FrameLatencyNum>&&) = default;
+		Command& operator=(Command<FrameLatencyNum>&&) = default;
 
 		void Initialize(Device*);
 
@@ -110,78 +107,48 @@ namespace DX12
 	//
 
 
-
-	template<std::size_t FrameLatencyNum>
-	inline Command<FrameLatencyNum>::~Command()
-	{
-		for (auto a : allocator)
-			if (a)
-				a->Release();
-		if (queue)
-			queue->Release();
-		if (list)
-			list->Release();
-		for (auto f : fence)
-			if (f)
-				f->Release();
-	}
-
-	template<std::size_t FrameLatencyNum>
-	inline Command<FrameLatencyNum>::Command(Command<FrameLatencyNum>&& rhs) noexcept
-		:queue{rhs.queue}
-		, list{rhs.list}
-		, allocator{rhs.allocator}
-		, fence{rhs.fence}
-		, fenceValue{rhs.fenceValue}
-		, fenceEventHandle{rhs.fenceEventHandle}
-	{
-		rhs.queue = nullptr;
-		rhs.list = nullptr;
-		std::fill(rhs.allocator.begin(), rhs.allocator.end(), nullptr);
-		std::fill(rhs.allocator.begin(), rhs.allocator.end(), nullptr);
-		rhs.fenceEventHandle = nullptr;
-	}
-
-	template<std::size_t FrameLatencyNum>
-	inline Command<FrameLatencyNum>& Command<FrameLatencyNum>::operator=(Command<FrameLatencyNum>&& rhs) noexcept
-	{
-		queue = rhs.queue;
-		list = rhs.list;
-		allocator = rhs.allocator;
-		fence = rhs.fence;
-		fenceValue = rhs.fenceValue;
-		fenceEventHandle = rhs.fenceEventHandle;
-		rhs.queue = nullptr;
-		rhs.list = nullptr;
-		std::fill(rhs.allocator.begin(), rhs.allocator.end(), nullptr);
-		std::fill(rhs.allocator.begin(), rhs.allocator.end(), nullptr);
-		rhs.fenceEventHandle = nullptr;
-	}
-
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::Initialize(Device* device)
 	{
-		for (auto& a : allocator)
-			if (FAILED(device->Get()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&a))))
+		for (std::size_t i = 0; i < allocator_ptrs.size(); i++)
+		{
+			ID3D12CommandAllocator* tmp = nullptr;
+			if (FAILED(device->Get()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&tmp))))
 				throw "";
+			allocator_ptrs[i].reset(tmp);
+		}
 
-		if (FAILED(device->Get()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, allocator[0], nullptr, IID_PPV_ARGS(&list))))
-			throw "";
 
-		D3D12_COMMAND_QUEUE_DESC cmdQueueDesc{};
-		cmdQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;		//タイムアウトナシ
-		cmdQueueDesc.NodeMask = 0;
-		cmdQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;	//プライオリティ特に指定なし
-		cmdQueueDesc.Type = list->GetType();			//ここはコマンドリストと合わせる
-		if (FAILED(device->Get()->CreateCommandQueue(&cmdQueueDesc, IID_PPV_ARGS(&queue))))
-			throw "";
+		{
+			ID3D12GraphicsCommandList* tmp = nullptr;
+			if (FAILED(device->Get()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, allocator_ptrs[0].get(), nullptr, IID_PPV_ARGS(&tmp))))
+				throw "";
+			list_ptr.reset(tmp);
+		}
 
-		//とりあえず全て１で初期化してみる
+
+		{
+			ID3D12CommandQueue* tmp = nullptr;
+			D3D12_COMMAND_QUEUE_DESC cmdQueueDesc{};
+			cmdQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;		//タイムアウトナシ
+			cmdQueueDesc.NodeMask = 0;
+			cmdQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;	//プライオリティ特に指定なし
+			cmdQueueDesc.Type = list_ptr->GetType();			//ここはコマンドリストと合わせる
+			if (FAILED(device->Get()->CreateCommandQueue(&cmdQueueDesc, IID_PPV_ARGS(&tmp))))
+				throw "";
+			queue_ptr.reset(tmp);
+		}
+
+		//全て１で
 		std::fill(fenceValue.begin(), fenceValue.end(), 1);
 
 		for (std::size_t i = 0; i < FrameLatencyNum; i++)
-			if (FAILED(device->Get()->CreateFence(fenceValue[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence[i]))))
+		{
+			ID3D12Fence* tmp = nullptr;
+			if (FAILED(device->Get()->CreateFence(fenceValue[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&tmp))))
 				throw "";
+			fence_ptrs[i].reset(tmp);
+		}
 
 		fenceEventHandle = CreateEvent(NULL, FALSE, FALSE, NULL);
 
@@ -222,7 +189,7 @@ namespace DX12
 		swapchainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 		swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
-		if (FAILED(factory->CreateSwapChainForHwnd(queue, hwnd, &swapchainDesc, nullptr, nullptr, (IDXGISwapChain1**)&swapChain)))
+		if (FAILED(factory->CreateSwapChainForHwnd(queue_ptr.get(), hwnd, &swapchainDesc, nullptr, nullptr, (IDXGISwapChain1**)&swapChain)))
 			throw "";
 
 		factory->Release();
@@ -262,34 +229,34 @@ namespace DX12
 		dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
 		dstLocation.SubresourceIndex = 0;
 
-		list->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
+		list_ptr->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::Execute()
 	{
-		queue->ExecuteCommandLists(1, (ID3D12CommandList**)(&list));
+		queue_ptr->ExecuteCommandLists(1, (ID3D12CommandList**)(&list_ptr));
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::Dispatch(std::uint32_t threadGroupCountX, std::uint32_t threadGroupCountY, std::uint32_t threadGroupCountZ)
 	{
-		list->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
+		list_ptr->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::Fence(std::uint64_t index)
 	{
 		fenceValue[index]++;
-		queue->Signal(fence[index], fenceValue[index]);
+		queue_ptr->Signal(fence_ptrs[index].get(), fenceValue[index]);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::Wait(std::uint64_t index)
 	{
-		if (fence[index]->GetCompletedValue() < fenceValue[index])
+		if (fence_ptrs[index]->GetCompletedValue() < fenceValue[index])
 		{
-			fence[index]->SetEventOnCompletion(fenceValue[index], fenceEventHandle);
+			fence_ptrs[index]->SetEventOnCompletion(fenceValue[index], fenceEventHandle);
 			WaitForSingleObject(fenceEventHandle, INFINITE);
 		}
 	}
@@ -302,7 +269,7 @@ namespace DX12
 		
 		constexpr std::uint64_t expectValue = 1;
 
-		queue->Signal(fence, expectValue);
+		queue_ptr->Signal(fence, expectValue);
 		if (fence->GetCompletedValue() != expectValue)
 		{
 			fence->SetEventOnCompletion(expectValue, fenceEventHandle);
@@ -315,27 +282,27 @@ namespace DX12
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::Reset(std::size_t index)
 	{
-		allocator[index]->Reset();
-		list->Reset(allocator[index], nullptr);
+		allocator_ptrs[index]->Reset();
+		list_ptr->Reset(allocator_ptrs[index].get(), nullptr);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void DX12::Command<FrameLatencyNum>::Close()
 	{
-		list->Close();
+		list_ptr->Close();
 	}
 
 	template<std::size_t FrameLatencyNum>
 	template<typename VertexLayout, typename RenderTargetFormats>
 	inline void Command<FrameLatencyNum>::SetPipelineState(graphics_pipeline_state<VertexLayout,RenderTargetFormats>* ps)
 	{
-		list->SetPipelineState(ps->Get());
+		list_ptr->SetPipelineState(ps->Get());
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void DX12::Command<FrameLatencyNum>::SetPipelineState(compute_pipeline_state* ps)
 	{
-		list->SetPipelineState(ps->Get());
+		list_ptr->SetPipelineState(ps->Get());
 	}
 
 	template<std::size_t FrameLatencyNum>
@@ -344,108 +311,109 @@ namespace DX12
 		D3D12_CPU_DESCRIPTOR_HANDLE* rth = renderTargetHandle ? (&renderTargetHandle.value()) : nullptr;
 		D3D12_CPU_DESCRIPTOR_HANDLE* dsh = depthStencilHandle ? (&depthStencilHandle.value()) : nullptr;
 		if (rth)
-			list->OMSetRenderTargets(1, rth, false, dsh);
+			list_ptr->OMSetRenderTargets(1, rth, false, dsh);
 		else 
-			list->OMSetRenderTargets(0, rth, false, dsh);
+			list_ptr->OMSetRenderTargets(0, rth, false, dsh);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::SetRenderTarget(std::uint32_t renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget)
 	{
-		list->OMSetRenderTargets(renderTagetHandleNum, renderTarget, false, nullptr);
+		list_ptr->OMSetRenderTargets(renderTagetHandleNum, renderTarget, false, nullptr);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::SetRenderTarget(std::uint32_t renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget, D3D12_CPU_DESCRIPTOR_HANDLE depthStencilHandle)
 	{
-		list->OMSetRenderTargets(renderTagetHandleNum, renderTarget, false, &depthStencilHandle);
+		list_ptr->OMSetRenderTargets(renderTagetHandleNum, renderTarget, false, &depthStencilHandle);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::SetViewport(const D3D12_VIEWPORT& viewport)
 	{
-		list->RSSetViewports(1, &viewport);
+		list_ptr->RSSetViewports(1, &viewport);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::SetViewport(std::uint32_t num, D3D12_VIEWPORT* viewportPtr)
 	{
-		list->RSSetViewports(num, viewportPtr);
+		list_ptr->RSSetViewports(num, viewportPtr);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::SetScissorRect(const D3D12_RECT& rect)
 	{
-		list->RSSetScissorRects(1, &rect);
+		list_ptr->RSSetScissorRects(1, &rect);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::SetScissorRect(std::uint32_t num, D3D12_RECT* rectPtr)
 	{
-		list->RSSetScissorRects(num, rectPtr);
+		list_ptr->RSSetScissorRects(num, rectPtr);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	template<typename... Formats>
 	inline void Command<FrameLatencyNum>::SetVertexBuffer(vertex_buffer_resource<Formats...>* vbr)
 	{
-		list->IASetVertexBuffers(0, 1, &vbr->get_view());
+		list_ptr->IASetVertexBuffers(0, 1, &vbr->get_view());
 	}
 
 	template<std::size_t FrameLatencyNum>
 	template<typename Format>
 	inline void Command<FrameLatencyNum>::SetIndexBuffer(index_buffer_resource<Format>* ibr)
 	{
-		list->IASetIndexBuffer(&ibr->get_view());
+		list_ptr->IASetIndexBuffer(&ibr->get_view());
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::SetGraphicsRootSignature(RootSignature* rootSignature)
 	{
-		list->SetGraphicsRootSignature(rootSignature->Get());
+		list_ptr->SetGraphicsRootSignature(rootSignature->Get());
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::SetComputeRootSignature(RootSignature* rootSignature)
 	{
-		list->SetComputeRootSignature(rootSignature->Get());
+		list_ptr->SetComputeRootSignature(rootSignature->Get());
 	}
 
 	template<std::size_t FrameLatencyNum>
 	template<typename DescriptorHeap>
 	inline void Command<FrameLatencyNum>::SetDescriptorHeap(DescriptorHeap* dh)
 	{
-		list->SetDescriptorHeaps(1, &dh->get());
+		ID3D12DescriptorHeap* tmp[] = { dh->get() };
+		list_ptr->SetDescriptorHeaps(1, tmp);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::SetGraphicsRootDescriptorTable(std::uint32_t index, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle)
 	{
-		list->SetGraphicsRootDescriptorTable(index, gpuHandle);
+		list_ptr->SetGraphicsRootDescriptorTable(index, gpuHandle);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::SetComputeRootDescriptorTable(std::uint32_t index, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle)
 	{
-		list->SetComputeRootDescriptorTable(index, gpuHandle);
+		list_ptr->SetComputeRootDescriptorTable(index, gpuHandle);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::SetPrimitiveTopology(PrimitiveTopology primitiveTopology)
 	{
-		list->IASetPrimitiveTopology(static_cast<D3D12_PRIMITIVE_TOPOLOGY>(primitiveTopology));
+		list_ptr->IASetPrimitiveTopology(static_cast<D3D12_PRIMITIVE_TOPOLOGY>(primitiveTopology));
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::DrawInstanced(std::uint32_t vertexNumPerInstance, std::uint32_t instanceNum)
 	{
-		list->DrawInstanced(vertexNumPerInstance, instanceNum, 0, 0);
+		list_ptr->DrawInstanced(vertexNumPerInstance, instanceNum, 0, 0);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::DrawIndexedInstanced(std::uint32_t indexNumPerInstance, std::uint32_t instanceNum)
 	{
-		list->DrawIndexedInstanced(indexNumPerInstance, instanceNum, 0, 0, 0);
+		list_ptr->DrawIndexedInstanced(indexNumPerInstance, instanceNum, 0, 0, 0);
 	}
 
 	template<std::size_t FrameLatencyNum>
@@ -462,7 +430,7 @@ namespace DX12
 		barrier.Transition.StateBefore = static_cast<D3D12_RESOURCE_STATES>(r->get_state());
 		barrier.Transition.StateAfter = static_cast<D3D12_RESOURCE_STATES>(s);
 		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-		list->ResourceBarrier(1, &barrier);
+		list_ptr->ResourceBarrier(1, &barrier);
 
 		r->set_state(s);
 	}
@@ -470,13 +438,13 @@ namespace DX12
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE handle, const std::array<float, 4>& color)
 	{
-		list->ClearRenderTargetView(handle, color.data(), 0, nullptr);
+		list_ptr->ClearRenderTargetView(handle, color.data(), 0, nullptr);
 	}
 
 	template<std::size_t FrameLatencyNum>
 	inline void Command<FrameLatencyNum>::ClearDepthView(D3D12_CPU_DESCRIPTOR_HANDLE handle, float d)
 	{
-		list->ClearDepthStencilView(handle, D3D12_CLEAR_FLAG_DEPTH, d, 0, 0, nullptr);
+		list_ptr->ClearDepthStencilView(handle, D3D12_CLEAR_FLAG_DEPTH, d, 0, 0, nullptr);
 	}
 
 

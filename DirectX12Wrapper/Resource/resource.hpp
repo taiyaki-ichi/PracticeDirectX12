@@ -99,7 +99,7 @@ namespace DX12
 	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag... Flags>
 	class resource {
 
-		ID3D12Resource* resource_ptr = nullptr;
+		release_unique_ptr<ID3D12Resource> resource_ptr{};
 
 		resource_state state{};
 
@@ -108,13 +108,10 @@ namespace DX12
 
 	public:
 		resource() = default;
-		virtual ~resource();
+		virtual ~resource() = default;
 
-		resource(const resource&) = delete;
-		resource& operator=(const resource&) = delete;
-
-		resource(resource&&) noexcept;
-		resource& operator=(resource&&) noexcept;
+		resource(resource&&) = default;
+		resource& operator=(resource&&) = default;
 
 		//claerValue‚Í‰¼
 		void initialize(Device*, std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize,
@@ -145,35 +142,6 @@ namespace DX12
 	//
 	//
 	//
-
-	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag... Flags>
-	inline resource<ResourceDimention, Format, HeapProperty, Flags...>::~resource()
-	{
-		if (resource_ptr)
-			resource_ptr->Release();
-	}
-
-	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag... Flags>
-	inline resource<ResourceDimention, Format, HeapProperty, Flags...>::resource(resource&& rhs) noexcept
-	{
-		resource_ptr = rhs.resource_ptr;
-		state = rhs.state;
-		clear_value = std::move(rhs.clear_value);
-
-		rhs.resource_ptr = nullptr;
-	}
-
-	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag ...Flags>
-	inline resource<ResourceDimention, Format, HeapProperty, Flags...>& resource<ResourceDimention, Format, HeapProperty, Flags...>::operator=(resource<ResourceDimention, Format, HeapProperty, Flags...>&& rhs) noexcept
-	{
-		resource_ptr = rhs.resource_ptr;
-		state = rhs.state;
-		clear_value = std::move(rhs.clear_value);
-
-		rhs.resource_ptr = nullptr;
-
-		return *this;
-	}
 
 	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag ...Flags>
 	inline void resource<ResourceDimention, Format, HeapProperty, Flags...>::initialize(Device* device,
@@ -220,23 +188,24 @@ namespace DX12
 		else
 			state = resource_state::Common;
 
-
+		ID3D12Resource* tmp = nullptr;
 		if (FAILED(device->Get()->CreateCommittedResource(
 			&heap_prop,
 			D3D12_HEAP_FLAG_NONE,
 			&res_desc,
 			static_cast<D3D12_RESOURCE_STATES>(state),
 			(clearValue) ? &cv : nullptr,
-			IID_PPV_ARGS(&resource_ptr))))
+			IID_PPV_ARGS(&tmp))))
 		{
 			throw  "";
 		}
+		resource_ptr.reset(tmp);
 	}
 
 	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag ...Flags>
 	inline ID3D12Resource* resource<ResourceDimention, Format, HeapProperty, Flags...>::get()
 	{
-		return resource_ptr;
+		return resource_ptr.get();
 	}
 
 	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag ...Flags>

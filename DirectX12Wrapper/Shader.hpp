@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include"Utility.hpp"
 #include<Windows.h>
 #include<d3d12.h>
 #include<dxgi1_6.h>
@@ -15,17 +16,14 @@ namespace DX12
 {
 	class Shader
 	{
-		ID3DBlob* blob = nullptr;
+		release_unique_ptr<ID3DBlob> blob_ptr{};
 
 	public:
 		Shader() = default;
-		~Shader();
+		~Shader() = default;
 
-		Shader(Shader const&) = delete;
-		Shader& operator=(Shader const&) = delete;
-
-		Shader(Shader&&) noexcept;
-		Shader& operator=(Shader&&) noexcept;
+		Shader(Shader&&) = default;
+		Shader& operator=(Shader&&) = default;
 
 		//ファイル名、関数名、インクルードオプション
 		void Intialize(const wchar_t* fileName, const char* funcName, const char* includeOption);
@@ -37,35 +35,17 @@ namespace DX12
 	//
 	//
 
-	inline Shader::~Shader()
-	{
-		if (blob)
-			blob->Release();
-	}
-
-	inline Shader::Shader(Shader&& rhs) noexcept
-	{
-		blob = rhs.blob;
-		rhs.blob = nullptr;
-	}
-
-	inline Shader& Shader::operator=(Shader&& rhs) noexcept
-	{
-		blob = rhs.blob;
-		rhs.blob = nullptr;
-		return *this;
-	}
-
 	inline void Shader::Intialize(const wchar_t* fileName, const char* funcName, const char* includeOption)
 	{
 		ID3DBlob* errorBlob = nullptr;
 
+		ID3DBlob* tmp = nullptr;
 		auto result = D3DCompileFromFile(
 			fileName,
 			nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 			funcName, includeOption,
 			D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
-			0, &blob, &errorBlob);
+			0, &tmp, &errorBlob);
 
 		if (FAILED(result))
 		{
@@ -79,11 +59,13 @@ namespace DX12
 				throw errstr + L" : " + fileName + L"\n";
 			}
 		}
+
+		blob_ptr.reset(tmp);
 	}
 
 	inline ID3DBlob* Shader::Get() const noexcept
 	{
-		return blob;
+		return blob_ptr.get();
 	}
 
 }
