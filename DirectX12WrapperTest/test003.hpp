@@ -43,27 +43,27 @@ namespace test003
 		device.Initialize();
 
 		Command command{};
-		command.Initialize(&device);
+		command.Initialize(device);
 
-		auto swapChain = command.CreateSwapChain<FrameBufferFormat>(&device, hwnd);
+		auto swapChain = command.CreateSwapChain<FrameBufferFormat>(hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
-		rtvDescriptorHeap.initialize(&device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(1), 0, 0);
+		rtvDescriptorHeap.initialize(device, 2);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(1), 0, 0);
 
 		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/bunny.off");
 		
 		VertexLayout::resource_type vertexBuffer{};
-		vertexBuffer.initialize(&device, vertex.size());
+		vertexBuffer.initialize(device, vertex.size());
 		map(&vertexBuffer, vertex.begin(), vertex.end());
 		
 		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
-		indexBuffer.initialize(&device, face.size() * 3);
+		indexBuffer.initialize(device, face.size() * 3);
 		map(&indexBuffer, face.begin(), face.end());
 
 		RootSignature rootSignature{};
-		rootSignature.Initialize(&device, { {DescriptorRangeType::CBV} }, {});
+		rootSignature.Initialize(device, { {DescriptorRangeType::CBV} }, {});
 		
 		Shader vertexShader{};
 		vertexShader.Intialize(L"Shader/VertexShader003.hlsl", "main", "vs_5_0");
@@ -81,21 +81,21 @@ namespace test003
 		drawNormalGeometryShader.Intialize(L"Shader/GeometryShader003_DrawNormal.hlsl", "main", "gs_5_0");
 		
 		graphics_pipeline_state<VertexLayout, render_target_formats<FrameBufferFormat>> drawFacePipelineState{};
-		drawFacePipelineState.Initialize(&device, &rootSignature, { &vertexShader, &drawFacePixelShader,&drawFaceGeometryShader },
+		drawFacePipelineState.Initialize(device, rootSignature, { &vertexShader, &drawFacePixelShader,&drawFaceGeometryShader },
 			{ "POSITION" }, true, false, PrimitiveTopology::Triangle
 		);
 
 		graphics_pipeline_state<VertexLayout, render_target_formats<FrameBufferFormat>> drawNormalPipelineState{};
-		drawNormalPipelineState.Initialize(&device, &rootSignature, { &vertexShader, &drawNormalPixelShader,&drawNormalGeometryShader },
+		drawNormalPipelineState.Initialize(device, rootSignature, { &vertexShader, &drawNormalPixelShader,&drawNormalGeometryShader },
 			{ "POSITION" }, true, false, PrimitiveTopology::Triangle
 		);
 
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
-		depthBuffer.initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { { 1.f } });
+		depthBuffer.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { { 1.f } });
 		
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
-		depthStencilDescriptorHeap.initialize(&device, 1);
-		depthStencilDescriptorHeap.push_back_texture2D_DSV(&device, &depthBuffer, 0);
+		depthStencilDescriptorHeap.initialize(device, 1);
+		depthStencilDescriptorHeap.push_back_texture2D_DSV(device, depthBuffer, 0);
 		
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
 		D3D12_RECT scissorRect{ 0,0,static_cast<LONG>(WINDOW_WIDTH),static_cast<LONG>(WINDOW_HEIGHT) };
@@ -113,14 +113,14 @@ namespace test003
 		);
 		
 		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
-		sceneDataConstantBuffer.initialize(&device);
+		sceneDataConstantBuffer.initialize(device);
 		map(&sceneDataConstantBuffer, SceneData{ view,proj });
 	
 		
 		//SceneDataÇÉVÉFÅ[É_Ç…ìnÇ∑óp
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
-		descriptorHeap.initialize(&device, 1);
-		descriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer);
+		descriptorHeap.initialize(device, 1);
+		descriptorHeap.push_back_CBV(device, sceneDataConstantBuffer);
 
 		
 		std::size_t cnt = 0;
@@ -138,23 +138,23 @@ namespace test003
 			command.SetViewport(viewport);
 			command.SetScissorRect(scissorRect);
 
-			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
+			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
 			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
 
-			command.Barrior(&depthBuffer, resource_state::DepthWrite);
+			command.Barrior(depthBuffer, resource_state::DepthWrite);
 			command.ClearDepthView(depthStencilDescriptorHeap.get_CPU_handle(), 1.f);
 
 			command.SetRenderTarget(rtvDescriptorHeap.get_CPU_handle(backBufferIndex),depthStencilDescriptorHeap.get_CPU_handle());
 
 			//ñ ÇÃï`é 
 			{
-				command.SetPipelineState(&drawFacePipelineState);
+				command.SetPipelineState(drawFacePipelineState);
 				command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
-				command.SetGraphicsRootSignature(&rootSignature);
+				command.SetGraphicsRootSignature(rootSignature);
 
-				command.SetVertexBuffer(&vertexBuffer);
-				command.SetIndexBuffer(&indexBuffer);
-				command.SetDescriptorHeap(&descriptorHeap);
+				command.SetVertexBuffer(vertexBuffer);
+				command.SetIndexBuffer(indexBuffer);
+				command.SetDescriptorHeap(descriptorHeap);
 				command.SetGraphicsRootDescriptorTable(0, descriptorHeap.get_GPU_handle());
 
 				command.DrawIndexedInstanced(face.size() * 3);
@@ -162,19 +162,19 @@ namespace test003
 
 			//ñ@ê¸ÇÃï`é 
 			{
-				command.SetPipelineState(&drawNormalPipelineState);
+				command.SetPipelineState(drawNormalPipelineState);
 				command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
-				command.SetGraphicsRootSignature(&rootSignature);
+				command.SetGraphicsRootSignature(rootSignature);
 
-				command.SetVertexBuffer(&vertexBuffer);
-				command.SetIndexBuffer(&indexBuffer);
-				command.SetDescriptorHeap(&descriptorHeap);
+				command.SetVertexBuffer(vertexBuffer);
+				command.SetIndexBuffer(indexBuffer);
+				command.SetDescriptorHeap(descriptorHeap);
 				command.SetGraphicsRootDescriptorTable(0, descriptorHeap.get_GPU_handle());
 
 				command.DrawIndexedInstanced(face.size() * 3);
 			}
 
-			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::Common);
+			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::Common);
 
 			command.Close();
 			command.Execute();
@@ -185,7 +185,7 @@ namespace test003
 			command.Wait(swapChain.GetCurrentBackBufferIndex());
 		};
 
-		command.WaitAll(&device);
+		command.WaitAll(device);
 		
 
 		return 0;

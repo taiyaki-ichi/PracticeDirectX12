@@ -34,43 +34,43 @@ namespace test006
 		device.Initialize();
 
 		Command command{};
-		command.Initialize(&device);
+		command.Initialize(device);
 
-		auto swapChain = command.CreateSwapChain<FrameBufferFormat>(&device, hwnd);
+		auto swapChain = command.CreateSwapChain<FrameBufferFormat>(hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
-		rtvDescriptorHeap.initialize(&device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(1), 0, 0);
+		rtvDescriptorHeap.initialize(device, 2);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(1), 0, 0);
 
 
 		Shader cs{};
 		cs.Intialize(L"Shader/ComputeShader001.hlsl", "main", "cs_5_0");
 
 		RootSignature computeRootsignature{};
-		computeRootsignature.Initialize(&device,
+		computeRootsignature.Initialize(device,
 			{ {DescriptorRangeType::SRV,DescriptorRangeType::UAV} },
 			{}
 		);
 
 		//
 		compute_pipeline_state computePipelineState{};
-		computePipelineState.Initialize(&device, &computeRootsignature, &cs);
+		computePipelineState.Initialize(device, computeRootsignature, &cs);
 
 		int x, y, n;
 		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> textureResource{};
 		{
 			std::uint8_t* data = stbi_load("../../Assets/icon.png", &x, &y, &n, 4);
 			buffer_resource uploadResource{};
-			uploadResource.initialize(&device, TextureDataPitchAlignment(x * 4) * y);
+			uploadResource.initialize(device, TextureDataPitchAlignment(x * 4) * y);
 			map(&uploadResource, data, x * 4, y, TextureDataPitchAlignment(x * 4));
 
-			textureResource.initialize(&device, x, y, 1, 1);
+			textureResource.initialize(device, x, y, 1, 1);
 
 			command.Reset(0);
-			command.Barrior(&textureResource, resource_state::CopyDest);
-			command.CopyTexture(&device, &uploadResource, &textureResource);
-			command.Barrior(&textureResource, resource_state::PixcelShaderResource);
+			command.Barrior(textureResource, resource_state::CopyDest);
+			command.CopyTexture(device, uploadResource, textureResource);
+			command.Barrior(textureResource, resource_state::PixcelShaderResource);
 			command.Close();
 			command.Execute();
 			command.Fence(0);
@@ -80,22 +80,22 @@ namespace test006
 		}
 
 		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>, resource_flag::AllowUnorderdAccess> float4ShaderResource{};
-		float4ShaderResource.initialize(&device, x, y, 1, 0);
+		float4ShaderResource.initialize(device, x, y, 1, 0);
 
 		descriptor_heap_CBV_SRV_UAV computeDescriptorHeap{};
-		computeDescriptorHeap.initialize(&device, 2);
-		computeDescriptorHeap.push_back_texture2D_SRV(&device, &textureResource, 1, 0, 0, 0.f);
-		computeDescriptorHeap.push_back_texture2D_UAV(&device, &float4ShaderResource, 0, 0);
+		computeDescriptorHeap.initialize(device, 2);
+		computeDescriptorHeap.push_back_texture2D_SRV(device, textureResource, 1, 0, 0, 0.f);
+		computeDescriptorHeap.push_back_texture2D_UAV(device, float4ShaderResource, 0, 0);
 
 
 		//
 		command.Reset(0);
-		command.Barrior(&float4ShaderResource, resource_state::UnorderedAccessResource);
-		command.SetComputeRootSignature(&computeRootsignature);
-		command.SetDescriptorHeap(&computeDescriptorHeap);
+		command.Barrior(float4ShaderResource, resource_state::UnorderedAccessResource);
+		command.SetComputeRootSignature(computeRootsignature);
+		command.SetDescriptorHeap(computeDescriptorHeap);
 		command.SetComputeRootDescriptorTable(0, computeDescriptorHeap.get_GPU_handle());
-		command.SetPipelineState(&computePipelineState);
-		command.Barrior(&float4ShaderResource, resource_state::PixcelShaderResource);
+		command.SetPipelineState(computePipelineState);
+		command.Barrior(float4ShaderResource, resource_state::PixcelShaderResource);
 		command.Dispatch(x, y, 1);
 		command.Close();
 		command.Execute();
@@ -116,19 +116,19 @@ namespace test006
 		};
 
 		VertexLayout::resource_type vertexBuffer{};
-		vertexBuffer.initialize(&device, vertex.size());
+		vertexBuffer.initialize(device, vertex.size());
 		map(&vertexBuffer, vertex.begin(), vertex.end());
 
 		index_buffer_resource<format<component_type::UINT,32,1>> indexBuffer{};
-		indexBuffer.initialize(&device, index.size());
+		indexBuffer.initialize(device, index.size());
 		map(&indexBuffer, index);
 
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
-		descriptorHeap.initialize(&device, 1);
-		descriptorHeap.push_back_texture2D_SRV(&device, &float4ShaderResource, 1, 0, 0, 0.f);
+		descriptorHeap.initialize(device, 1);
+		descriptorHeap.push_back_texture2D_SRV(device, float4ShaderResource, 1, 0, 0, 0.f);
 
 		RootSignature rootSignature{};
-		rootSignature.Initialize(&device, { {DescriptorRangeType::SRV} }, { StaticSamplerType::Standard });
+		rootSignature.Initialize(device, { {DescriptorRangeType::SRV} }, { StaticSamplerType::Standard });
 
 		Shader vertexShader{};
 		vertexShader.Intialize(L"Shader/VertexShader002.hlsl", "main", "vs_5_0");
@@ -137,7 +137,7 @@ namespace test006
 		pixelShader.Intialize(L"Shader/PixelShader002.hlsl", "main", "ps_5_0");
 
 		graphics_pipeline_state<VertexLayout,render_target_formats<FrameBufferFormat>> pipelineState{};
-		pipelineState.Initialize(&device, &rootSignature, { &vertexShader, &pixelShader },
+		pipelineState.Initialize(device, rootSignature, { &vertexShader, &pixelShader },
 			{ "POSITION","TEXCOOD" }, false, false, PrimitiveTopology::Triangle
 		);
 
@@ -153,22 +153,22 @@ namespace test006
 			command.SetViewport(viewport);
 			command.SetScissorRect(scissorRect);
 
-			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
+			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
 			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5f,0.5f,0.5f,1.f });
 
 			command.SetRenderTarget(rtvDescriptorHeap.get_CPU_handle(backBufferIndex));
 
-			command.SetPipelineState(&pipelineState);
+			command.SetPipelineState(pipelineState);
 			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
 
-			command.SetGraphicsRootSignature(&rootSignature);
-			command.SetDescriptorHeap(&descriptorHeap);
+			command.SetGraphicsRootSignature(rootSignature);
+			command.SetDescriptorHeap(descriptorHeap);
 			command.SetGraphicsRootDescriptorTable(0, descriptorHeap.get_GPU_handle());
-			command.SetVertexBuffer(&vertexBuffer);
-			command.SetIndexBuffer(&indexBuffer);
+			command.SetVertexBuffer(vertexBuffer);
+			command.SetIndexBuffer(indexBuffer);
 			command.DrawIndexedInstanced(6);
 
-			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::Common);
+			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::Common);
 
 			command.Close();
 			command.Execute();
@@ -178,7 +178,7 @@ namespace test006
 
 			command.Wait(swapChain.GetCurrentBackBufferIndex());
 		}
-		command.WaitAll(&device);
+		command.WaitAll(device);
 
 		return 0;
 	}

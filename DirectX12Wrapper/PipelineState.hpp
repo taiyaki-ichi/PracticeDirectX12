@@ -130,7 +130,7 @@ namespace DX12
 		graphics_pipeline_state(graphics_pipeline_state&&) = default;
 		graphics_pipeline_state& operator=(graphics_pipeline_state&&) = default;
 
-		void Initialize(Device*, RootSignature*, ShaderDesc,
+		void Initialize(Device&, RootSignature&, ShaderDesc,
 			std::array<const char*,VertexLayout::format_num> vertexName,
 			bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology
 		);
@@ -152,7 +152,7 @@ namespace DX12
 		compute_pipeline_state& operator=(compute_pipeline_state&&) = default;
 
 		//コンピュートシェーダ用のパイプライン生成
-		void Initialize(Device*, RootSignature*, Shader* computeShader);
+		void Initialize(Device&, RootSignature&, Shader& computeShader);
 
 		ID3D12PipelineState* Get() const noexcept;
 	};
@@ -164,7 +164,7 @@ namespace DX12
 
 
 	template<typename VertexLayout, typename ResnderTargetFormats>
-	inline void graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::Initialize(Device* device, RootSignature* rootSignature, ShaderDesc shaderDesc, 
+	inline void graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::Initialize(Device& device, RootSignature& rootSignature, ShaderDesc shaderDesc, 
 		std::array<const char*, VertexLayout::format_num> vertexName, bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology)
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineDesc{};
@@ -269,11 +269,11 @@ namespace DX12
 
 		graphicsPipelineDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;//これないとまずい
 
-		graphicsPipelineDesc.pRootSignature = rootSignature->Get();
+		graphicsPipelineDesc.pRootSignature = rootSignature.Get();
 
 		{
 			ID3D12PipelineState* tmp = nullptr;
-			if (FAILED(device->Get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&tmp))))
+			if (FAILED(device.Get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&tmp))))
 				throw "";
 			pipeline_state_ptr.reset(tmp);
 		}
@@ -286,16 +286,16 @@ namespace DX12
 		return pipeline_state_ptr.get();
 	}
 
-	inline void compute_pipeline_state::Initialize(Device* device, RootSignature* rootSignature, Shader* computeShader)
+	inline void compute_pipeline_state::Initialize(Device& device, RootSignature& rootSignature, Shader& computeShader)
 	{
 		D3D12_COMPUTE_PIPELINE_STATE_DESC computePipelineDesc{};
-		computePipelineDesc.CS.pShaderBytecode = computeShader->Get()->GetBufferPointer();
-		computePipelineDesc.CS.BytecodeLength = computeShader->Get()->GetBufferSize();
-		computePipelineDesc.pRootSignature = rootSignature->Get();
+		computePipelineDesc.CS.pShaderBytecode = computeShader.Get()->GetBufferPointer();
+		computePipelineDesc.CS.BytecodeLength = computeShader.Get()->GetBufferSize();
+		computePipelineDesc.pRootSignature = rootSignature.Get();
 
 		{
 			ID3D12PipelineState* tmp = nullptr;
-			if (FAILED(device->Get()->CreateComputePipelineState(&computePipelineDesc, IID_PPV_ARGS(&tmp))))
+			if (FAILED(device.Get()->CreateComputePipelineState(&computePipelineDesc, IID_PPV_ARGS(&tmp))))
 				throw "";
 			pipeline_state_ptr.reset(tmp);
 		}

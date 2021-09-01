@@ -95,14 +95,14 @@ namespace test005
 		device.Initialize();
 
 		Command command{};
-		command.Initialize(&device);
+		command.Initialize(device);
 
-		auto swapChain = command.CreateSwapChain<FrameBufferFormat>(&device, hwnd);
+		auto swapChain = command.CreateSwapChain<FrameBufferFormat>(hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
-		rtvDescriptorHeap.initialize(&device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV(&device, &swapChain.GetFrameBuffer(1), 0, 0);
+		rtvDescriptorHeap.initialize(device, 2);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(1), 0, 0);
 
 		Shader vs{};
 		vs.Intialize(L"Shader/Ground/VertexShader.hlsl", "main", "vs_5_0");
@@ -117,41 +117,41 @@ namespace test005
 		ds.Intialize(L"Shader/Ground/DomainShader.hlsl", "main", "ds_5_0");
 
 		RootSignature rootSignature{};
-		rootSignature.Initialize(&device,
+		rootSignature.Initialize(device,
 			{ {DescriptorRangeType::CBV,DescriptorRangeType::SRV,DescriptorRangeType::SRV} },
 			{ StaticSamplerType::Standard }
 		);
 
 		graphics_pipeline_state<VertexLayout,render_target_formats<FrameBufferFormat>> pipelineState{};
-		pipelineState.Initialize(&device, &rootSignature, { &vs, &ps,nullptr,&hs, &ds },
+		pipelineState.Initialize(device, rootSignature, { &vs, &ps,nullptr,&hs, &ds },
 			{ "POSITION","TEXCOOD" }, true, false, PrimitiveTopology::Patch
 		);
 
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthStencilBufferResource{};
-		depthStencilBufferResource.initialize(&device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { {1.f} });
+		depthStencilBufferResource.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { {1.f} });
 
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
-		depthStencilDescriptorHeap.initialize(&device, 1);
-		depthStencilDescriptorHeap.push_back_texture2D_DSV(&device, &depthStencilBufferResource, 0);
+		depthStencilDescriptorHeap.initialize(device, 1);
+		depthStencilDescriptorHeap.push_back_texture2D_DSV(device, depthStencilBufferResource, 0);
 
 
 		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
-		sceneDataConstantBuffer.initialize(&device);
+		sceneDataConstantBuffer.initialize(device);
 
 		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> heightMapTextureResource{};
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/heightmap.png", &textureWidth, &textureHeight, &n, 4);
 			buffer_resource uploadResource{};
-			uploadResource.initialize(&device, TextureDataPitchAlignment(textureWidth * 4) * textureHeight);
+			uploadResource.initialize(device, TextureDataPitchAlignment(textureWidth * 4) * textureHeight);
 			map(&uploadResource, data, textureWidth * 4, textureHeight, TextureDataPitchAlignment(textureWidth * 4));
 
-			heightMapTextureResource.initialize(&device, textureWidth, textureHeight, 1, 1);
+			heightMapTextureResource.initialize(device, textureWidth, textureHeight, 1, 1);
 
 			command.Reset(0);
-			command.Barrior(&heightMapTextureResource, resource_state::CopyDest);
-			command.CopyTexture(&device, &uploadResource, &heightMapTextureResource);
-			command.Barrior(&heightMapTextureResource, resource_state::PixcelShaderResource);
+			command.Barrior(heightMapTextureResource, resource_state::CopyDest);
+			command.CopyTexture(device, uploadResource, heightMapTextureResource);
+			command.Barrior(heightMapTextureResource, resource_state::PixcelShaderResource);
 			command.Close();
 			command.Execute();
 			command.Fence(0);
@@ -165,15 +165,15 @@ namespace test005
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/normalmap.png", &textureWidth, &textureHeight, &n, 4);
 			buffer_resource uploadResource{};
-			uploadResource.initialize(&device, TextureDataPitchAlignment(textureWidth * 4) * textureHeight);
+			uploadResource.initialize(device, TextureDataPitchAlignment(textureWidth * 4) * textureHeight);
 			map(&uploadResource, data, textureWidth * 4, textureHeight, TextureDataPitchAlignment(textureWidth * 4));
 
-			normalMapTextureResource.initialize(&device, textureWidth, textureHeight, 1, 1);
+			normalMapTextureResource.initialize(device, textureWidth, textureHeight, 1, 1);
 
 			command.Reset(0);
-			command.Barrior(&normalMapTextureResource, resource_state::CopyDest);
-			command.CopyTexture(&device, &uploadResource, &normalMapTextureResource);
-			command.Barrior(&normalMapTextureResource, resource_state::PixcelShaderResource);
+			command.Barrior(normalMapTextureResource, resource_state::CopyDest);
+			command.CopyTexture(device, uploadResource, normalMapTextureResource);
+			command.Barrior(normalMapTextureResource, resource_state::PixcelShaderResource);
 			command.Close();
 			command.Execute();
 			command.Fence(0);
@@ -183,20 +183,20 @@ namespace test005
 		}
 
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
-		descriptorHeap.initialize(&device, 3);
-		descriptorHeap.push_back_CBV(&device, &sceneDataConstantBuffer);
-		descriptorHeap.push_back_texture2D_SRV(&device, &heightMapTextureResource, 1, 0, 0, 0.f);
-		descriptorHeap.push_back_texture2D_SRV(&device, &normalMapTextureResource, 1, 0, 0, 0.f);
+		descriptorHeap.initialize(device, 3);
+		descriptorHeap.push_back_CBV(device, sceneDataConstantBuffer);
+		descriptorHeap.push_back_texture2D_SRV(device, heightMapTextureResource, 1, 0, 0, 0.f);
+		descriptorHeap.push_back_texture2D_SRV(device, normalMapTextureResource, 1, 0, 0, 0.f);
 
 
 		auto [vertexList, indexList] = GetGroundPatch();
 
 		VertexLayout::resource_type vertexBuffer{};
-		vertexBuffer.initialize(&device, vertexList.size());
+		vertexBuffer.initialize(device, vertexList.size());
 		map(&vertexBuffer, vertexList.begin(), vertexList.end());
 
 		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
-		indexBuffer.initialize(&device, indexList.size());
+		indexBuffer.initialize(device, indexList.size());
 		map(&indexBuffer, indexList.begin(),indexList.end());
 
 
@@ -233,26 +233,26 @@ namespace test005
 			command.Reset(backBufferIndex);
 
 
-			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
+			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
 			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5f,0.5f,0.5f,1.f });
 
-			command.Barrior(&depthStencilBufferResource, resource_state::DepthWrite);
+			command.Barrior(depthStencilBufferResource, resource_state::DepthWrite);
 			command.ClearDepthView(depthStencilDescriptorHeap.get_CPU_handle(), 1.f);
 
 			command.SetRenderTarget(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), depthStencilDescriptorHeap.get_CPU_handle());
 			command.SetViewport(viewport);
 			command.SetScissorRect(scissorRect);
-			command.SetPipelineState(&pipelineState);
+			command.SetPipelineState(pipelineState);
 			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
-			command.SetGraphicsRootSignature(&rootSignature);
-			command.SetDescriptorHeap(&descriptorHeap);
+			command.SetGraphicsRootSignature(rootSignature);
+			command.SetDescriptorHeap(descriptorHeap);
 			command.SetGraphicsRootDescriptorTable(0, descriptorHeap.get_GPU_handle());
-			command.SetVertexBuffer(&vertexBuffer);
-			command.SetIndexBuffer(&indexBuffer);
+			command.SetVertexBuffer(vertexBuffer);
+			command.SetIndexBuffer(indexBuffer);
 			command.SetPrimitiveTopology(PrimitiveTopology::Contorol4PointPatchList);
 			command.DrawIndexedInstanced(indexList.size());
 
-			command.Barrior(&swapChain.GetFrameBuffer(backBufferIndex), resource_state::Common);
+			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::Common);
 
 			command.Close();
 			command.Execute();
@@ -262,7 +262,7 @@ namespace test005
 
 			command.Wait(swapChain.GetCurrentBackBufferIndex());
 		}
-		command.WaitAll(&device);
+		command.WaitAll(device);
 
 		return 0;
 	}

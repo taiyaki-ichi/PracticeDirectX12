@@ -8,7 +8,7 @@ namespace DX12
 	class constant_buffer_resource : public buffer_resource
 	{
 	public:
-		void initialize(Device* device);
+		void initialize(Device& device);
 
 		std::uint32_t get_size() const noexcept;
 	};
@@ -18,7 +18,7 @@ namespace DX12
 	//
 
 	template<typename T>
-	void constant_buffer_resource<T>::initialize(Device* device)
+	void constant_buffer_resource<T>::initialize(Device& device)
 	{
 		buffer_resource::initialize(device, Alignment<std::uint32_t>(sizeof(T), 256));
 	}

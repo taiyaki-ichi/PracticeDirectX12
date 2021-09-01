@@ -31,7 +31,7 @@ namespace DX12
 		RootSignature(RootSignature&&) = default;
 		RootSignature& operator=(RootSignature&&) = default;
 
-		void Initialize(Device*, const std::vector<std::vector<DescriptorRangeType>>&,const std::vector<StaticSamplerType>&);
+		void Initialize(Device&, const std::vector<std::vector<DescriptorRangeType>>&,const std::vector<StaticSamplerType>&);
 
 		ID3D12RootSignature* Get();
 	};
@@ -41,7 +41,7 @@ namespace DX12
 	//
 	//
 
-	void RootSignature::Initialize(Device* device, const std::vector<std::vector<DescriptorRangeType>>& descriptorRangeTypes, 
+	void RootSignature::Initialize(Device& device, const std::vector<std::vector<DescriptorRangeType>>& descriptorRangeTypes, 
 		const std::vector<StaticSamplerType>& staticSamplerTypes)
 	{
 		D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
@@ -75,7 +75,7 @@ namespace DX12
 
 		{
 			ID3D12RootSignature* tmp = nullptr;
-			auto result = device->Get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&tmp));
+			auto result = device.Get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&tmp));
 			if (FAILED(result))
 				throw "";
 			root_signature_ptr.reset(tmp);

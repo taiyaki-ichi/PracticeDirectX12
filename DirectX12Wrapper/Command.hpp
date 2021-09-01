@@ -34,26 +34,25 @@ namespace DX12
 		Command(Command<FrameLatencyNum>&&) = default;
 		Command& operator=(Command<FrameLatencyNum>&&) = default;
 
-		void Initialize(Device*);
+		void Initialize(Device&);
 
 		template<typename Format,std::size_t FrameBufferNum=FrameLatencyNum>
-		SwapChain<Format,FrameBufferNum> CreateSwapChain(Device*, HWND);
+		SwapChain<Format,FrameBufferNum> CreateSwapChain(HWND);
 
 		template<typename SrcResource,typename DstResource>
-		void CopyTexture(Device*,SrcResource* srcResource, DstResource* dstResource);
+		void CopyTexture(Device&,SrcResource& srcResource, DstResource& dstResource);
 
 		void Execute();
 		void Dispatch(std::uint32_t threadGroupCountX, std::uint32_t threadGroupCountY, std::uint32_t threadGroupCountZ);
 
 		//index番目のfenceValueを更新し、Queueにその値をSignalする
-		//つまりWaitで待たなければならない位置を記録しておく、的な
 		void Fence(std::uint64_t index);
 
 		//index番目のコマンドの終了を待つ
 		void Wait(std::uint64_t index);
 		//現在発行されている全てのコマンドの処理を待つ
 		//いらないかも
-		void WaitAll(Device*);
+		void WaitAll(Device&);
 
 		//indexはアロケータのインデックス
 		void Reset(std::size_t index);
@@ -61,31 +60,34 @@ namespace DX12
 		void Close();
 
 		template<typename VertexLayout,typename RenderTargetFormats>
-		void SetPipelineState(graphics_pipeline_state<VertexLayout,RenderTargetFormats>*);
-		void SetPipelineState(compute_pipeline_state*);
+		void SetPipelineState(graphics_pipeline_state<VertexLayout,RenderTargetFormats>&);
+		void SetPipelineState(compute_pipeline_state&);
 
 		//OMSetRenderTargetsの最適化について、どのターゲットのViewもおなじディスクリプタヒープ連続して生成されていないとみなしている
+		//
 		void SetRenderTarget(std::optional<D3D12_CPU_DESCRIPTOR_HANDLE> renderTargetHandle, std::optional<D3D12_CPU_DESCRIPTOR_HANDLE> depthStencilHandle = std::nullopt);
 		void SetRenderTarget(std::uint32_t renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget);
 		void SetRenderTarget(std::uint32_t renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget, D3D12_CPU_DESCRIPTOR_HANDLE depthStencilHandle);
 
 		void SetViewport(const D3D12_VIEWPORT& viewport);
+		//
 		void SetViewport(std::uint32_t num, D3D12_VIEWPORT* viewportPtr);
 
 		void SetScissorRect(const D3D12_RECT& rect);
+		//
 		void SetScissorRect(std::uint32_t num, D3D12_RECT* rectPtr);
 
 		template<typename... Formats>
-		void SetVertexBuffer(vertex_buffer_resource<Formats...>*);
+		void SetVertexBuffer(vertex_buffer_resource<Formats...>&);
 
 		template<typename Format>
-		void SetIndexBuffer(index_buffer_resource<Format>*);
+		void SetIndexBuffer(index_buffer_resource<Format>&);
 
-		void SetGraphicsRootSignature(RootSignature*);
-		void SetComputeRootSignature(RootSignature*);
+		void SetGraphicsRootSignature(RootSignature&);
+		void SetComputeRootSignature(RootSignature&);
 
 		template<typename DescriptorHeap>
-		void SetDescriptorHeap(DescriptorHeap*);
+		void SetDescriptorHeap(DescriptorHeap&);
 		void SetGraphicsRootDescriptorTable(std::uint32_t index, D3D12_GPU_DESCRIPTOR_HANDLE);
 		void SetComputeRootDescriptorTable(std::uint32_t index, D3D12_GPU_DESCRIPTOR_HANDLE);
 
@@ -95,7 +97,7 @@ namespace DX12
 		void DrawIndexedInstanced(std::uint32_t indexNumPerInstance, std::uint32_t instanceNum = 1);
 
 		template<typename Resource>
-		void Barrior(Resource*, resource_state);
+		void Barrior(Resource&, resource_state);
 
 		void ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE, const std::array<float, 4>&);
 		void ClearDepthView(D3D12_CPU_DESCRIPTOR_HANDLE, float);
@@ -108,12 +110,12 @@ namespace DX12
 
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::Initialize(Device* device)
+	inline void Command<FrameLatencyNum>::Initialize(Device& device)
 	{
 		for (std::size_t i = 0; i < allocator_ptrs.size(); i++)
 		{
 			ID3D12CommandAllocator* tmp = nullptr;
-			if (FAILED(device->Get()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&tmp))))
+			if (FAILED(device.Get()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&tmp))))
 				throw "";
 			allocator_ptrs[i].reset(tmp);
 		}
@@ -121,7 +123,7 @@ namespace DX12
 
 		{
 			ID3D12GraphicsCommandList* tmp = nullptr;
-			if (FAILED(device->Get()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, allocator_ptrs[0].get(), nullptr, IID_PPV_ARGS(&tmp))))
+			if (FAILED(device.Get()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, allocator_ptrs[0].get(), nullptr, IID_PPV_ARGS(&tmp))))
 				throw "";
 			list_ptr.reset(tmp);
 		}
@@ -134,7 +136,7 @@ namespace DX12
 			cmdQueueDesc.NodeMask = 0;
 			cmdQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;	//プライオリティ特に指定なし
 			cmdQueueDesc.Type = list_ptr->GetType();			//ここはコマンドリストと合わせる
-			if (FAILED(device->Get()->CreateCommandQueue(&cmdQueueDesc, IID_PPV_ARGS(&tmp))))
+			if (FAILED(device.Get()->CreateCommandQueue(&cmdQueueDesc, IID_PPV_ARGS(&tmp))))
 				throw "";
 			queue_ptr.reset(tmp);
 		}
@@ -145,7 +147,7 @@ namespace DX12
 		for (std::size_t i = 0; i < FrameLatencyNum; i++)
 		{
 			ID3D12Fence* tmp = nullptr;
-			if (FAILED(device->Get()->CreateFence(fenceValue[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&tmp))))
+			if (FAILED(device.Get()->CreateFence(fenceValue[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&tmp))))
 				throw "";
 			fence_ptrs[i].reset(tmp);
 		}
@@ -158,7 +160,7 @@ namespace DX12
 
 	template<std::size_t FrameLatencyNum>
 	template<typename Format,std::size_t FrameBufferNum>
-	inline SwapChain<Format,FrameBufferNum> Command<FrameLatencyNum>::CreateSwapChain(Device* device, HWND hwnd)
+	inline SwapChain<Format,FrameBufferNum> Command<FrameLatencyNum>::CreateSwapChain(HWND hwnd)
 	{
 		IDXGIFactory3* factory = nullptr;
 		IDXGISwapChain4* swapChain = nullptr;
@@ -199,23 +201,23 @@ namespace DX12
 
 	template<std::size_t FrameLatencyNum>
 	template<typename SrcResource, typename DstResource>
-	inline void Command<FrameLatencyNum>::CopyTexture(Device* device, SrcResource* srcResource, DstResource* dstResource)
+	inline void Command<FrameLatencyNum>::CopyTexture(Device& device, SrcResource& srcResource, DstResource& dstResource)
 	{
 		D3D12_TEXTURE_COPY_LOCATION srcLocation{};
 		D3D12_TEXTURE_COPY_LOCATION dstLocation{};
 
-		const auto dstDesc = dstResource->get()->GetDesc();
+		const auto dstDesc = dstResource.get()->GetDesc();
 		const auto width = dstDesc.Width;
 		const auto height = dstDesc.Height;
-		const auto uploadResourceRowPitch = srcResource->get()->GetDesc().Width / height;
+		const auto uploadResourceRowPitch = srcResource.get()->GetDesc().Width / height;
 
-		srcLocation.pResource = srcResource->get();
+		srcLocation.pResource = srcResource.get();
 		srcLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
 		{
 			D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
 			UINT nrow;
 			UINT64 rowsize, size;
-			device->Get()->GetCopyableFootprints(&dstDesc, 0, 1, 0, &footprint, &nrow, &rowsize, &size);
+			device.Get()->GetCopyableFootprints(&dstDesc, 0, 1, 0, &footprint, &nrow, &rowsize, &size);
 			srcLocation.PlacedFootprint = footprint;
 		}
 		srcLocation.PlacedFootprint.Offset = 0;
@@ -225,7 +227,7 @@ namespace DX12
 		srcLocation.PlacedFootprint.Footprint.RowPitch = uploadResourceRowPitch;
 		srcLocation.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-		dstLocation.pResource = dstResource->get();
+		dstLocation.pResource = dstResource.get();
 		dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
 		dstLocation.SubresourceIndex = 0;
 
@@ -262,10 +264,10 @@ namespace DX12
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::WaitAll(Device* device)
+	inline void Command<FrameLatencyNum>::WaitAll(Device& device)
 	{
 		ID3D12Fence* fence = nullptr;
-		device->Get()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+		device.Get()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
 		
 		constexpr std::uint64_t expectValue = 1;
 
@@ -294,15 +296,15 @@ namespace DX12
 
 	template<std::size_t FrameLatencyNum>
 	template<typename VertexLayout, typename RenderTargetFormats>
-	inline void Command<FrameLatencyNum>::SetPipelineState(graphics_pipeline_state<VertexLayout,RenderTargetFormats>* ps)
+	inline void Command<FrameLatencyNum>::SetPipelineState(graphics_pipeline_state<VertexLayout,RenderTargetFormats>& ps)
 	{
-		list_ptr->SetPipelineState(ps->Get());
+		list_ptr->SetPipelineState(ps.Get());
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void DX12::Command<FrameLatencyNum>::SetPipelineState(compute_pipeline_state* ps)
+	inline void DX12::Command<FrameLatencyNum>::SetPipelineState(compute_pipeline_state& ps)
 	{
-		list_ptr->SetPipelineState(ps->Get());
+		list_ptr->SetPipelineState(ps.Get());
 	}
 
 	template<std::size_t FrameLatencyNum>
@@ -354,35 +356,35 @@ namespace DX12
 
 	template<std::size_t FrameLatencyNum>
 	template<typename... Formats>
-	inline void Command<FrameLatencyNum>::SetVertexBuffer(vertex_buffer_resource<Formats...>* vbr)
+	inline void Command<FrameLatencyNum>::SetVertexBuffer(vertex_buffer_resource<Formats...>& vbr)
 	{
-		list_ptr->IASetVertexBuffers(0, 1, &vbr->get_view());
+		list_ptr->IASetVertexBuffers(0, 1, &vbr.get_view());
 	}
 
 	template<std::size_t FrameLatencyNum>
 	template<typename Format>
-	inline void Command<FrameLatencyNum>::SetIndexBuffer(index_buffer_resource<Format>* ibr)
+	inline void Command<FrameLatencyNum>::SetIndexBuffer(index_buffer_resource<Format>& ibr)
 	{
-		list_ptr->IASetIndexBuffer(&ibr->get_view());
+		list_ptr->IASetIndexBuffer(&ibr.get_view());
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::SetGraphicsRootSignature(RootSignature* rootSignature)
+	inline void Command<FrameLatencyNum>::SetGraphicsRootSignature(RootSignature& rootSignature)
 	{
-		list_ptr->SetGraphicsRootSignature(rootSignature->Get());
+		list_ptr->SetGraphicsRootSignature(rootSignature.Get());
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::SetComputeRootSignature(RootSignature* rootSignature)
+	inline void Command<FrameLatencyNum>::SetComputeRootSignature(RootSignature& rootSignature)
 	{
-		list_ptr->SetComputeRootSignature(rootSignature->Get());
+		list_ptr->SetComputeRootSignature(rootSignature.Get());
 	}
 
 	template<std::size_t FrameLatencyNum>
 	template<typename DescriptorHeap>
-	inline void Command<FrameLatencyNum>::SetDescriptorHeap(DescriptorHeap* dh)
+	inline void Command<FrameLatencyNum>::SetDescriptorHeap(DescriptorHeap& dh)
 	{
-		ID3D12DescriptorHeap* tmp[] = { dh->get() };
+		ID3D12DescriptorHeap* tmp[] = { dh.get() };
 		list_ptr->SetDescriptorHeaps(1, tmp);
 	}
 
@@ -418,21 +420,21 @@ namespace DX12
 
 	template<std::size_t FrameLatencyNum>
 	template<typename Resource>
-	inline void Command<FrameLatencyNum>::Barrior(Resource* r, resource_state s)
+	inline void Command<FrameLatencyNum>::Barrior(Resource& r, resource_state s)
 	{
-		if (r->get_state() == s)
+		if (r.get_state() == s)
 			return;
 
 		D3D12_RESOURCE_BARRIER barrier{};
 		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		barrier.Transition.pResource = r->get();
-		barrier.Transition.StateBefore = static_cast<D3D12_RESOURCE_STATES>(r->get_state());
+		barrier.Transition.pResource = r.get();
+		barrier.Transition.StateBefore = static_cast<D3D12_RESOURCE_STATES>(r.get_state());
 		barrier.Transition.StateAfter = static_cast<D3D12_RESOURCE_STATES>(s);
 		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 		list_ptr->ResourceBarrier(1, &barrier);
 
-		r->set_state(s);
+		r.set_state(s);
 	}
 
 	template<std::size_t FrameLatencyNum>

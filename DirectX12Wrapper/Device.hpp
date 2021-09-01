@@ -90,8 +90,4 @@ namespace DX12
 	{
 		return device_ptr.get();
 	}
-
-
-
-
 }
