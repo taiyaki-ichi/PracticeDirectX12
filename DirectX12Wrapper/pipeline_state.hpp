@@ -16,47 +16,11 @@
 namespace DX12
 {
 
-	enum class semantics
-	{
-		POSITION,
-		NORMAl,
-		TEXDOORD,
-	};
+	template<component_type Type, std::uint32_t Size, std::uint32_t Num>
+	struct converte_format;
 
-	template<component_type Type,std::uint32_t Size,std::uint32_t Num>
-	struct converte_format {
-		using type;
-	};
-
-	template<std::uint32_t Num>
-	struct converte_format<component_type::FLOAT, 32, Num> {
-		using type = std::array<float, Num>;
-	};
-
-	template<std::uint32_t Num>
-	struct converte_format<component_type::UINT, 32, Num> {
-		using type = std::array<std::uint32_t, Num>;
-	};
-
-	template<std::uint32_t Num>
-	struct converte_format<component_type::UINT, 16, Num> {
-		using type = std::array<std::uint16_t, Num>;
-	};
-
-	template<std::uint32_t Num>
-	struct converte_format<component_type::UINT, 8, Num> {
-		using type = std::array<std::uint8_t, Num>;
-	};
-
-	template<std::size_t Num,typename... Formats>
-	struct vertex_layout_format_type {
-		using type = std::tuple<typename converte_format<Formats::component_type, Formats::component_size, Formats::component_num>::type...>;
-	};
-
-	template<typename Formats>
-	struct vertex_layout_format_type<1,Formats> {
-		using type = typename converte_format<Formats::component_type, Formats::component_size, Formats::component_num>::type;
-	};
+	template<std::size_t Num, typename... Formats>
+	struct vertex_layout_format_type;
 
 	template<typename... Formats>
 	struct vertex_layout
@@ -68,7 +32,7 @@ namespace DX12
 	};
 
 	template<typename... Formats>
-	struct render_target_formats 
+	struct render_target_formats
 	{
 		constexpr static std::size_t format_num = sizeof...(Formats);
 		using format_tuple = std::tuple<Formats...>;
@@ -81,40 +45,6 @@ namespace DX12
 		shader* hullShader = nullptr;
 		shader* domainShader = nullptr;
 	};
-
-	template<std::size_t I, typename VertexLayout>
-	inline constexpr void get_input_element_desc_impl(std::array<const char*, VertexLayout::format_num>& vertexName,
-		std::array<D3D12_INPUT_ELEMENT_DESC, VertexLayout::format_num>& result)
-	{
-		result[I].SemanticName = vertexName[I];
-		result[I].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-		result[I].InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-
-		using Format = std::remove_reference_t<decltype(std::get<I>(std::declval<typename VertexLayout::format_tuple>()))>;
-		result[I].Format = get_dxgi_format(Format::component_type, Format::component_size, Format::component_num).value();
-
-		if constexpr (I + 1 < VertexLayout::format_num)
-			get_input_element_desc_impl<I + 1, VertexLayout>(vertexName, result);
-	}
-	
-	template<typename VertexLayout>
-	inline constexpr std::array<D3D12_INPUT_ELEMENT_DESC, VertexLayout::format_num> get_input_element_desc(std::array<const char*, VertexLayout::format_num>& vertexName)
-	{
-		std::array<D3D12_INPUT_ELEMENT_DESC, VertexLayout::format_num> result{};
-		get_input_element_desc_impl<0, VertexLayout>(vertexName, result);
-		return result;
-	}
-
-	template<std::size_t I, typename RenderTargetFormats>
-	inline constexpr void get_render_target_format(DXGI_FORMAT (&result)[8] )
-	{
-		using Format = std::remove_reference_t<decltype(std::get<I>(std::declval<typename RenderTargetFormats::format_tuple>()))>;
-		result[I] = get_dxgi_format(Format::component_type, Format::component_size, Format::component_num).value();
-
-		if constexpr (I + 1 < RenderTargetFormats::format_num)
-			get_render_target_format<I + 1, RenderTargetFormats>(result);
-	}
-
 
 
 	template<typename VertexLayout,typename ResnderTargetFormats>
@@ -156,11 +86,84 @@ namespace DX12
 		ID3D12PipelineState* Get() const noexcept;
 	};
 
+	//
+	//
+	//
+	template<component_type Type, std::uint32_t Size, std::uint32_t Num>
+	struct converte_format {
+		using type;
+	};
+
+	template<std::uint32_t Num>
+	struct converte_format<component_type::FLOAT, 32, Num> {
+		using type = std::array<float, Num>;
+	};
+
+	template<std::uint32_t Num>
+	struct converte_format<component_type::UINT, 32, Num> {
+		using type = std::array<std::uint32_t, Num>;
+	};
+
+	template<std::uint32_t Num>
+	struct converte_format<component_type::UINT, 16, Num> {
+		using type = std::array<std::uint16_t, Num>;
+	};
+
+	template<std::uint32_t Num>
+	struct converte_format<component_type::UINT, 8, Num> {
+		using type = std::array<std::uint8_t, Num>;
+	};
+
+	template<std::size_t Num, typename... Formats>
+	struct vertex_layout_format_type {
+		using type = std::tuple<typename converte_format<Formats::component_type, Formats::component_size, Formats::component_num>::type...>;
+	};
+
+	template<typename Formats>
+	struct vertex_layout_format_type<1, Formats> {
+		using type = typename converte_format<Formats::component_type, Formats::component_size, Formats::component_num>::type;
+	};
+
+	//
+	//ƒwƒ‹ƒp
+	//
+
+	template<std::size_t I, typename VertexLayout>
+	inline constexpr void get_input_element_desc_impl(std::array<const char*, VertexLayout::format_num>& vertexName,
+		std::array<D3D12_INPUT_ELEMENT_DESC, VertexLayout::format_num>& result)
+	{
+		result[I].SemanticName = vertexName[I];
+		result[I].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+		result[I].InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+
+		using Format = std::remove_reference_t<decltype(std::get<I>(std::declval<typename VertexLayout::format_tuple>()))>;
+		result[I].Format = get_dxgi_format(Format::component_type, Format::component_size, Format::component_num).value();
+
+		if constexpr (I + 1 < VertexLayout::format_num)
+			get_input_element_desc_impl<I + 1, VertexLayout>(vertexName, result);
+	}
+
+	template<typename VertexLayout>
+	inline constexpr std::array<D3D12_INPUT_ELEMENT_DESC, VertexLayout::format_num> get_input_element_desc(std::array<const char*, VertexLayout::format_num>& vertexName)
+	{
+		std::array<D3D12_INPUT_ELEMENT_DESC, VertexLayout::format_num> result{};
+		get_input_element_desc_impl<0, VertexLayout>(vertexName, result);
+		return result;
+	}
+
+	template<std::size_t I, typename RenderTargetFormats>
+	inline constexpr void get_render_target_format(DXGI_FORMAT(&result)[8])
+	{
+		using Format = std::remove_reference_t<decltype(std::get<I>(std::declval<typename RenderTargetFormats::format_tuple>()))>;
+		result[I] = get_dxgi_format(Format::component_type, Format::component_size, Format::component_num).value();
+
+		if constexpr (I + 1 < RenderTargetFormats::format_num)
+			get_render_target_format<I + 1, RenderTargetFormats>(result);
+	}
 
 	//
 	//
 	//
-
 
 	template<typename VertexLayout, typename ResnderTargetFormats>
 	inline void graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::initialize(device& device, root_signature& rootSignature, ShaderDesc shaderDesc, 
