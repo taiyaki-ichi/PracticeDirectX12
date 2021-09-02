@@ -36,9 +36,6 @@ namespace DX12
 
 		void Initialize(Device&);
 
-		template<typename Format,std::size_t FrameBufferNum=FrameLatencyNum>
-		SwapChain<Format,FrameBufferNum> CreateSwapChain(HWND);
-
 		template<typename SrcResource,typename DstResource>
 		void CopyTexture(Device&,SrcResource& srcResource, DstResource& dstResource);
 
@@ -97,6 +94,8 @@ namespace DX12
 
 		void ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE, const std::array<float, 4>&);
 		void ClearDepthView(D3D12_CPU_DESCRIPTOR_HANDLE, float);
+
+		ID3D12CommandQueue* get_queue() noexcept;
 	};
 
 
@@ -153,46 +152,6 @@ namespace DX12
 		Close();//•K—v
 	}
 
-
-	template<std::size_t FrameLatencyNum>
-	template<typename Format,std::size_t FrameBufferNum>
-	inline SwapChain<Format,FrameBufferNum> Command<FrameLatencyNum>::CreateSwapChain(HWND hwnd)
-	{
-		IDXGIFactory3* factory = nullptr;
-		IDXGISwapChain4* swapChain = nullptr;
-
-#ifdef _DEBUG
-		if (FAILED(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory))))
-			throw "";
-#else
-		if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))))
-			throw "";
-#endif
-
-		RECT windowRect{};
-		GetWindowRect(hwnd, &windowRect);
-
-		DXGI_SWAP_CHAIN_DESC1 swapchainDesc{};
-		swapchainDesc.Width = windowRect.right - windowRect.left;
-		swapchainDesc.Height = windowRect.bottom - windowRect.top;
-		swapchainDesc.Format = get_dxgi_format(Format::component_type, Format::component_size, Format::component_num).value();
-		swapchainDesc.Stereo = false;
-		swapchainDesc.SampleDesc.Count = 1;
-		swapchainDesc.SampleDesc.Quality = 0;
-		swapchainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER;
-		swapchainDesc.BufferCount = FrameBufferNum;
-		swapchainDesc.Scaling = DXGI_SCALING_STRETCH;
-		swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-		swapchainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-		swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-		if (FAILED(factory->CreateSwapChainForHwnd(queue_ptr.get(), hwnd, &swapchainDesc, nullptr, nullptr, (IDXGISwapChain1**)&swapChain)))
-			throw "";
-
-		factory->Release();
-
-		return { swapChain };
-	}
 
 	template<std::size_t FrameLatencyNum>
 	template<typename SrcResource, typename DstResource>
@@ -431,7 +390,11 @@ namespace DX12
 		list_ptr->ClearDepthStencilView(handle, D3D12_CLEAR_FLAG_DEPTH, d, 0, 0, nullptr);
 	}
 
-
+	template<std::size_t FrameLatencyNum>
+	inline ID3D12CommandQueue* Command<FrameLatencyNum>::get_queue() noexcept
+	{
+		return queue_ptr.get();
+	}
 
 
 }

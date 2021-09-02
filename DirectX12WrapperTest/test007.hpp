@@ -124,7 +124,8 @@ namespace test007
 		Command<FRAME_BUFFER_NUM> command{};
 		command.Initialize(device);
 
-		auto swapChain = command.CreateSwapChain<FrameBufferFormat>(hwnd);
+		SwapChain<FrameBufferFormat, FRAME_BUFFER_NUM> swapChain{};
+		swapChain.initialize(command, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(device, FRAME_BUFFER_NUM);

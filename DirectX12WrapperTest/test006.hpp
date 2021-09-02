@@ -36,7 +36,8 @@ namespace test006
 		Command command{};
 		command.Initialize(device);
 
-		auto swapChain = command.CreateSwapChain<FrameBufferFormat>(hwnd);
+		SwapChain<FrameBufferFormat, 2> swapChain{};
+		swapChain.initialize(command, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(device, 2);

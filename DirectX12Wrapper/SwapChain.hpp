@@ -1,6 +1,6 @@
 #pragma once
 #include"Resource/frame_buffer_resource.hpp"
-//
+#include"Command.hpp"
 #include"PipelineState.hpp"
 #include<array>
 #include<d3d12.h>
@@ -20,11 +20,14 @@ namespace DX12
 		std::array<frame_buffer_resource<FrameBufferFormat>, FrameBufferNum> frameBuffer;
 
 	public:
-		SwapChain(IDXGISwapChain3*);
+		SwapChain() = default;
 		~SwapChain() = default;
 
 		SwapChain<FrameBufferFormat, FrameBufferNum>(SwapChain<FrameBufferFormat, FrameBufferNum>&&) = default;
 		SwapChain<FrameBufferFormat, FrameBufferNum>& operator=(SwapChain<FrameBufferFormat, FrameBufferNum>&&) = default;
+
+		template<typename Command>
+		bool initialize(Command&, HWND);
 
 		//レンダリングされた画像を表示する
 		//また、GetCurrentBackBufferIndexの戻り値が更新される
@@ -40,19 +43,56 @@ namespace DX12
 	//
 	//
 
-	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
-	inline SwapChain<FrameBufferFormat,FrameBufferNum>::SwapChain(IDXGISwapChain3* sc)
-		:swap_chain_ptr{sc}
-		, frameBuffer{}
+
+	template<typename FrameBufferFormat, std::size_t FrameBufferNum>
+	template<typename Command>
+	inline bool SwapChain<FrameBufferFormat, FrameBufferNum>::initialize(Command& command, HWND hwnd)
 	{
+		IDXGIFactory3* factory = nullptr;
+		IDXGISwapChain4* swapChain = nullptr;
+
+#ifdef _DEBUG
+		if (FAILED(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory))))
+			return false;
+#else
+		if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))))
+			throw "";
+#endif
+
+		RECT windowRect{};
+		GetWindowRect(hwnd, &windowRect);
+
+		DXGI_SWAP_CHAIN_DESC1 swapchainDesc{};
+		swapchainDesc.Width = windowRect.right - windowRect.left;
+		swapchainDesc.Height = windowRect.bottom - windowRect.top;
+		swapchainDesc.Format = get_dxgi_format(FrameBufferFormat::component_type, FrameBufferFormat::component_size, FrameBufferFormat::component_num).value();
+		swapchainDesc.Stereo = false;
+		swapchainDesc.SampleDesc.Count = 1;
+		swapchainDesc.SampleDesc.Quality = 0;
+		swapchainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER;
+		swapchainDesc.BufferCount = FrameBufferNum;
+		swapchainDesc.Scaling = DXGI_SCALING_STRETCH;
+		swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		swapchainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+		swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+		if (FAILED(factory->CreateSwapChainForHwnd(command.get_queue(), hwnd, &swapchainDesc, nullptr, nullptr, (IDXGISwapChain1**)&swapChain)))
+			return false;
+
+		swap_chain_ptr.reset(swapChain);
+		factory->Release();
+
 		for (std::uint32_t i = 0; i < FrameBufferNum; i++)
 		{
 			ID3D12Resource* resourcePtr = nullptr;
 			if (FAILED(swap_chain_ptr->GetBuffer(static_cast<UINT>(i), IID_PPV_ARGS(&resourcePtr))))
-				throw "";
+				return false;
 			frameBuffer[i].initialize(resourcePtr);
 		}
+
+		return true;
 	}
+
 
 	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
 	inline void SwapChain<FrameBufferFormat,FrameBufferNum>::Present(std::uint32_t syncInterval)
