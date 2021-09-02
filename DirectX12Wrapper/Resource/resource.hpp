@@ -12,7 +12,7 @@
 
 namespace DX12
 {
-	class Device;
+	class device;
 
 	enum class resource_heap_property
 	{
@@ -114,7 +114,7 @@ namespace DX12
 		resource& operator=(resource&&) = default;
 
 		//claerValue‚Í‰¼
-		void initialize(Device&, std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize,
+		void initialize(device&, std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize,
 			std::uint16_t mipLevels, std::optional<std::array<float, Format::component_num>> clearValue = std::nullopt);
 
 		ID3D12Resource* get();
@@ -144,7 +144,7 @@ namespace DX12
 	//
 
 	template<resource_dimention ResourceDimention, typename Format, resource_heap_property HeapProperty, resource_flag ...Flags>
-	inline void resource<ResourceDimention, Format, HeapProperty, Flags...>::initialize(Device& device,
+	inline void resource<ResourceDimention, Format, HeapProperty, Flags...>::initialize(device& device,
 		std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize, std::uint16_t mipLevels, std::optional<std::array<float, Format::component_num>> clearValue)
 	{
 		//‚Æ‚è‚ ‚¦‚¸
@@ -189,7 +189,7 @@ namespace DX12
 			state = resource_state::Common;
 
 		ID3D12Resource* tmp = nullptr;
-		if (FAILED(device.Get()->CreateCommittedResource(
+		if (FAILED(device.get()->CreateCommittedResource(
 			&heap_prop,
 			D3D12_HEAP_FLAG_NONE,
 			&res_desc,

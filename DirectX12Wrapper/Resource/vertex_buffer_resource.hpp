@@ -9,7 +9,7 @@ namespace DX12
 		D3D12_VERTEX_BUFFER_VIEW buffer_view{};
 
 	public:
-		void initialize(Device& device, std::uint32_t num);
+		void initialize(device& device, std::uint32_t num);
 
 		const D3D12_VERTEX_BUFFER_VIEW& get_view() const noexcept;
 	};
@@ -24,7 +24,7 @@ namespace DX12
 	//
 
 	template<typename... Formats>
-	void vertex_buffer_resource<Formats...>::initialize(Device& device, std::uint32_t num)
+	void vertex_buffer_resource<Formats...>::initialize(device& device, std::uint32_t num)
 	{
 		constexpr auto strideSum = (get_format_stride<Formats>() + ...);
 

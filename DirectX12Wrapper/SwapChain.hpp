@@ -13,30 +13,30 @@ namespace DX12
 {
 
 	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
-	class SwapChain
+	class swap_chain
 	{
 		release_unique_ptr<IDXGISwapChain3> swap_chain_ptr;
 
 		std::array<frame_buffer_resource<FrameBufferFormat>, FrameBufferNum> frameBuffer;
 
 	public:
-		SwapChain() = default;
-		~SwapChain() = default;
+		swap_chain() = default;
+		~swap_chain() = default;
 
-		SwapChain<FrameBufferFormat, FrameBufferNum>(SwapChain<FrameBufferFormat, FrameBufferNum>&&) = default;
-		SwapChain<FrameBufferFormat, FrameBufferNum>& operator=(SwapChain<FrameBufferFormat, FrameBufferNum>&&) = default;
+		swap_chain<FrameBufferFormat, FrameBufferNum>(swap_chain<FrameBufferFormat, FrameBufferNum>&&) = default;
+		swap_chain<FrameBufferFormat, FrameBufferNum>& operator=(swap_chain<FrameBufferFormat, FrameBufferNum>&&) = default;
 
 		template<typename Command>
 		void initialize(Command&, HWND);
 
 		//レンダリングされた画像を表示する
 		//また、GetCurrentBackBufferIndexの戻り値が更新される
-		void Present(std::uint32_t syncInterval = 1);
+		void present(std::uint32_t syncInterval = 1);
 
 		//現在控えているBackBufferのインデックスの取得
-		std::uint32_t GetCurrentBackBufferIndex();
+		std::uint32_t get_vcurrent_back_buffer_index();
 
-		frame_buffer_resource<FrameBufferFormat>& GetFrameBuffer(std::uint32_t index);
+		frame_buffer_resource<FrameBufferFormat>& get_frame_buffer(std::uint32_t index);
 	};
 
 	//
@@ -46,7 +46,7 @@ namespace DX12
 
 	template<typename FrameBufferFormat, std::size_t FrameBufferNum>
 	template<typename Command>
-	inline void SwapChain<FrameBufferFormat, FrameBufferNum>::initialize(Command& command, HWND hwnd)
+	inline void swap_chain<FrameBufferFormat, FrameBufferNum>::initialize(Command& command, HWND hwnd)
 	{
 		IDXGIFactory3* factory = nullptr;
 		IDXGISwapChain4* swapChain = nullptr;
@@ -93,20 +93,20 @@ namespace DX12
 
 
 	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
-	inline void SwapChain<FrameBufferFormat,FrameBufferNum>::Present(std::uint32_t syncInterval)
+	inline void swap_chain<FrameBufferFormat,FrameBufferNum>::present(std::uint32_t syncInterval)
 	{
 		swap_chain_ptr->Present(syncInterval, 0);
 	}
 
 	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
-	inline std::uint32_t SwapChain<FrameBufferFormat,FrameBufferNum>::GetCurrentBackBufferIndex()
+	inline std::uint32_t swap_chain<FrameBufferFormat,FrameBufferNum>::get_vcurrent_back_buffer_index()
 	{
 		return swap_chain_ptr->GetCurrentBackBufferIndex();
 	}
 
 
 	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
-	inline frame_buffer_resource<FrameBufferFormat>& DX12::SwapChain<FrameBufferFormat,FrameBufferNum>::GetFrameBuffer(std::uint32_t index)
+	inline frame_buffer_resource<FrameBufferFormat>& DX12::swap_chain<FrameBufferFormat,FrameBufferNum>::get_frame_buffer(std::uint32_t index)
 	{
 		return frameBuffer[index];
 	}

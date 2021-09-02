@@ -13,28 +13,28 @@
 
 namespace DX12
 {
-	class Shader
+	class shader
 	{
 		release_unique_ptr<ID3DBlob> blob_ptr{};
 
 	public:
-		Shader() = default;
-		~Shader() = default;
+		shader() = default;
+		~shader() = default;
 
-		Shader(Shader&&) = default;
-		Shader& operator=(Shader&&) = default;
+		shader(shader&&) = default;
+		shader& operator=(shader&&) = default;
 
 		//ファイル名、関数名、インクルードオプション
-		void Intialize(const wchar_t* fileName, const char* funcName, const char* includeOption);
+		void initialize(const wchar_t* fileName, const char* funcName, const char* includeOption);
 
-		ID3DBlob* Get() const noexcept;
+		ID3DBlob* get() const noexcept;
 	};
 
 	//
 	//
 	//
 
-	inline void Shader::Intialize(const wchar_t* fileName, const char* funcName, const char* includeOption)
+	inline void shader::initialize(const wchar_t* fileName, const char* funcName, const char* includeOption)
 	{
 		ID3DBlob* errorBlob = nullptr;
 
@@ -61,7 +61,7 @@ namespace DX12
 		blob_ptr.reset(tmp);
 	}
 
-	inline ID3DBlob* Shader::Get() const noexcept
+	inline ID3DBlob* shader::get() const noexcept
 	{
 		return blob_ptr.get();
 	}

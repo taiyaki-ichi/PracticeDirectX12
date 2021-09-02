@@ -5,7 +5,7 @@
 namespace DX12
 {
 
-	inline LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+	inline LRESULT CALLBACK wnd_proc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		if (msg == WM_DESTROY) {
 			PostQuitMessage(0);
@@ -15,14 +15,14 @@ namespace DX12
 	}
 
 	//ウィンドウの作製
-	inline HWND CreateSimpleWindow(const wchar_t* window_name, std::uint32_t width, std::uint32_t height)
+	inline HWND create_simple_window(const wchar_t* window_name, std::uint32_t width, std::uint32_t height)
 	{
 		HINSTANCE hInstance = GetModuleHandle(nullptr);
 
 		//ウィンドウクラス設定
 		WNDCLASSEX wcex{};
 		wcex.cbSize = sizeof(WNDCLASSEX);
-		wcex.lpfnWndProc = WndProc;
+		wcex.lpfnWndProc = wnd_proc;
 		wcex.lpszClassName = window_name;
 		wcex.hInstance = hInstance;
 

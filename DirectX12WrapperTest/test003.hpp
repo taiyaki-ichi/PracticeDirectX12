@@ -37,21 +37,21 @@ namespace test003
 
 		using VertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>>;
 
-		auto hwnd = CreateSimpleWindow(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
+		auto hwnd = create_simple_window(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
 
-		Device device{};
-		device.Initialize();
+		device device{};
+		device.initialize();
 
-		Command command{};
-		command.Initialize(device);
+		command command{};
+		command.initialize(device);
 
-		SwapChain<FrameBufferFormat, 2> swapChain{};
+		swap_chain<FrameBufferFormat, 2> swapChain{};
 		swapChain.initialize(command, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(1), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(1), 0, 0);
 
 		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/bunny.off");
 		
@@ -63,32 +63,32 @@ namespace test003
 		indexBuffer.initialize(device, face.size() * 3);
 		map(&indexBuffer, face.begin(), face.end());
 
-		RootSignature rootSignature{};
-		rootSignature.Initialize(device, { {DescriptorRangeType::CBV} }, {});
+		root_signature rootSignature{};
+		rootSignature.initialize(device, { {descriptor_range_type::CBV} }, {});
 		
-		Shader vertexShader{};
-		vertexShader.Intialize(L"Shader/VertexShader003.hlsl", "main", "vs_5_0");
+		shader vertexShader{};
+		vertexShader.initialize(L"Shader/VertexShader003.hlsl", "main", "vs_5_0");
 
-		Shader drawFacePixelShader{};
-		drawFacePixelShader.Intialize(L"Shader/PixelShader003_DrawFace.hlsl", "main", "ps_5_0");
+		shader drawFacePixelShader{};
+		drawFacePixelShader.initialize(L"Shader/PixelShader003_DrawFace.hlsl", "main", "ps_5_0");
 
-		Shader drawFaceGeometryShader{};
-		drawFaceGeometryShader.Intialize(L"Shader/GeometryShader003_DrawFace.hlsl", "main", "gs_5_0");
+		shader drawFaceGeometryShader{};
+		drawFaceGeometryShader.initialize(L"Shader/GeometryShader003_DrawFace.hlsl", "main", "gs_5_0");
 
-		Shader drawNormalPixelShader{};
-		drawNormalPixelShader.Intialize(L"Shader/PixelShader003_DrawNormal.hlsl", "main", "ps_5_0");
+		shader drawNormalPixelShader{};
+		drawNormalPixelShader.initialize(L"Shader/PixelShader003_DrawNormal.hlsl", "main", "ps_5_0");
 
-		Shader drawNormalGeometryShader{};
-		drawNormalGeometryShader.Intialize(L"Shader/GeometryShader003_DrawNormal.hlsl", "main", "gs_5_0");
+		shader drawNormalGeometryShader{};
+		drawNormalGeometryShader.initialize(L"Shader/GeometryShader003_DrawNormal.hlsl", "main", "gs_5_0");
 		
 		graphics_pipeline_state<VertexLayout, render_target_formats<FrameBufferFormat>> drawFacePipelineState{};
-		drawFacePipelineState.Initialize(device, rootSignature, { &vertexShader, &drawFacePixelShader,&drawFaceGeometryShader },
-			{ "POSITION" }, true, false, PrimitiveTopology::Triangle
+		drawFacePipelineState.initialize(device, rootSignature, { &vertexShader, &drawFacePixelShader,&drawFaceGeometryShader },
+			{ "POSITION" }, true, false, primitive_topology::TRIANGLE
 		);
 
 		graphics_pipeline_state<VertexLayout, render_target_formats<FrameBufferFormat>> drawNormalPipelineState{};
-		drawNormalPipelineState.Initialize(device, rootSignature, { &vertexShader, &drawNormalPixelShader,&drawNormalGeometryShader },
-			{ "POSITION" }, true, false, PrimitiveTopology::Triangle
+		drawNormalPipelineState.initialize(device, rootSignature, { &vertexShader, &drawNormalPixelShader,&drawNormalGeometryShader },
+			{ "POSITION" }, true, false, primitive_topology::TRIANGLE
 		);
 
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
@@ -133,60 +133,60 @@ namespace test003
 			map(&sceneDataConstantBuffer, SceneData{ view,proj });
 			cnt++;
 
-			auto backBufferIndex = swapChain.GetCurrentBackBufferIndex();
-			command.Reset(backBufferIndex);
+			auto backBufferIndex = swapChain.get_vcurrent_back_buffer_index();
+			command.reset(backBufferIndex);
 
-			command.SetViewport(viewport);
-			command.SetScissorRect(scissorRect);
+			command.set_viewport(viewport);
+			command.set_scissor_rect(scissorRect);
 
-			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
-			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
+			command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::RenderTarget);
+			command.clear_render_target_view(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
 
-			command.Barrior(depthBuffer, resource_state::DepthWrite);
-			command.ClearDepthView(depthStencilDescriptorHeap.get_CPU_handle(), 1.f);
+			command.barrior(depthBuffer, resource_state::DepthWrite);
+			command.clear_depth_view(depthStencilDescriptorHeap.get_CPU_handle(), 1.f);
 
-			command.SetRenderTarget({ {rtvDescriptorHeap.get_CPU_handle(backBufferIndex)} }, depthStencilDescriptorHeap.get_CPU_handle());
+			command.set_render_target({ {rtvDescriptorHeap.get_CPU_handle(backBufferIndex)} }, depthStencilDescriptorHeap.get_CPU_handle());
 
 			//ñ ÇÃï`é 
 			{
-				command.SetPipelineState(drawFacePipelineState);
-				command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
-				command.SetGraphicsRootSignature(rootSignature);
+				command.set_pipeline_state(drawFacePipelineState);
+				command.set_primitive_topology(primitive_topology::TRIANGLE_LIST);
+				command.set_graphics_root_signature(rootSignature);
 
-				command.SetVertexBuffer(vertexBuffer);
-				command.SetIndexBuffer(indexBuffer);
-				command.SetDescriptorHeap(descriptorHeap);
-				command.SetGraphicsRootDescriptorTable(0, descriptorHeap.get_GPU_handle());
+				command.set_vertex_buffer(vertexBuffer);
+				command.set_index_buffer(indexBuffer);
+				command.set_descriptor_heap(descriptorHeap);
+				command.set_graphics_root_descriptor_table(0, descriptorHeap.get_GPU_handle());
 
-				command.DrawIndexedInstanced(face.size() * 3);
+				command.draw_indexed_instanced(face.size() * 3);
 			}
 
 			//ñ@ê¸ÇÃï`é 
 			{
-				command.SetPipelineState(drawNormalPipelineState);
-				command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
-				command.SetGraphicsRootSignature(rootSignature);
+				command.set_pipeline_state(drawNormalPipelineState);
+				command.set_primitive_topology(primitive_topology::TRIANGLE_LIST);
+				command.set_graphics_root_signature(rootSignature);
 
-				command.SetVertexBuffer(vertexBuffer);
-				command.SetIndexBuffer(indexBuffer);
-				command.SetDescriptorHeap(descriptorHeap);
-				command.SetGraphicsRootDescriptorTable(0, descriptorHeap.get_GPU_handle());
+				command.set_vertex_buffer(vertexBuffer);
+				command.set_index_buffer(indexBuffer);
+				command.set_descriptor_heap(descriptorHeap);
+				command.set_graphics_root_descriptor_table(0, descriptorHeap.get_GPU_handle());
 
-				command.DrawIndexedInstanced(face.size() * 3);
+				command.draw_indexed_instanced(face.size() * 3);
 			}
 
-			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::Common);
+			command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::Common);
 
-			command.Close();
-			command.Execute();
+			command.close();
+			command.execute();
 
-			swapChain.Present();
-			command.Fence(backBufferIndex);
+			swapChain.present();
+			command.fence(backBufferIndex);
 
-			command.Wait(swapChain.GetCurrentBackBufferIndex());
+			command.wait(swapChain.get_vcurrent_back_buffer_index());
 		};
 
-		command.WaitAll(device);
+		command.wait_all(device);
 		
 
 		return 0;

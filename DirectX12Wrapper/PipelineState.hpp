@@ -25,7 +25,6 @@ namespace DX12
 
 	template<component_type Type,std::uint32_t Size,std::uint32_t Num>
 	struct converte_format {
-		//static_assert(false);
 		using type;
 	};
 
@@ -76,11 +75,11 @@ namespace DX12
 	};
 
 	struct ShaderDesc {
-		Shader* vertexShader = nullptr;
-		Shader* pixcelShader = nullptr;
-		Shader* geometryShader = nullptr;
-		Shader* hullShader = nullptr;
-		Shader* domainShader = nullptr;
+		shader* vertexShader = nullptr;
+		shader* pixcelShader = nullptr;
+		shader* geometryShader = nullptr;
+		shader* hullShader = nullptr;
+		shader* domainShader = nullptr;
 	};
 
 	template<std::size_t I, typename VertexLayout>
@@ -130,12 +129,12 @@ namespace DX12
 		graphics_pipeline_state(graphics_pipeline_state&&) = default;
 		graphics_pipeline_state& operator=(graphics_pipeline_state&&) = default;
 
-		void Initialize(Device&, RootSignature&, ShaderDesc,
+		void initialize(device&, root_signature&, ShaderDesc,
 			std::array<const char*,VertexLayout::format_num> vertexName,
-			bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology
+			bool depthEnable, bool alphaBlend, primitive_topology primitiveTopology
 		);
 
-		ID3D12PipelineState* Get() const noexcept;
+		ID3D12PipelineState* get() const noexcept;
 
 	};
 
@@ -152,7 +151,7 @@ namespace DX12
 		compute_pipeline_state& operator=(compute_pipeline_state&&) = default;
 
 		//コンピュートシェーダ用のパイプライン生成
-		void Initialize(Device&, RootSignature&, Shader& computeShader);
+		void initialize(device&, root_signature&, shader& computeShader);
 
 		ID3D12PipelineState* Get() const noexcept;
 	};
@@ -164,30 +163,30 @@ namespace DX12
 
 
 	template<typename VertexLayout, typename ResnderTargetFormats>
-	inline void graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::Initialize(Device& device, RootSignature& rootSignature, ShaderDesc shaderDesc, 
-		std::array<const char*, VertexLayout::format_num> vertexName, bool depthEnable, bool alphaBlend, PrimitiveTopology primitiveTopology)
+	inline void graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::initialize(device& device, root_signature& rootSignature, ShaderDesc shaderDesc, 
+		std::array<const char*, VertexLayout::format_num> vertexName, bool depthEnable, bool alphaBlend, primitive_topology primitiveTopology)
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineDesc{};
 
 		if (shaderDesc.vertexShader) {
-			graphicsPipelineDesc.VS.pShaderBytecode = shaderDesc.vertexShader->Get()->GetBufferPointer();
-			graphicsPipelineDesc.VS.BytecodeLength = shaderDesc.vertexShader->Get()->GetBufferSize();
+			graphicsPipelineDesc.VS.pShaderBytecode = shaderDesc.vertexShader->get()->GetBufferPointer();
+			graphicsPipelineDesc.VS.BytecodeLength = shaderDesc.vertexShader->get()->GetBufferSize();
 		}
 		if (shaderDesc.pixcelShader) {
-			graphicsPipelineDesc.PS.pShaderBytecode = shaderDesc.pixcelShader->Get()->GetBufferPointer();
-			graphicsPipelineDesc.PS.BytecodeLength = shaderDesc.pixcelShader->Get()->GetBufferSize();
+			graphicsPipelineDesc.PS.pShaderBytecode = shaderDesc.pixcelShader->get()->GetBufferPointer();
+			graphicsPipelineDesc.PS.BytecodeLength = shaderDesc.pixcelShader->get()->GetBufferSize();
 		}
 		if (shaderDesc.geometryShader) {
-			graphicsPipelineDesc.GS.pShaderBytecode = shaderDesc.geometryShader->Get()->GetBufferPointer();
-			graphicsPipelineDesc.GS.BytecodeLength = shaderDesc.geometryShader->Get()->GetBufferSize();
+			graphicsPipelineDesc.GS.pShaderBytecode = shaderDesc.geometryShader->get()->GetBufferPointer();
+			graphicsPipelineDesc.GS.BytecodeLength = shaderDesc.geometryShader->get()->GetBufferSize();
 		}
 		if (shaderDesc.hullShader) {
-			graphicsPipelineDesc.HS.pShaderBytecode = shaderDesc.hullShader->Get()->GetBufferPointer();
-			graphicsPipelineDesc.HS.BytecodeLength = shaderDesc.hullShader->Get()->GetBufferSize();
+			graphicsPipelineDesc.HS.pShaderBytecode = shaderDesc.hullShader->get()->GetBufferPointer();
+			graphicsPipelineDesc.HS.BytecodeLength = shaderDesc.hullShader->get()->GetBufferSize();
 		}
 		if (shaderDesc.domainShader) {
-			graphicsPipelineDesc.DS.pShaderBytecode = shaderDesc.domainShader->Get()->GetBufferPointer();
-			graphicsPipelineDesc.DS.BytecodeLength = shaderDesc.domainShader->Get()->GetBufferSize();
+			graphicsPipelineDesc.DS.pShaderBytecode = shaderDesc.domainShader->get()->GetBufferPointer();
+			graphicsPipelineDesc.DS.BytecodeLength = shaderDesc.domainShader->get()->GetBufferSize();
 		}
 
 		auto inputElementDescs = get_input_element_desc<VertexLayout>(vertexName);
@@ -273,28 +272,28 @@ namespace DX12
 
 		{
 			ID3D12PipelineState* tmp = nullptr;
-			if (FAILED(device.Get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&tmp))))
+			if (FAILED(device.get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&tmp))))
 				THROW_EXCEPTION("");
 			pipeline_state_ptr.reset(tmp);
 		}
 	}
 
 	template<typename VertexLayout, typename ResnderTargetFormats>
-	inline ID3D12PipelineState* graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::Get() const noexcept
+	inline ID3D12PipelineState* graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::get() const noexcept
 	{
 		return pipeline_state_ptr.get();
 	}
 
-	inline void compute_pipeline_state::Initialize(Device& device, RootSignature& rootSignature, Shader& computeShader)
+	inline void compute_pipeline_state::initialize(device& device, root_signature& rootSignature, shader& computeShader)
 	{
 		D3D12_COMPUTE_PIPELINE_STATE_DESC computePipelineDesc{};
-		computePipelineDesc.CS.pShaderBytecode = computeShader.Get()->GetBufferPointer();
-		computePipelineDesc.CS.BytecodeLength = computeShader.Get()->GetBufferSize();
+		computePipelineDesc.CS.pShaderBytecode = computeShader.get()->GetBufferPointer();
+		computePipelineDesc.CS.BytecodeLength = computeShader.get()->GetBufferSize();
 		computePipelineDesc.pRootSignature = rootSignature.Get();
 
 		{
 			ID3D12PipelineState* tmp = nullptr;
-			if (FAILED(device.Get()->CreateComputePipelineState(&computePipelineDesc, IID_PPV_ARGS(&tmp))))
+			if (FAILED(device.get()->CreateComputePipelineState(&computePipelineDesc, IID_PPV_ARGS(&tmp))))
 				THROW_EXCEPTION("");
 			pipeline_state_ptr.reset(tmp);
 		}

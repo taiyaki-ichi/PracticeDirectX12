@@ -12,13 +12,13 @@
 namespace DX12
 {
 	template<typename T>
-	inline constexpr T Alignment(T size, T alignment) {
+	inline constexpr T alignment(T size, T alignment) {
 		return size + alignment - size % alignment;
 	}
 
 	template<typename T>
-	inline constexpr T TextureDataPitchAlignment(T width) {
-		return Alignment<T>(width, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+	inline constexpr T texture_data_pitch_alignment(T width) {
+		return alignment<T>(width, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 	}
 
 

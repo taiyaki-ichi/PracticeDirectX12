@@ -58,7 +58,7 @@ namespace test004
 
 
 	public:
-		void Initialize(Device& device,const char* fileName)
+		void initialize(device& device,const char* fileName)
 		{
 			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>(fileName);
 			auto normalList = GetVertexNormal(vertexList, faceList);
@@ -80,15 +80,15 @@ namespace test004
 			map(&indexBuffer, faceList.begin(), faceList.end());
 		}
 
-		void SetMesh(Command<FRAME_LATENCY_NUM>& cl)
+		void SetMesh(command<FRAME_LATENCY_NUM>& cl)
 		{
-			cl.SetVertexBuffer(vertexBuffer);
-			cl.SetIndexBuffer(indexBuffer);
+			cl.set_vertex_buffer(vertexBuffer);
+			cl.set_index_buffer(indexBuffer);
 		}
 
-		void Draw(Command<FRAME_LATENCY_NUM>& cl)
+		void Draw(command<FRAME_LATENCY_NUM>& cl)
 		{
-			cl.DrawIndexedInstanced(faceNum * 3);
+			cl.draw_indexed_instanced(faceNum * 3);
 		}
 	};
 
@@ -99,7 +99,7 @@ namespace test004
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 
 	public:
-		void Initialize(Device& device, constant_buffer_resource<SceneData>& sceneDataConstantBuffer, constant_buffer_resource<CubemapSceneData>& cubemapSceneDataConstantBuffer)
+		void initialize(device& device, constant_buffer_resource<SceneData>& sceneDataConstantBuffer, constant_buffer_resource<CubemapSceneData>& cubemapSceneDataConstantBuffer)
 		{
 			for (std::size_t i = 0; i < ColorObjectNum; i++)
 				colorBunnyDataConstantBuffer[i].initialize(device);
@@ -117,53 +117,53 @@ namespace test004
 			map(&colorBunnyDataConstantBuffer[i], std::forward<T>(t));
 		}
 
-		void SetDescriptorHeap(Command<FRAME_LATENCY_NUM>& cl, std::size_t i)
+		void SetDescriptorHeap(command<FRAME_LATENCY_NUM>& cl, std::size_t i)
 		{
-			cl.SetDescriptorHeap(descriptorHeap);
-			cl.SetGraphicsRootDescriptorTable(0, descriptorHeap.get_GPU_handle(0));
-			cl.SetGraphicsRootDescriptorTable(1, descriptorHeap.get_GPU_handle(1 + i));
-			cl.SetGraphicsRootDescriptorTable(2, descriptorHeap.get_GPU_handle(1 + ColorObjectNum));
+			cl.set_descriptor_heap(descriptorHeap);
+			cl.set_graphics_root_descriptor_table(0, descriptorHeap.get_GPU_handle(0));
+			cl.set_graphics_root_descriptor_table(1, descriptorHeap.get_GPU_handle(1 + i));
+			cl.set_graphics_root_descriptor_table(2, descriptorHeap.get_GPU_handle(1 + ColorObjectNum));
 		}
 	};
 
 	class ColorObjectRenderer
 	{
-		RootSignature rootSignature{};
+		root_signature rootSignature{};
 		graphics_pipeline_state<MeshVertexLayout, render_target_formats<FrameBufferFormat>> standerdPipelineState{};
 		graphics_pipeline_state<MeshVertexLayout, render_target_formats<FrameBufferFormat>> cubemapPipelineState{};
 
 	public:
-		void Initialize(Device& device)
+		void initialize(device& device)
 		{
-			rootSignature.Initialize(device,
-				{ {DescriptorRangeType::CBV},{DescriptorRangeType::CBV }, { DescriptorRangeType::CBV } },
+			rootSignature.initialize(device,
+				{ {descriptor_range_type::CBV},{descriptor_range_type::CBV }, { descriptor_range_type::CBV } },
 				{}
 			);
 
 			{
-				Shader vs{};
-				vs.Intialize(L"Shader/ColorObject/VertexShader.hlsl", "main", "vs_5_0");
+				shader vs{};
+				vs.initialize(L"Shader/ColorObject/VertexShader.hlsl", "main", "vs_5_0");
 
-				Shader ps{};
-				ps.Intialize(L"Shader/ColorObject/PixelShader.hlsl", "main", "ps_5_0");
+				shader ps{};
+				ps.initialize(L"Shader/ColorObject/PixelShader.hlsl", "main", "ps_5_0");
 
-				standerdPipelineState.Initialize(device, rootSignature, { &vs, &ps },
-					{ "POSITION","NORMAL" }, true, false, PrimitiveTopology::Triangle
+				standerdPipelineState.initialize(device, rootSignature, { &vs, &ps },
+					{ "POSITION","NORMAL" }, true, false, primitive_topology::TRIANGLE
 				);
 			}
 
 			{
-				Shader vs{};
-				vs.Intialize(L"Shader/ColorObjectForCubemap/VertexShader.hlsl", "main", "vs_5_0");
+				shader vs{};
+				vs.initialize(L"Shader/ColorObjectForCubemap/VertexShader.hlsl", "main", "vs_5_0");
 
-				Shader gs{};
-				gs.Intialize(L"Shader/ColorObjectForCubemap/GeometryShader.hlsl", "main", "gs_5_0");
+				shader gs{};
+				gs.initialize(L"Shader/ColorObjectForCubemap/GeometryShader.hlsl", "main", "gs_5_0");
 
-				Shader ps{};
-				ps.Intialize(L"Shader/ColorObjectForCubemap/PixelShader.hlsl", "main", "ps_5_0");
+				shader ps{};
+				ps.initialize(L"Shader/ColorObjectForCubemap/PixelShader.hlsl", "main", "ps_5_0");
 
-				cubemapPipelineState.Initialize(device, rootSignature, { &vs, &ps,&gs },
-					{ "POSITION","NORMAL" }, true, false, PrimitiveTopology::Triangle
+				cubemapPipelineState.initialize(device, rootSignature, { &vs, &ps,&gs },
+					{ "POSITION","NORMAL" }, true, false, primitive_topology::TRIANGLE
 				);
 			}
 		}
@@ -174,7 +174,7 @@ namespace test004
 		auto& GetCubemapPipelineState() noexcept {
 			return cubemapPipelineState;
 		}
-		RootSignature& GetRootSignature() noexcept {
+		root_signature& GetRootSignature() noexcept {
 			return rootSignature;
 		}
 
@@ -190,7 +190,7 @@ namespace test004
 	public:
 		static constexpr std::array<float, 4> CUBEMAP_CLEAR_VALUE{ 0.5f,0.5f,0.5f,1.f };
 
-		void Initialize(Device& device, constant_buffer_resource<SceneData>& sceneConstantBufferResource)
+		void initialize(device& device, constant_buffer_resource<SceneData>& sceneConstantBufferResource)
 		{
 			worldConstantBuffer.initialize(device);
 
@@ -211,35 +211,35 @@ namespace test004
 			return cubemapShaderResource;
 		}
 
-		void SetDescriptorHeap(Command<FRAME_LATENCY_NUM>& cl)
+		void SetDescriptorHeap(command<FRAME_LATENCY_NUM>& cl)
 		{
-			cl.SetDescriptorHeap(descriptorHeap);
-			cl.SetGraphicsRootDescriptorTable(0, descriptorHeap.get_GPU_handle());
+			cl.set_descriptor_heap(descriptorHeap);
+			cl.set_graphics_root_descriptor_table(0, descriptorHeap.get_GPU_handle());
 		}
 	};
 
 
 	class MirrorObjectRenderer
 	{
-		RootSignature rootSignature{};
+		root_signature rootSignature{};
 		graphics_pipeline_state<MeshVertexLayout,render_target_formats<FrameBufferFormat>> pipelineState{};
 
 	public:
-		void Initialize(Device& device)
+		void initialize(device& device)
 		{
-			rootSignature.Initialize(device,
-				{ {DescriptorRangeType::CBV,DescriptorRangeType::CBV , DescriptorRangeType::SRV } },
+			rootSignature.initialize(device,
+				{ {descriptor_range_type::CBV,descriptor_range_type::CBV , descriptor_range_type::SRV } },
 				{ StaticSamplerType::Cubemap }
 			);
 
-			Shader vs{};
-			vs.Intialize(L"Shader/MirrorObject/VertexShader.hlsl", "main", "vs_5_0");
+			shader vs{};
+			vs.initialize(L"Shader/MirrorObject/VertexShader.hlsl", "main", "vs_5_0");
 
-			Shader ps{};
-			ps.Intialize(L"Shader/MirrorObject/PixelShader.hlsl", "main", "ps_5_0");
+			shader ps{};
+			ps.initialize(L"Shader/MirrorObject/PixelShader.hlsl", "main", "ps_5_0");
 
-			pipelineState.Initialize(device, rootSignature, { &vs, &ps },
-				{ "POSITION", "NORMAL" }, true, false, PrimitiveTopology::Triangle
+			pipelineState.initialize(device, rootSignature, { &vs, &ps },
+				{ "POSITION", "NORMAL" }, true, false, primitive_topology::TRIANGLE
 			);
 		}
 
@@ -285,21 +285,21 @@ namespace test004
 
 	inline int main()
 	{
-		auto hwnd = CreateSimpleWindow(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
+		auto hwnd = create_simple_window(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
 
-		Device device{};
-		device.Initialize();
+		device device{};
+		device.initialize();
 
-		Command command{};
-		command.Initialize(device);
+		command command{};
+		command.initialize(device);
 
-		SwapChain<FrameBufferFormat, 2> swapChain{};
+		swap_chain<FrameBufferFormat, 2> swapChain{};
 		swapChain.initialize(command, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(1), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(1), 0, 0);
 
 
 		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
@@ -310,10 +310,10 @@ namespace test004
 
 
 		Mesh bunnyMesh{};
-		bunnyMesh.Initialize(device, "../../Assets/bun_zipper_res3.off");
+		bunnyMesh.initialize(device, "../../Assets/bun_zipper_res3.off");
 
 		Mesh sphereMesh{};
-		sphereMesh.Initialize(device, "../../Assets/sphere.off");
+		sphereMesh.initialize(device, "../../Assets/sphere.off");
 
 
 		constexpr std::size_t ColorObjectNum = 4;
@@ -333,17 +333,17 @@ namespace test004
 		} };
 
 		ColorObjectModel<ColorObjectNum> colorObjectModel{};
-		colorObjectModel.Initialize(device, sceneDataConstantBuffer, cubemapSceneDataConstant);
+		colorObjectModel.initialize(device, sceneDataConstantBuffer, cubemapSceneDataConstant);
 
 		ColorObjectRenderer colorObjectRenderer{};
-		colorObjectRenderer.Initialize(device);
+		colorObjectRenderer.initialize(device);
 
 
 		MirrorObjectModel mirrorObjectModel{};
-		mirrorObjectModel.Initialize(device, sceneDataConstantBuffer);
+		mirrorObjectModel.initialize(device, sceneDataConstantBuffer);
 
 		MirrorObjectRenderer mirrorObjectRenderer{};
-		mirrorObjectRenderer.Initialize(device);
+		mirrorObjectRenderer.initialize(device);
 
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> cubemapDepthBuffer{};
 		cubemapDepthBuffer.initialize(device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, 6, 1, { {1.f} });
@@ -398,25 +398,25 @@ namespace test004
 			mirrorObjectModel.MapWorld(XMMatrixScaling(3.f, 3.f, 3.f) * XMMatrixTranslation(mirrorPos.x, mirrorPos.y, mirrorPos.z));
 
 
-			auto backBufferIndex = swapChain.GetCurrentBackBufferIndex();
-			command.Reset(backBufferIndex);
+			auto backBufferIndex = swapChain.get_vcurrent_back_buffer_index();
+			command.reset(backBufferIndex);
 
 			//Cubemap
 			{
-				command.SetViewport(cubemapViewport);
-				command.SetScissorRect(cubemapScissorRect);
+				command.set_viewport(cubemapViewport);
+				command.set_scissor_rect(cubemapScissorRect);
 
-				command.Barrior(mirrorObjectModel.GetCubemapShaderResource(), resource_state::RenderTarget);
-				command.Barrior(cubemapDepthBuffer, resource_state::DepthWrite);
+				command.barrior(mirrorObjectModel.GetCubemapShaderResource(), resource_state::RenderTarget);
+				command.barrior(cubemapDepthBuffer, resource_state::DepthWrite);
 
-				command.ClearRenderTargetView(cubemapRtvDescriptorHeap.get_CPU_handle(), MirrorObjectModel::CUBEMAP_CLEAR_VALUE);
-				command.ClearDepthView(depthStencilDescriptorHeap.get_CPU_handle(1), 1.f);
+				command.clear_render_target_view(cubemapRtvDescriptorHeap.get_CPU_handle(), MirrorObjectModel::CUBEMAP_CLEAR_VALUE);
+				command.clear_depth_view(depthStencilDescriptorHeap.get_CPU_handle(1), 1.f);
 
-				command.SetRenderTarget({ {cubemapRtvDescriptorHeap.get_CPU_handle()} }, depthStencilDescriptorHeap.get_CPU_handle(1));
+				command.set_render_target({ {cubemapRtvDescriptorHeap.get_CPU_handle()} }, depthStencilDescriptorHeap.get_CPU_handle(1));
 
-				command.SetPipelineState(colorObjectRenderer.GetCubemapPipelineState());
-				command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
-				command.SetGraphicsRootSignature(colorObjectRenderer.GetRootSignature());
+				command.set_pipeline_state(colorObjectRenderer.GetCubemapPipelineState());
+				command.set_primitive_topology(primitive_topology::TRIANGLE_LIST);
+				command.set_graphics_root_signature(colorObjectRenderer.GetRootSignature());
 				bunnyMesh.SetMesh(command);
 
 				for (std::size_t i = 0; i < ColorObjectNum; i++) {
@@ -424,28 +424,28 @@ namespace test004
 					bunnyMesh.Draw(command);
 				}
 
-				command.Barrior(mirrorObjectModel.GetCubemapShaderResource(), resource_state::PixcelShaderResource);
+				command.barrior(mirrorObjectModel.GetCubemapShaderResource(), resource_state::PixcelShaderResource);
 			}
 
 			//BackBuffer
 			{
-				command.SetViewport(viewport);
-				command.SetScissorRect(scissorRect);
+				command.set_viewport(viewport);
+				command.set_scissor_rect(scissorRect);
 
-				command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
-				command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5f,0.5f,0.5f,1.f });
+				command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::RenderTarget);
+				command.clear_render_target_view(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5f,0.5f,0.5f,1.f });
 
-				command.Barrior(depthBuffer, resource_state::DepthWrite);
-				command.ClearDepthView(depthStencilDescriptorHeap.get_CPU_handle(), 1.f);
+				command.barrior(depthBuffer, resource_state::DepthWrite);
+				command.clear_depth_view(depthStencilDescriptorHeap.get_CPU_handle(), 1.f);
 
-				command.SetRenderTarget({ {rtvDescriptorHeap.get_CPU_handle(backBufferIndex)} }, depthStencilDescriptorHeap.get_CPU_handle());
+				command.set_render_target({ {rtvDescriptorHeap.get_CPU_handle(backBufferIndex)} }, depthStencilDescriptorHeap.get_CPU_handle());
 
 
 				//ColorBunny
 				{
-					command.SetPipelineState(colorObjectRenderer.GetStanderdPipelineState());
-					command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
-					command.SetGraphicsRootSignature(colorObjectRenderer.GetRootSignature());
+					command.set_pipeline_state(colorObjectRenderer.GetStanderdPipelineState());
+					command.set_primitive_topology(primitive_topology::TRIANGLE_LIST);
+					command.set_graphics_root_signature(colorObjectRenderer.GetRootSignature());
 					bunnyMesh.SetMesh(command);
 
 					for (std::size_t i = 0; i < ColorObjectNum; i++) {
@@ -456,28 +456,28 @@ namespace test004
 
 				//MirrorSphere
 				{
-					command.SetPipelineState(mirrorObjectRenderer.GetPipelineState());
-					command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
-					command.SetGraphicsRootSignature(mirrorObjectRenderer.GetRootSignature());
+					command.set_pipeline_state(mirrorObjectRenderer.GetPipelineState());
+					command.set_primitive_topology(primitive_topology::TRIANGLE_LIST);
+					command.set_graphics_root_signature(mirrorObjectRenderer.GetRootSignature());
 					mirrorObjectModel.SetDescriptorHeap(command);
 					sphereMesh.SetMesh(command);
 					sphereMesh.Draw(command);
 				}
 
-				command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::Common);
+				command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::Common);
 			}
 
 
-			command.Close();
-			command.Execute();
+			command.close();
+			command.execute();
 			
-			swapChain.Present();
-			command.Fence(backBufferIndex);
+			swapChain.present();
+			command.fence(backBufferIndex);
 
-			command.Wait(swapChain.GetCurrentBackBufferIndex());
+			command.wait(swapChain.get_vcurrent_back_buffer_index());
 		}
 
-		command.WaitAll(device);
+		command.wait_all(device);
 
 		return 0;
 	}

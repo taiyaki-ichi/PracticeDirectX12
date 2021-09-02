@@ -11,7 +11,7 @@
 
 namespace DX12
 {
-	class Device;
+	class device;
 
 	class descriptor_heap_base
 	{
@@ -28,11 +28,11 @@ namespace DX12
 		descriptor_heap_base(descriptor_heap_base&&) = default;
 		descriptor_heap_base& operator=(descriptor_heap_base&&) = default;
 
-		void initialize(Device& device, std::uint32_t size, D3D12_DESCRIPTOR_HEAP_DESC desc, std::uint32_t incrementSize);
+		void initialize(device& device, std::uint32_t size, D3D12_DESCRIPTOR_HEAP_DESC desc, std::uint32_t incrementSize);
 
 		template<typename Resource, typename CreateViewFunc, typename... CreateViewFuncOptionArgs>
 		std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>
-			push_back_view(Device& device, Resource& resource, CreateViewFunc createViewFunc, CreateViewFuncOptionArgs&&... createViewPolicyArgs);
+			push_back_view(device& device, Resource& resource, CreateViewFunc createViewFunc, CreateViewFuncOptionArgs&&... createViewPolicyArgs);
 
 		ID3D12DescriptorHeap* get() noexcept;
 
@@ -44,54 +44,54 @@ namespace DX12
 	class descriptor_heap_CBV_SRV_UAV : public descriptor_heap_base
 	{
 	public:
-		void initialize(Device& device, std::uint32_t size);
+		void initialize(device& device, std::uint32_t size);
 
 
 		template<typename Resource>
-		void push_back_CBV(Device&, Resource&);
+		void push_back_CBV(device&, Resource&);
 
 		template<typename Resource>
-		void push_back_texture2D_SRV(Device&, Resource&,
+		void push_back_texture2D_SRV(device&, Resource&,
 			std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSline, float resourceMinLODClamp);
 
 		template<typename Resource>
-		void push_back_texture2D_array_SRV(Device&, Resource&,
+		void push_back_texture2D_array_SRV(device&, Resource&,
 			std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSlice, float resourceMinLODClamp);
 
 		template<typename Resource>
-		void push_back_texture_cube_array_SRV(Device&, Resource&,
+		void push_back_texture_cube_array_SRV(device&, Resource&,
 			std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSlice, float resourceMinLODClamp);
 
 		template<typename Resource>
-		void push_back_texture2D_UAV(Device&, Resource&,std::uint32_t mipSlice, std::uint32_t planeSlice);
+		void push_back_texture2D_UAV(device&, Resource&,std::uint32_t mipSlice, std::uint32_t planeSlice);
 
 		template<typename Resource>
-		void push_back_texture2D_array_UAV(Device&, Resource&, std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice, std::uint32_t planeSlice);
+		void push_back_texture2D_array_UAV(device&, Resource&, std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice, std::uint32_t planeSlice);
 
 	};
 
 	class descriptor_heap_DSV : public descriptor_heap_base
 	{
 	public:
-		void initialize(Device& device, std::uint32_t size);
+		void initialize(device& device, std::uint32_t size);
 
 		template<typename Resource>
-		void push_back_texture2D_DSV(Device&, Resource&, std::uint32_t mipSlice);
+		void push_back_texture2D_DSV(device&, Resource&, std::uint32_t mipSlice);
 
 		template<typename Resource>
-		void push_back_texture2D_array_DSV(Device&, Resource&, std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice);
+		void push_back_texture2D_array_DSV(device&, Resource&, std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice);
 	};
 
 	class descriptor_heap_RTV : public descriptor_heap_base
 	{
 	public:
-		void initialize(Device& device, std::uint32_t size);
+		void initialize(device& device, std::uint32_t size);
 
 		template<typename Resource>
-		void push_back_texture2D_RTV(Device&, Resource&, std::uint32_t mipSlice, std::uint32_t planeSlice);
+		void push_back_texture2D_RTV(device&, Resource&, std::uint32_t mipSlice, std::uint32_t planeSlice);
 
 		template<typename Resource>
-		void push_back_texture2D_array_RTV(Device&, Resource&, std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice, std::uint32_t planeSlice);
+		void push_back_texture2D_array_RTV(device&, Resource&, std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice, std::uint32_t planeSlice);
 	};
 
 
@@ -101,10 +101,10 @@ namespace DX12
 
 
 
-	inline void descriptor_heap_base::initialize(Device& device, std::uint32_t s, D3D12_DESCRIPTOR_HEAP_DESC desc, std::uint32_t incrementSize)
+	inline void descriptor_heap_base::initialize(device& device, std::uint32_t s, D3D12_DESCRIPTOR_HEAP_DESC desc, std::uint32_t incrementSize)
 	{
 		ID3D12DescriptorHeap* tmp = nullptr;
-		if (FAILED(device.Get()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&tmp))))
+		if (FAILED(device.get()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&tmp))))
 			THROW_EXCEPTION("");
 		descriptor_heap_ptr.reset(tmp);
 
@@ -113,7 +113,7 @@ namespace DX12
 	}
 
 	template<typename Resource, typename CreateViewFunc, typename ...CreateViewFuncOptionArgs>
-	inline std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE> descriptor_heap_base::push_back_view(Device& device, Resource& resource, CreateViewFunc createViewFunc, CreateViewFuncOptionArgs && ...createViewPolicyArgs)
+	inline std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE> descriptor_heap_base::push_back_view(device& device, Resource& resource, CreateViewFunc createViewFunc, CreateViewFuncOptionArgs && ...createViewPolicyArgs)
 	{
 		//空いてるスペースがない場合
 		if (offset >= size)
@@ -124,7 +124,7 @@ namespace DX12
 
 		//viewの生成
 		//
-		std::invoke(createViewFunc, device.Get(), resource.get(), cpuHandle, std::forward<CreateViewFuncOptionArgs>(createViewPolicyArgs)...);
+		std::invoke(createViewFunc, device.get(), resource.get(), cpuHandle, std::forward<CreateViewFuncOptionArgs>(createViewPolicyArgs)...);
 
 		//戻り値用にgpuハンドルの取得
 		auto gpuHandle = get_GPU_handle(offset);
@@ -154,7 +154,7 @@ namespace DX12
 		return cpuHandle;
 	}
 
-	inline void descriptor_heap_CBV_SRV_UAV::initialize(Device& device, std::uint32_t size)
+	inline void descriptor_heap_CBV_SRV_UAV::initialize(device& device, std::uint32_t size)
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC desc{};
 		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
@@ -162,19 +162,19 @@ namespace DX12
 		desc.NumDescriptors = size;
 		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
-		auto incrementSize = device.Get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		auto incrementSize = device.get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		descriptor_heap_base::initialize(device, size, desc, incrementSize);
 	}
 
 	template<typename Resource>
-	inline void descriptor_heap_CBV_SRV_UAV::push_back_CBV(Device& device, Resource& resource)
+	inline void descriptor_heap_CBV_SRV_UAV::push_back_CBV(device& device, Resource& resource)
 	{
 		push_back_view(device, resource, create_CBV, resource.get_size());
 	}
 
 	template<typename Resource>
-	inline void descriptor_heap_CBV_SRV_UAV::push_back_texture2D_SRV(Device& device, Resource& resource, 
+	inline void descriptor_heap_CBV_SRV_UAV::push_back_texture2D_SRV(device& device, Resource& resource, 
 		std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSline, float resourceMinLODClamp)
 	{
 		static_assert(!(Resource::flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE));
@@ -184,7 +184,7 @@ namespace DX12
 	}
 
 	template<typename Resource>
-	inline void DX12::descriptor_heap_CBV_SRV_UAV::push_back_texture2D_array_SRV(Device& device, Resource& resource,
+	inline void DX12::descriptor_heap_CBV_SRV_UAV::push_back_texture2D_array_SRV(device& device, Resource& resource,
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSlice, float resourceMinLODClamp)
 	{
 		static_assert(!(Resource::flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE));
@@ -195,7 +195,7 @@ namespace DX12
 	}
 
 	template<typename Resource>
-	inline void descriptor_heap_CBV_SRV_UAV::push_back_texture_cube_array_SRV(Device& device, Resource& resource,
+	inline void descriptor_heap_CBV_SRV_UAV::push_back_texture_cube_array_SRV(device& device, Resource& resource,
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSlice, float resourceMinLODClamp)
 	{
 		static_assert(!(Resource::flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE));
@@ -206,7 +206,7 @@ namespace DX12
 	}
 
 	template<typename Resource>
-	inline void descriptor_heap_CBV_SRV_UAV::push_back_texture2D_UAV(Device& device, Resource& resource, std::uint32_t mipSlice, std::uint32_t planeSlice)
+	inline void descriptor_heap_CBV_SRV_UAV::push_back_texture2D_UAV(device& device, Resource& resource, std::uint32_t mipSlice, std::uint32_t planeSlice)
 	{
 		static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 		static_assert(get_dxgi_format(Resource::format::component_type, Resource::format::component_size, Resource::format::component_num));
@@ -216,7 +216,7 @@ namespace DX12
 	}
 
 	template<typename Resource>
-	inline void descriptor_heap_CBV_SRV_UAV::push_back_texture2D_array_UAV(Device& device, Resource& resource, 
+	inline void descriptor_heap_CBV_SRV_UAV::push_back_texture2D_array_UAV(device& device, Resource& resource, 
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice, std::uint32_t planeSlice)
 	{
 		static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
@@ -227,20 +227,20 @@ namespace DX12
 			nullptr, arraySize, firstArraySlice, mipSlice, planeSlice);
 	}
 
-	inline void descriptor_heap_DSV::initialize(Device& device, std::uint32_t size)
+	inline void descriptor_heap_DSV::initialize(device& device, std::uint32_t size)
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC desc{};
 		desc.NodeMask = 0;
 		desc.NumDescriptors = size;
 		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 
-		auto incrementSize = device.Get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+		auto incrementSize = device.get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
 		descriptor_heap_base::initialize(device, size, desc, incrementSize);
 	}
 
 	template<typename Resource>
-	inline void descriptor_heap_DSV::push_back_texture2D_DSV(Device& device, Resource& resource, std::uint32_t mipSlice)
+	inline void descriptor_heap_DSV::push_back_texture2D_DSV(device& device, Resource& resource, std::uint32_t mipSlice)
 	{
 		static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 		//ここのフォーマットのstaticassert
@@ -249,7 +249,7 @@ namespace DX12
 	}
 
 	template<typename Resource>
-	inline void descriptor_heap_DSV::push_back_texture2D_array_DSV(Device& device, Resource& resource, 
+	inline void descriptor_heap_DSV::push_back_texture2D_array_DSV(device& device, Resource& resource, 
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice)
 	{
 		static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
@@ -259,7 +259,7 @@ namespace DX12
 		push_back_view(device, resource, create_texture2D_array_DSV<Resource::format::component_type, Resource::format::component_size, Resource::format::component_num>, arraySize, firstArraySlice, mipSlice);
 	}
 
-	void descriptor_heap_RTV::initialize(Device& device, std::uint32_t size)
+	void descriptor_heap_RTV::initialize(device& device, std::uint32_t size)
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC desc{};
 		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
@@ -267,13 +267,13 @@ namespace DX12
 		desc.NumDescriptors = size;
 		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-		auto incrementSize = device.Get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		auto incrementSize = device.get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 		descriptor_heap_base::initialize(device, size, desc, incrementSize);
 	}
 
 	template<typename Resource>
-	inline void descriptor_heap_RTV::push_back_texture2D_RTV(Device& device, Resource& resource, std::uint32_t mipSlice, std::uint32_t planeSlice)
+	inline void descriptor_heap_RTV::push_back_texture2D_RTV(device& device, Resource& resource, std::uint32_t mipSlice, std::uint32_t planeSlice)
 	{
 		static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 		static_assert(get_dxgi_format(Resource::format::component_type, Resource::format::component_size, Resource::format::component_num));
@@ -282,7 +282,7 @@ namespace DX12
 	}
 
 	template<typename Resource>
-	inline void descriptor_heap_RTV::push_back_texture2D_array_RTV(Device& device, Resource& resource, 
+	inline void descriptor_heap_RTV::push_back_texture2D_array_RTV(device& device, Resource& resource, 
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice, std::uint32_t planeSlice)
 	{
 		static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);

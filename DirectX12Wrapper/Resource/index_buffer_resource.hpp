@@ -10,7 +10,7 @@ namespace DX12
 		D3D12_INDEX_BUFFER_VIEW index_buffer_view{};
 
 	public:
-		void initialize(Device& device, std::uint32_t num);
+		void initialize(device& device, std::uint32_t num);
 
 		const D3D12_INDEX_BUFFER_VIEW& get_view() const noexcept;
 
@@ -22,7 +22,7 @@ namespace DX12
 	//
 
 	template<typename Format>
-	void index_buffer_resource<Format>::initialize(Device& device, std::uint32_t num)
+	void index_buffer_resource<Format>::initialize(device& device, std::uint32_t num)
 	{
 		buffer_resource::initialize(device, Format::component_size / 8 * num);
 

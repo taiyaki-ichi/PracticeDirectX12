@@ -25,21 +25,21 @@ namespace test001
 
 		using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
 
-		auto hwnd = CreateSimpleWindow(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
+		auto hwnd = create_simple_window(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
 
-		Device device{};
-		device.Initialize();
+		device device{};
+		device.initialize();
 
-		Command command{};
-		command.Initialize(device);
+		command command{};
+		command.initialize(device);
 
-		SwapChain<FrameBufferFormat, 2> swapChain{};
+		swap_chain<FrameBufferFormat, 2> swapChain{};
 		swapChain.initialize(command, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(1), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(1), 0, 0);
 
 		using VertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>>;
 
@@ -51,19 +51,19 @@ namespace test001
 		vertexBuffer.initialize(device, vertex.size());
 		map(&vertexBuffer, vertex);
 
-		RootSignature rootSignature{};
-		rootSignature.Initialize(device, {}, {});
+		root_signature rootSignature{};
+		rootSignature.initialize(device, {}, {});
 
-		Shader vertexShader{};
+		shader vertexShader{};
 
-		vertexShader.Intialize(L"Shader/VertexShader001.hlsl", "main", "vs_5_0");
+		vertexShader.initialize(L"Shader/VertexShader001.hlsl", "main", "vs_5_0");
 
-		Shader pixelShader{};
-		pixelShader.Intialize(L"Shader/PixelShader001.hlsl", "main", "ps_5_0");
+		shader pixelShader{};
+		pixelShader.initialize(L"Shader/PixelShader001.hlsl", "main", "ps_5_0");
 
 		graphics_pipeline_state<VertexLayout,render_target_formats<FrameBufferFormat>> pipelineState{};
-		pipelineState.Initialize(device, rootSignature, { &vertexShader, &pixelShader },
-			{ "POSITION" }, false, false, PrimitiveTopology::Triangle
+		pipelineState.initialize(device, rootSignature, { &vertexShader, &pixelShader },
+			{ "POSITION" }, false, false, primitive_topology::TRIANGLE
 		);
 
 
@@ -73,39 +73,39 @@ namespace test001
 		std::size_t cnt = 0;
 		while (UpdateWindow()) {
 
-			auto backBufferIndex = swapChain.GetCurrentBackBufferIndex();
-			command.Reset(backBufferIndex);
+			auto backBufferIndex = swapChain.get_vcurrent_back_buffer_index();
+			command.reset(backBufferIndex);
 
-			command.SetViewport(viewport);
-			command.SetScissorRect(scissorRect);
+			command.set_viewport(viewport);
+			command.set_scissor_rect(scissorRect);
 
-			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
-			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5f,0.5f,0.5f,1.0f });
+			command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::RenderTarget);
+			command.clear_render_target_view(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5f,0.5f,0.5f,1.0f });
 
-			command.SetRenderTarget({ { rtvDescriptorHeap.get_CPU_handle(backBufferIndex) } });
+			command.set_render_target({ { rtvDescriptorHeap.get_CPU_handle(backBufferIndex) } });
 
-			command.SetPipelineState(pipelineState);
-			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
-			command.SetGraphicsRootSignature(rootSignature);
+			command.set_pipeline_state(pipelineState);
+			command.set_primitive_topology(primitive_topology::TRIANGLE_LIST);
+			command.set_graphics_root_signature(rootSignature);
 
-			command.SetVertexBuffer(vertexBuffer);
-			command.DrawInstanced(3);
+			command.set_vertex_buffer(vertexBuffer);
+			command.draw_instanced(3);
 
-			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::Common);
+			command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::Common);
 
-			command.Close();
-			command.Execute();
+			command.close();
+			command.execute();
 
-			swapChain.Present();
-			command.Fence(backBufferIndex);
+			swapChain.present();
+			command.fence(backBufferIndex);
 
-			command.Wait(swapChain.GetCurrentBackBufferIndex());
+			command.wait(swapChain.get_vcurrent_back_buffer_index());
 
 			map(&vertexBuffer, vertex);
 		};
 
 
-		command.WaitAll(device);
+		command.wait_all(device);
 		return 0;
 	}
 }

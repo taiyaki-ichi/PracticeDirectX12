@@ -10,7 +10,7 @@
 namespace DX12
 {
 
-	class Device 
+	class device 
 	{
 		release_unique_ptr<ID3D12Device> device_ptr{};
 
@@ -18,22 +18,22 @@ namespace DX12
 		release_unique_ptr<IDXGIAdapter1> adaptor_ptr{};
 
 	public:
-		Device() = default;
-		~Device() = default;
+		device() = default;
+		~device() = default;
 
-		Device(Device&&) = default;
-		Device& operator=(Device&&) = default;
+		device(device&&) = default;
+		device& operator=(device&&) = default;
 
-		void Initialize();
+		void initialize();
 
-		ID3D12Device* Get() const noexcept;
+		ID3D12Device* get() const noexcept;
 	};
 
 	//
 	//
 	//
 
-	inline void Device::Initialize()
+	inline void device::initialize()
 	{
 #ifdef _DEBUG
 		ID3D12Debug* debugLayer = nullptr;
@@ -86,7 +86,7 @@ namespace DX12
 		device_ptr.reset(d);
 	}
 
-	inline ID3D12Device* Device::Get() const noexcept
+	inline ID3D12Device* device::get() const noexcept
 	{
 		return device_ptr.get();
 	}

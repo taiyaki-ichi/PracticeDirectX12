@@ -6,7 +6,7 @@
 namespace DX12
 {
 
-	enum class DescriptorRangeType {
+	enum class descriptor_range_type {
 		SRV = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
 		UAV = D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
 		CBV = D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
@@ -20,18 +20,18 @@ namespace DX12
 		Cubemap,
 	};
 
-	class RootSignature
+	class root_signature
 	{
 		release_unique_ptr<ID3D12RootSignature> root_signature_ptr{};
 
 	public:
-		RootSignature() = default;
-		~RootSignature() = default;
+		root_signature() = default;
+		~root_signature() = default;
 
-		RootSignature(RootSignature&&) = default;
-		RootSignature& operator=(RootSignature&&) = default;
+		root_signature(root_signature&&) = default;
+		root_signature& operator=(root_signature&&) = default;
 
-		void Initialize(Device&, const std::vector<std::vector<DescriptorRangeType>>&,const std::vector<StaticSamplerType>&);
+		void initialize(device&, const std::vector<std::vector<descriptor_range_type>>&,const std::vector<StaticSamplerType>&);
 
 		ID3D12RootSignature* Get();
 	};
@@ -41,21 +41,21 @@ namespace DX12
 	//
 	//
 
-	void RootSignature::Initialize(Device& device, const std::vector<std::vector<DescriptorRangeType>>& descriptorRangeTypes, 
+	void root_signature::initialize(device& device, const std::vector<std::vector<descriptor_range_type>>& descriptorRangeTypes, 
 		const std::vector<StaticSamplerType>& staticSamplerTypes)
 	{
 		D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 		rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
 
-		auto descriptorRanges = GetDescriptorRange(descriptorRangeTypes);
-		auto descriptorTables = GetDescriptorTables(descriptorRanges);
-		auto [descriptorTableData, descriptorTableSize] = GetContainerDataAndSize(descriptorTables);
+		auto descriptorRanges = get_descriptor_range(descriptorRangeTypes);
+		auto descriptorTables = get_descriptor_tables(descriptorRanges);
+		auto [descriptorTableData, descriptorTableSize] = get_container_data_and_size(descriptorTables);
 		rootSignatureDesc.pParameters = descriptorTableData;
 		rootSignatureDesc.NumParameters = descriptorTableSize;
 
-		auto staticSamplers = GetStaticSamplers(staticSamplerTypes);
-		auto [staticSamplerData, staticSamplerSize] = GetContainerDataAndSize(staticSamplers);
+		auto staticSamplers = get_static_samplers(staticSamplerTypes);
+		auto [staticSamplerData, staticSamplerSize] = get_container_data_and_size(staticSamplers);
 		rootSignatureDesc.pStaticSamplers = staticSamplerData;
 		rootSignatureDesc.NumStaticSamplers = staticSamplerSize;
 	
@@ -74,7 +74,7 @@ namespace DX12
 
 		{
 			ID3D12RootSignature* tmp = nullptr;
-			auto result = device.Get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&tmp));
+			auto result = device.get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&tmp));
 			if (FAILED(result))
 				THROW_EXCEPTION("");
 			root_signature_ptr.reset(tmp);
@@ -83,7 +83,7 @@ namespace DX12
 		}
 	}
 
-	inline ID3D12RootSignature* RootSignature::Get()
+	inline ID3D12RootSignature* root_signature::Get()
 	{
 		return root_signature_ptr.get();
 	}

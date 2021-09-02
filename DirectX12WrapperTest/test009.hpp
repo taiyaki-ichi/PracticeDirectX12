@@ -61,21 +61,21 @@ namespace test009
 
 	inline int main()
 	{
-		auto hwnd = CreateSimpleWindow(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
+		auto hwnd = create_simple_window(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
 
-		Device device{};
-		device.Initialize();
+		device device{};
+		device.initialize();
 
-		Command command{};
-		command.Initialize(device);
+		command command{};
+		command.initialize(device);
 
-		SwapChain<FrameBufferFormat, 2> swapChain{};
+		swap_chain<FrameBufferFormat, 2> swapChain{};
 		swapChain.initialize(command, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(1), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(1), 0, 0);
 
 
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
@@ -126,14 +126,14 @@ namespace test009
 		computeGaussianBlurDescriptorHeap.push_back_texture2D_UAV(device, gaussianBlurShadowMap, 0, 0);
 		computeGaussianBlurDescriptorHeap.push_back_CBV(device, shadowMapDataConstantBuffer);
 
-		Shader computeGaussianCS{};
-		computeGaussianCS.Intialize(L"Shader/ComputeShader004.hlsl", "main", "cs_5_1");
+		shader computeGaussianCS{};
+		computeGaussianCS.initialize(L"Shader/ComputeShader004.hlsl", "main", "cs_5_1");
 
-		RootSignature computeGaussianBlurRootSignature{};
-		computeGaussianBlurRootSignature.Initialize(device, { {DescriptorRangeType::SRV,DescriptorRangeType::UAV,DescriptorRangeType::CBV} }, {});
+		root_signature computeGaussianBlurRootSignature{};
+		computeGaussianBlurRootSignature.initialize(device, { {descriptor_range_type::SRV,descriptor_range_type::UAV,descriptor_range_type::CBV} }, {});
 
 		compute_pipeline_state computeGaussianBlurPipelineState{};
-		computeGaussianBlurPipelineState.Initialize(device, computeGaussianBlurRootSignature, computeGaussianCS);
+		computeGaussianBlurPipelineState.initialize(device, computeGaussianBlurRootSignature, computeGaussianCS);
 
 
 		//
@@ -173,32 +173,32 @@ namespace test009
 		//groundDescriptorHeap.PushBackView(device, &shadowMap);
 		groundDescriptorHeap.push_back_texture2D_SRV(device, gaussianBlurShadowMap, 1, 0, 0, 0.f);
 
-		RootSignature groundRootSignature{};
-		groundRootSignature.Initialize(device,
-			{ {DescriptorRangeType::CBV,DescriptorRangeType::CBV,DescriptorRangeType::SRV} },
+		root_signature groundRootSignature{};
+		groundRootSignature.initialize(device,
+			{ {descriptor_range_type::CBV,descriptor_range_type::CBV,descriptor_range_type::SRV} },
 			{ StaticSamplerType::Standard }
 		);
 
-		Shader groundVS{};
-		groundVS.Intialize(L"Shader/Ground4/VertexShader.hlsl", "main", "vs_5_1");
+		shader groundVS{};
+		groundVS.initialize(L"Shader/Ground4/VertexShader.hlsl", "main", "vs_5_1");
 
-		Shader groundPS{};
-		groundPS.Intialize(L"Shader/Ground4/PixelShader.hlsl", "main", "ps_5_1");
+		shader groundPS{};
+		groundPS.initialize(L"Shader/Ground4/PixelShader.hlsl", "main", "ps_5_1");
 
-		Shader groundShadowMapVS{};
-		groundShadowMapVS.Intialize(L"Shader/Ground4/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
+		shader groundShadowMapVS{};
+		groundShadowMapVS.initialize(L"Shader/Ground4/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
 
-		Shader groundShadowMapPS{};
-		groundShadowMapPS.Intialize(L"Shader/Ground4/ShadowMapPixelShader.hlsl", "main", "ps_5_1");
+		shader groundShadowMapPS{};
+		groundShadowMapPS.initialize(L"Shader/Ground4/ShadowMapPixelShader.hlsl", "main", "ps_5_1");
 
 		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT,32,3>>,render_target_formats<FrameBufferFormat>> groundPipelineState{};
-		groundPipelineState.Initialize(device, groundRootSignature, { &groundVS,&groundPS },
-			{ "POSITION",},true, false, PrimitiveTopology::Triangle
+		groundPipelineState.initialize(device, groundRootSignature, { &groundVS,&groundPS },
+			{ "POSITION",},true, false, primitive_topology::TRIANGLE
 		);
 
 		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT, 32, 3>>, render_target_formats<format<component_type::FLOAT, 32, 2>>> groundShadowMapPipelineState{};
-		groundShadowMapPipelineState.Initialize(device, groundRootSignature, { &groundShadowMapVS,&groundShadowMapPS },
-			{ "POSITION" }, true, false, PrimitiveTopology::Triangle
+		groundShadowMapPipelineState.initialize(device, groundRootSignature, { &groundShadowMapVS,&groundShadowMapPS },
+			{ "POSITION" }, true, false, primitive_topology::TRIANGLE
 		);
 
 
@@ -242,32 +242,32 @@ namespace test009
 		//bunnyDescriptorHeap.PushBackView(device, &shadowMap);
 		bunnyDescriptorHeap.push_back_texture2D_SRV(device, gaussianBlurShadowMap, 1, 0, 0, 0.f);
 
-		RootSignature bunnyRootSignature{};
-		bunnyRootSignature.Initialize(device,
-			{ {DescriptorRangeType::CBV,DescriptorRangeType::CBV,DescriptorRangeType::SRV} },
+		root_signature bunnyRootSignature{};
+		bunnyRootSignature.initialize(device,
+			{ {descriptor_range_type::CBV,descriptor_range_type::CBV,descriptor_range_type::SRV} },
 			{ StaticSamplerType::Standard }
 		);
 
-		Shader bunnyVS{};
-		bunnyVS.Intialize(L"Shader/Bunny2/VertexShader.hlsl", "main", "vs_5_1");
+		shader bunnyVS{};
+		bunnyVS.initialize(L"Shader/Bunny2/VertexShader.hlsl", "main", "vs_5_1");
 
-		Shader bunnyPS{};
-		bunnyPS.Intialize(L"Shader/Bunny2/PixelShader.hlsl", "main", "ps_5_1");
+		shader bunnyPS{};
+		bunnyPS.initialize(L"Shader/Bunny2/PixelShader.hlsl", "main", "ps_5_1");
 
-		Shader bunnyShadowMapVS{};
-		bunnyShadowMapVS.Intialize(L"Shader/Bunny2/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
+		shader bunnyShadowMapVS{};
+		bunnyShadowMapVS.initialize(L"Shader/Bunny2/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
 
-		Shader bunnyShadowMapPS{};
-		bunnyShadowMapPS.Intialize(L"Shader/Bunny2/ShadowMapPixelShader.hlsl", "main", "ps_5_1");
+		shader bunnyShadowMapPS{};
+		bunnyShadowMapPS.initialize(L"Shader/Bunny2/ShadowMapPixelShader.hlsl", "main", "ps_5_1");
 
 		graphics_pipeline_state<BunnyVertexLayout,render_target_formats<FrameBufferFormat>> bunnyPipelineState{};
-		bunnyPipelineState.Initialize(device, bunnyRootSignature, { &bunnyVS,&bunnyPS },
-			{ "POSITION","NORMAL" }, true, false, PrimitiveTopology::Triangle
+		bunnyPipelineState.initialize(device, bunnyRootSignature, { &bunnyVS,&bunnyPS },
+			{ "POSITION","NORMAL" }, true, false, primitive_topology::TRIANGLE
 		);
 
 		graphics_pipeline_state<BunnyVertexLayout,render_target_formats<format<component_type::FLOAT,32,2>>> bunnyShadowMapPipelineState{};
-		bunnyShadowMapPipelineState.Initialize(device, bunnyRootSignature, { &bunnyShadowMapVS ,&bunnyShadowMapPS },
-			{ "POSITION","NORMAL" }, true, false, PrimitiveTopology::Triangle
+		bunnyShadowMapPipelineState.initialize(device, bunnyRootSignature, { &bunnyShadowMapVS ,&bunnyShadowMapPS },
+			{ "POSITION","NORMAL" }, true, false, primitive_topology::TRIANGLE
 		);
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
@@ -317,102 +317,102 @@ namespace test009
 
 
 
-			auto backBufferIndex = swapChain.GetCurrentBackBufferIndex();
+			auto backBufferIndex = swapChain.get_vcurrent_back_buffer_index();
 
-			command.Reset(backBufferIndex);
+			command.reset(backBufferIndex);
 
 
 			//
 			//ShadowMap
 			//
 
-			command.Barrior(shadowMap, resource_state::RenderTarget);
-			command.Barrior(shadowMapDepthBuffer, resource_state::DepthWrite);
+			command.barrior(shadowMap, resource_state::RenderTarget);
+			command.barrior(shadowMapDepthBuffer, resource_state::DepthWrite);
 
-			command.ClearDepthView(shadowMapDSVDescriptorHeap.get_CPU_handle(), 1.f);
-			command.ClearRenderTargetView(shadowMapRTVDescriptorHeap.get_CPU_handle(), { 1,1 });
-			command.SetRenderTarget({ {shadowMapRTVDescriptorHeap.get_CPU_handle()} }, shadowMapDSVDescriptorHeap.get_CPU_handle());
-			command.SetViewport(shadowMapViewport);
-			command.SetScissorRect(shadowMapScissorRect);
+			command.clear_depth_view(shadowMapDSVDescriptorHeap.get_CPU_handle(), 1.f);
+			command.clear_render_target_view(shadowMapRTVDescriptorHeap.get_CPU_handle(), { 1,1 });
+			command.set_render_target({ {shadowMapRTVDescriptorHeap.get_CPU_handle()} }, shadowMapDSVDescriptorHeap.get_CPU_handle());
+			command.set_viewport(shadowMapViewport);
+			command.set_scissor_rect(shadowMapScissorRect);
 
-			command.SetDescriptorHeap(bunnyDescriptorHeap);
-			command.SetGraphicsRootSignature(bunnyRootSignature);
-			command.SetGraphicsRootDescriptorTable(0, bunnyDescriptorHeap.get_GPU_handle());
-			command.SetPipelineState(bunnyShadowMapPipelineState);
-			command.SetVertexBuffer(bunnyVertexBuffer);
-			command.SetIndexBuffer(bunnyIndexBuffer);
-			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
-			command.DrawIndexedInstanced(bunnyIndexNum, BUNNY_NUM);
+			command.set_descriptor_heap(bunnyDescriptorHeap);
+			command.set_graphics_root_signature(bunnyRootSignature);
+			command.set_graphics_root_descriptor_table(0, bunnyDescriptorHeap.get_GPU_handle());
+			command.set_pipeline_state(bunnyShadowMapPipelineState);
+			command.set_vertex_buffer(bunnyVertexBuffer);
+			command.set_index_buffer(bunnyIndexBuffer);
+			command.set_primitive_topology(primitive_topology::TRIANGLE_LIST);
+			command.draw_indexed_instanced(bunnyIndexNum, BUNNY_NUM);
 
-			command.SetDescriptorHeap(groundDescriptorHeap);
-			command.SetGraphicsRootSignature(groundRootSignature);
-			command.SetGraphicsRootDescriptorTable(0, groundDescriptorHeap.get_GPU_handle());
-			command.SetPipelineState(groundShadowMapPipelineState);
-			command.SetVertexBuffer(groundVertexBuffer);
-			command.SetIndexBuffer(groundIndexBuffer);
-			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
-			command.DrawIndexedInstanced(groundIndexNum);
+			command.set_descriptor_heap(groundDescriptorHeap);
+			command.set_graphics_root_signature(groundRootSignature);
+			command.set_graphics_root_descriptor_table(0, groundDescriptorHeap.get_GPU_handle());
+			command.set_pipeline_state(groundShadowMapPipelineState);
+			command.set_vertex_buffer(groundVertexBuffer);
+			command.set_index_buffer(groundIndexBuffer);
+			command.set_primitive_topology(primitive_topology::TRIANGLE_LIST);
+			command.draw_indexed_instanced(groundIndexNum);
 
-			command.Barrior(shadowMap, resource_state::PixcelShaderResource);
+			command.barrior(shadowMap, resource_state::PixcelShaderResource);
 
 
 			//
 			//GaussianBlur
 			//
 
-			command.Barrior(gaussianBlurShadowMap, resource_state::UnorderedAccessResource);
-			command.SetComputeRootSignature(computeGaussianBlurRootSignature);
-			command.SetDescriptorHeap(computeGaussianBlurDescriptorHeap);
-			command.SetComputeRootDescriptorTable(0, computeGaussianBlurDescriptorHeap.get_GPU_handle());
-			command.SetPipelineState(computeGaussianBlurPipelineState);
-			command.Dispatch(SHADOW_MAP_EDGE / 8 + 1, SHADOW_MAP_EDGE / 8 + 1, 1);
-			command.Barrior(gaussianBlurShadowMap, resource_state::PixcelShaderResource);
+			command.barrior(gaussianBlurShadowMap, resource_state::UnorderedAccessResource);
+			command.set_compute_root_signature(computeGaussianBlurRootSignature);
+			command.set_descriptor_heap(computeGaussianBlurDescriptorHeap);
+			command.set_compute_root_descriptor_table(0, computeGaussianBlurDescriptorHeap.get_GPU_handle());
+			command.set_pipeline_state(computeGaussianBlurPipelineState);
+			command.dispatch(SHADOW_MAP_EDGE / 8 + 1, SHADOW_MAP_EDGE / 8 + 1, 1);
+			command.barrior(gaussianBlurShadowMap, resource_state::PixcelShaderResource);
 
 
 			//
 			//BackBuffer
 			//
 
-			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
-			command.Barrior(depthBuffer, resource_state::DepthWrite);
+			command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::RenderTarget);
+			command.barrior(depthBuffer, resource_state::DepthWrite);
 
-			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
-			command.ClearDepthView(dsvDescriptorHeap.get_CPU_handle(), 1.f);
-			command.SetRenderTarget({ {rtvDescriptorHeap.get_CPU_handle(backBufferIndex)} }, dsvDescriptorHeap.get_CPU_handle());
-			command.SetViewport(viewport);
-			command.SetScissorRect(scissorRect);
+			command.clear_render_target_view(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
+			command.clear_depth_view(dsvDescriptorHeap.get_CPU_handle(), 1.f);
+			command.set_render_target({ {rtvDescriptorHeap.get_CPU_handle(backBufferIndex)} }, dsvDescriptorHeap.get_CPU_handle());
+			command.set_viewport(viewport);
+			command.set_scissor_rect(scissorRect);
 
-			command.SetDescriptorHeap(bunnyDescriptorHeap);
-			command.SetGraphicsRootSignature(bunnyRootSignature);
-			command.SetGraphicsRootDescriptorTable(0, bunnyDescriptorHeap.get_GPU_handle());
-			command.SetPipelineState(bunnyPipelineState);
-			command.SetVertexBuffer(bunnyVertexBuffer);
-			command.SetIndexBuffer(bunnyIndexBuffer);
-			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
-			command.DrawIndexedInstanced(bunnyIndexNum, BUNNY_NUM);
+			command.set_descriptor_heap(bunnyDescriptorHeap);
+			command.set_graphics_root_signature(bunnyRootSignature);
+			command.set_graphics_root_descriptor_table(0, bunnyDescriptorHeap.get_GPU_handle());
+			command.set_pipeline_state(bunnyPipelineState);
+			command.set_vertex_buffer(bunnyVertexBuffer);
+			command.set_index_buffer(bunnyIndexBuffer);
+			command.set_primitive_topology(primitive_topology::TRIANGLE_LIST);
+			command.draw_indexed_instanced(bunnyIndexNum, BUNNY_NUM);
 
-			command.SetDescriptorHeap(groundDescriptorHeap);
-			command.SetGraphicsRootSignature(groundRootSignature);
-			command.SetGraphicsRootDescriptorTable(0, groundDescriptorHeap.get_GPU_handle());
-			command.SetPipelineState(groundPipelineState);
-			command.SetVertexBuffer(groundVertexBuffer);
-			command.SetIndexBuffer(groundIndexBuffer);
-			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
-			command.DrawIndexedInstanced(groundIndexNum);
+			command.set_descriptor_heap(groundDescriptorHeap);
+			command.set_graphics_root_signature(groundRootSignature);
+			command.set_graphics_root_descriptor_table(0, groundDescriptorHeap.get_GPU_handle());
+			command.set_pipeline_state(groundPipelineState);
+			command.set_vertex_buffer(groundVertexBuffer);
+			command.set_index_buffer(groundIndexBuffer);
+			command.set_primitive_topology(primitive_topology::TRIANGLE_LIST);
+			command.draw_indexed_instanced(groundIndexNum);
 
 
-			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::Common);
+			command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::Common);
 
-			command.Close();
-			command.Execute();
+			command.close();
+			command.execute();
 
-			swapChain.Present();
-			command.Fence(backBufferIndex);
+			swapChain.present();
+			command.fence(backBufferIndex);
 
-			command.Wait(swapChain.GetCurrentBackBufferIndex());
+			command.wait(swapChain.get_vcurrent_back_buffer_index());
 		}
 
-		command.WaitAll(device);
+		command.wait_all(device);
 
 		return 0;
 	}

@@ -36,7 +36,7 @@ namespace dev
 		descriptor_heap_base(descriptor_heap_base&&) noexcept;
 		descriptor_heap_base& operator=(descriptor_heap_base&&) noexcept;
 
-		void Initialize(Device* device, D3D12_DESCRIPTOR_HEAP_DESC desc, std::uint32_t incrementSize);
+		void initialize(Device* device, D3D12_DESCRIPTOR_HEAP_DESC desc, std::uint32_t incrementSize);
 
 		template<typename resource, typename CreateViewFunc, typename... CreateViewFuncOptionArgs>
 		std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE>
@@ -52,7 +52,7 @@ namespace dev
 	class descriptor_heap_CBV_SRV_UAV : public descriptor_heap_base
 	{
 	public:
-		void Initialize(Device* device, std::uint32_t size);
+		void initialize(Device* device, std::uint32_t size);
 
 
 		template<typename resource>
@@ -78,7 +78,7 @@ namespace dev
 	class descriptor_heap_DSV : public descriptor_heap_base
 	{
 	public:
-		void Initialize(Device* device, std::uint32_t size);
+		void initialize(Device* device, std::uint32_t size);
 
 		template<typename resource>
 		void PushBackTextre2DDSV(Device*, resource*, std::uint32_t mipSlice);
@@ -90,7 +90,7 @@ namespace dev
 	class descriptor_heap_RTV : public descriptor_heap_base
 	{
 	public:
-		void Initialize(Device* device, std::uint32_t size);
+		void initialize(Device* device, std::uint32_t size);
 
 		template<component_type ViewComponentType, typename resource>
 		void PushBackTextre2DRTV(Device*, resource*, std::uint32_t mipSlice, std::uint32_t planeSlice);

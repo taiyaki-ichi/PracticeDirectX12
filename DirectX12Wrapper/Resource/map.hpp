@@ -102,8 +102,4 @@ namespace DX12
 	}
 
 
-
-	
-
-
 }

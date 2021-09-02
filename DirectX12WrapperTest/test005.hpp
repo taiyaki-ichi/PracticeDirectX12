@@ -89,43 +89,43 @@ namespace test005
 
 	inline int main()
 	{
-		auto hwnd = CreateSimpleWindow(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
+		auto hwnd = create_simple_window(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
 
-		Device device{};
-		device.Initialize();
+		device device{};
+		device.initialize();
 
-		Command command{};
-		command.Initialize(device);
+		command command{};
+		command.initialize(device);
 
-		SwapChain<FrameBufferFormat, 2> swapChain{};
+		swap_chain<FrameBufferFormat, 2> swapChain{};
 		swapChain.initialize(command, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
 		rtvDescriptorHeap.initialize(device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.GetFrameBuffer(1), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(0), 0, 0);
+		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(1), 0, 0);
 
-		Shader vs{};
-		vs.Intialize(L"Shader/Ground/VertexShader.hlsl", "main", "vs_5_0");
+		shader vs{};
+		vs.initialize(L"Shader/Ground/VertexShader.hlsl", "main", "vs_5_0");
 
-		Shader ps{};
-		ps.Intialize(L"Shader/Ground/PixelShader.hlsl", "main", "ps_5_0");
+		shader ps{};
+		ps.initialize(L"Shader/Ground/PixelShader.hlsl", "main", "ps_5_0");
 
-		Shader hs{};
-		hs.Intialize(L"Shader/Ground/HullShader.hlsl", "main", "hs_5_0");
+		shader hs{};
+		hs.initialize(L"Shader/Ground/HullShader.hlsl", "main", "hs_5_0");
 
-		Shader ds{};
-		ds.Intialize(L"Shader/Ground/DomainShader.hlsl", "main", "ds_5_0");
+		shader ds{};
+		ds.initialize(L"Shader/Ground/DomainShader.hlsl", "main", "ds_5_0");
 
-		RootSignature rootSignature{};
-		rootSignature.Initialize(device,
-			{ {DescriptorRangeType::CBV,DescriptorRangeType::SRV,DescriptorRangeType::SRV} },
+		root_signature rootSignature{};
+		rootSignature.initialize(device,
+			{ {descriptor_range_type::CBV,descriptor_range_type::SRV,descriptor_range_type::SRV} },
 			{ StaticSamplerType::Standard }
 		);
 
 		graphics_pipeline_state<VertexLayout,render_target_formats<FrameBufferFormat>> pipelineState{};
-		pipelineState.Initialize(device, rootSignature, { &vs, &ps,nullptr,&hs, &ds },
-			{ "POSITION","TEXCOOD" }, true, false, PrimitiveTopology::Patch
+		pipelineState.initialize(device, rootSignature, { &vs, &ps,nullptr,&hs, &ds },
+			{ "POSITION","TEXCOOD" }, true, false, primitive_topology::PATCH
 		);
 
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthStencilBufferResource{};
@@ -144,19 +144,19 @@ namespace test005
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/heightmap.png", &textureWidth, &textureHeight, &n, 4);
 			buffer_resource uploadResource{};
-			uploadResource.initialize(device, TextureDataPitchAlignment(textureWidth * 4) * textureHeight);
-			map(&uploadResource, data, textureWidth * 4, textureHeight, TextureDataPitchAlignment(textureWidth * 4));
+			uploadResource.initialize(device, texture_data_pitch_alignment(textureWidth * 4) * textureHeight);
+			map(&uploadResource, data, textureWidth * 4, textureHeight, texture_data_pitch_alignment(textureWidth * 4));
 
 			heightMapTextureResource.initialize(device, textureWidth, textureHeight, 1, 1);
 
-			command.Reset(0);
-			command.Barrior(heightMapTextureResource, resource_state::CopyDest);
-			command.CopyTexture(device, uploadResource, heightMapTextureResource);
-			command.Barrior(heightMapTextureResource, resource_state::PixcelShaderResource);
-			command.Close();
-			command.Execute();
-			command.Fence(0);
-			command.Wait(0);
+			command.reset(0);
+			command.barrior(heightMapTextureResource, resource_state::CopyDest);
+			command.copy_texture(device, uploadResource, heightMapTextureResource);
+			command.barrior(heightMapTextureResource, resource_state::PixcelShaderResource);
+			command.close();
+			command.execute();
+			command.fence(0);
+			command.wait(0);
 
 			stbi_image_free(data);
 		}
@@ -166,19 +166,19 @@ namespace test005
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/normalmap.png", &textureWidth, &textureHeight, &n, 4);
 			buffer_resource uploadResource{};
-			uploadResource.initialize(device, TextureDataPitchAlignment(textureWidth * 4) * textureHeight);
-			map(&uploadResource, data, textureWidth * 4, textureHeight, TextureDataPitchAlignment(textureWidth * 4));
+			uploadResource.initialize(device, texture_data_pitch_alignment(textureWidth * 4) * textureHeight);
+			map(&uploadResource, data, textureWidth * 4, textureHeight, texture_data_pitch_alignment(textureWidth * 4));
 
 			normalMapTextureResource.initialize(device, textureWidth, textureHeight, 1, 1);
 
-			command.Reset(0);
-			command.Barrior(normalMapTextureResource, resource_state::CopyDest);
-			command.CopyTexture(device, uploadResource, normalMapTextureResource);
-			command.Barrior(normalMapTextureResource, resource_state::PixcelShaderResource);
-			command.Close();
-			command.Execute();
-			command.Fence(0);
-			command.Wait(0);
+			command.reset(0);
+			command.barrior(normalMapTextureResource, resource_state::CopyDest);
+			command.copy_texture(device, uploadResource, normalMapTextureResource);
+			command.barrior(normalMapTextureResource, resource_state::PixcelShaderResource);
+			command.close();
+			command.execute();
+			command.fence(0);
+			command.wait(0);
 
 			stbi_image_free(data);
 		}
@@ -230,40 +230,40 @@ namespace test005
 			cnt++;
 
 
-			auto backBufferIndex = swapChain.GetCurrentBackBufferIndex();
-			command.Reset(backBufferIndex);
+			auto backBufferIndex = swapChain.get_vcurrent_back_buffer_index();
+			command.reset(backBufferIndex);
 
 
-			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
-			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5f,0.5f,0.5f,1.f });
+			command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::RenderTarget);
+			command.clear_render_target_view(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5f,0.5f,0.5f,1.f });
 
-			command.Barrior(depthStencilBufferResource, resource_state::DepthWrite);
-			command.ClearDepthView(depthStencilDescriptorHeap.get_CPU_handle(), 1.f);
+			command.barrior(depthStencilBufferResource, resource_state::DepthWrite);
+			command.clear_depth_view(depthStencilDescriptorHeap.get_CPU_handle(), 1.f);
 
-			command.SetRenderTarget({ {rtvDescriptorHeap.get_CPU_handle(backBufferIndex)} }, depthStencilDescriptorHeap.get_CPU_handle());
-			command.SetViewport(viewport);
-			command.SetScissorRect(scissorRect);
-			command.SetPipelineState(pipelineState);
-			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
-			command.SetGraphicsRootSignature(rootSignature);
-			command.SetDescriptorHeap(descriptorHeap);
-			command.SetGraphicsRootDescriptorTable(0, descriptorHeap.get_GPU_handle());
-			command.SetVertexBuffer(vertexBuffer);
-			command.SetIndexBuffer(indexBuffer);
-			command.SetPrimitiveTopology(PrimitiveTopology::Contorol4PointPatchList);
-			command.DrawIndexedInstanced(indexList.size());
+			command.set_render_target({ {rtvDescriptorHeap.get_CPU_handle(backBufferIndex)} }, depthStencilDescriptorHeap.get_CPU_handle());
+			command.set_viewport(viewport);
+			command.set_scissor_rect(scissorRect);
+			command.set_pipeline_state(pipelineState);
+			command.set_primitive_topology(primitive_topology::TRIANGLE_LIST);
+			command.set_graphics_root_signature(rootSignature);
+			command.set_descriptor_heap(descriptorHeap);
+			command.set_graphics_root_descriptor_table(0, descriptorHeap.get_GPU_handle());
+			command.set_vertex_buffer(vertexBuffer);
+			command.set_index_buffer(indexBuffer);
+			command.set_primitive_topology(primitive_topology::CONTOROL_4_POINT_PATCH_LIST);
+			command.draw_indexed_instanced(indexList.size());
 
-			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::Common);
+			command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::Common);
 
-			command.Close();
-			command.Execute();
+			command.close();
+			command.execute();
 			
-			swapChain.Present();
-			command.Fence(backBufferIndex);
+			swapChain.present();
+			command.fence(backBufferIndex);
 
-			command.Wait(swapChain.GetCurrentBackBufferIndex());
+			command.wait(swapChain.get_vcurrent_back_buffer_index());
 		}
-		command.WaitAll(device);
+		command.wait_all(device);
 
 		return 0;
 	}

@@ -72,7 +72,7 @@ namespace dev
 		std::optional<D3D12_CLEAR_VALUE> clearValue{};
 
 	public:
-		void Initialize(Device*, std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize, std::uint16_t mipLevels);
+		void initialize(Device*, std::uint32_t width, std::uint32_t height, std::uint16_t depthOrArraySize, std::uint16_t mipLevels);
 
 		ID3D12Resource* Get();
 
