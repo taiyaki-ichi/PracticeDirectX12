@@ -38,7 +38,7 @@ namespace DX12
 #ifdef _DEBUG
 		ID3D12Debug* debugLayer = nullptr;
 		if (FAILED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugLayer)))) {
-			throw "";
+			THROW_EXCEPTION("");
 		}
 		else {
 			debugLayer->EnableDebugLayer();
@@ -47,7 +47,7 @@ namespace DX12
 #endif
 		IDXGIFactory5* f = nullptr;
 		if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&f))))
-			throw "";
+			THROW_EXCEPTION("");
 		factory_ptr.reset(f);
 
 		UINT adapterIndex = 0;
@@ -64,7 +64,7 @@ namespace DX12
 			adapterIndex++;
 			//å©Ç¬Ç©ÇÁÇ»Ç©Ç¡ÇΩèÍçá
 			if (adapterIndex == DXGI_ERROR_NOT_FOUND)
-				throw "";
+				THROW_EXCEPTION("");
 		}
 		adaptor_ptr.reset(a);
 
@@ -81,7 +81,7 @@ namespace DX12
 			if (SUCCEEDED(D3D12CreateDevice(a, l, IID_PPV_ARGS(&d))))
 				break;
 			if (l == levels.back())
-				throw "";
+				THROW_EXCEPTION("");
 		}
 		device_ptr.reset(d);
 	}

@@ -105,7 +105,7 @@ namespace DX12
 	{
 		ID3D12DescriptorHeap* tmp = nullptr;
 		if (FAILED(device.Get()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&tmp))))
-			throw "";
+			THROW_EXCEPTION("");
 		descriptor_heap_ptr.reset(tmp);
 
 		size = s;

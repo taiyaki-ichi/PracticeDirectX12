@@ -59,7 +59,6 @@ namespace DX12
 		rootSignatureDesc.pStaticSamplers = staticSamplerData;
 		rootSignatureDesc.NumStaticSamplers = staticSamplerSize;
 	
-
 		ID3DBlob* rootSigBlob = nullptr;
 		ID3DBlob* errorBlob = nullptr;
 
@@ -69,7 +68,7 @@ namespace DX12
 				std::string errstr;
 				errstr.resize(errorBlob->GetBufferSize());
 				std::copy_n((char*)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize(), errstr.begin());
-				throw errstr + "\n";
+				THROW_EXCEPTION(errstr.data());
 			}
 		}
 
@@ -77,7 +76,7 @@ namespace DX12
 			ID3D12RootSignature* tmp = nullptr;
 			auto result = device.Get()->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&tmp));
 			if (FAILED(result))
-				throw "";
+				THROW_EXCEPTION("");
 			root_signature_ptr.reset(tmp);
 
 			rootSigBlob->Release();

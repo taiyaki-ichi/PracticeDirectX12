@@ -197,7 +197,7 @@ namespace DX12
 			(clearValue) ? &cv : nullptr,
 			IID_PPV_ARGS(&tmp))))
 		{
-			throw  "";
+			THROW_EXCEPTION("");
 		}
 		resource_ptr.reset(tmp);
 	}

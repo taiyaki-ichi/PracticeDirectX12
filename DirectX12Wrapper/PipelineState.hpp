@@ -274,10 +274,9 @@ namespace DX12
 		{
 			ID3D12PipelineState* tmp = nullptr;
 			if (FAILED(device.Get()->CreateGraphicsPipelineState(&graphicsPipelineDesc, IID_PPV_ARGS(&tmp))))
-				throw "";
+				THROW_EXCEPTION("");
 			pipeline_state_ptr.reset(tmp);
 		}
-
 	}
 
 	template<typename VertexLayout, typename ResnderTargetFormats>
@@ -296,7 +295,7 @@ namespace DX12
 		{
 			ID3D12PipelineState* tmp = nullptr;
 			if (FAILED(device.Get()->CreateComputePipelineState(&computePipelineDesc, IID_PPV_ARGS(&tmp))))
-				throw "";
+				THROW_EXCEPTION("");
 			pipeline_state_ptr.reset(tmp);
 		}
 	}

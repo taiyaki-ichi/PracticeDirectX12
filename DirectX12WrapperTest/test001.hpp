@@ -11,6 +11,7 @@
 
 #include<array>
 
+
 //ƒ|ƒŠƒSƒ“‚Ì•`ŽÊ‚Ì•`ŽÊ‚ð‚·‚é
 namespace test001
 {
@@ -54,6 +55,7 @@ namespace test001
 		rootSignature.Initialize(device, {}, {});
 
 		Shader vertexShader{};
+
 		vertexShader.Intialize(L"Shader/VertexShader001.hlsl", "main", "vs_5_0");
 
 		Shader pixelShader{};

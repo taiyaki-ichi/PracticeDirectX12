@@ -111,7 +111,7 @@ namespace DX12
 		{
 			ID3D12CommandAllocator* tmp = nullptr;
 			if (FAILED(device.Get()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&tmp))))
-				throw "";
+				THROW_EXCEPTION("");
 			allocator_ptrs[i].reset(tmp);
 		}
 
@@ -119,7 +119,7 @@ namespace DX12
 		{
 			ID3D12GraphicsCommandList* tmp = nullptr;
 			if (FAILED(device.Get()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, allocator_ptrs[0].get(), nullptr, IID_PPV_ARGS(&tmp))))
-				throw "";
+				THROW_EXCEPTION("");
 			list_ptr.reset(tmp);
 		}
 
@@ -132,7 +132,7 @@ namespace DX12
 			cmdQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;	//プライオリティ特に指定なし
 			cmdQueueDesc.Type = list_ptr->GetType();			//ここはコマンドリストと合わせる
 			if (FAILED(device.Get()->CreateCommandQueue(&cmdQueueDesc, IID_PPV_ARGS(&tmp))))
-				throw "";
+				THROW_EXCEPTION("");
 			queue_ptr.reset(tmp);
 		}
 
@@ -143,7 +143,7 @@ namespace DX12
 		{
 			ID3D12Fence* tmp = nullptr;
 			if (FAILED(device.Get()->CreateFence(fenceValue[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&tmp))))
-				throw "";
+				THROW_EXCEPTION("");
 			fence_ptrs[i].reset(tmp);
 		}
 

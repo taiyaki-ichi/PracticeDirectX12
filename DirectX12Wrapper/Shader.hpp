@@ -5,12 +5,11 @@
 #include<dxgi1_6.h>
 #include<d3dcompiler.h>
 #include<string>
+#include<Windows.h>
 
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
 #pragma comment(lib,"d3dcompiler.lib")
-
-#include<iostream>
 
 namespace DX12
 {
@@ -49,17 +48,16 @@ namespace DX12
 
 		if (FAILED(result))
 		{
-			if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND))
-				throw fileName + std::wstring{ L" is not found\n" };
+			if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) {
+				THROW_EXCEPTION("file not found");
+			}
 			else {
-				std::wstring errstr;
+				std::string errstr;
 				errstr.resize(errorBlob->GetBufferSize());
 				std::copy_n((char*)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize(), errstr.begin());
-				std::wcout << errstr;
-				throw errstr + L" : " + fileName + L"\n";
+				THROW_EXCEPTION(errstr.data());
 			}
 		}
-
 		blob_ptr.reset(tmp);
 	}
 

@@ -27,7 +27,7 @@ namespace DX12
 		SwapChain<FrameBufferFormat, FrameBufferNum>& operator=(SwapChain<FrameBufferFormat, FrameBufferNum>&&) = default;
 
 		template<typename Command>
-		bool initialize(Command&, HWND);
+		void initialize(Command&, HWND);
 
 		//レンダリングされた画像を表示する
 		//また、GetCurrentBackBufferIndexの戻り値が更新される
@@ -46,14 +46,14 @@ namespace DX12
 
 	template<typename FrameBufferFormat, std::size_t FrameBufferNum>
 	template<typename Command>
-	inline bool SwapChain<FrameBufferFormat, FrameBufferNum>::initialize(Command& command, HWND hwnd)
+	inline void SwapChain<FrameBufferFormat, FrameBufferNum>::initialize(Command& command, HWND hwnd)
 	{
 		IDXGIFactory3* factory = nullptr;
 		IDXGISwapChain4* swapChain = nullptr;
 
 #ifdef _DEBUG
 		if (FAILED(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory))))
-			return false;
+			THROW_EXCEPTION("");
 #else
 		if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))))
 			throw "";
@@ -77,7 +77,7 @@ namespace DX12
 		swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 		if (FAILED(factory->CreateSwapChainForHwnd(command.get_queue(), hwnd, &swapchainDesc, nullptr, nullptr, (IDXGISwapChain1**)&swapChain)))
-			return false;
+			THROW_EXCEPTION("");
 
 		swap_chain_ptr.reset(swapChain);
 		factory->Release();
@@ -86,11 +86,9 @@ namespace DX12
 		{
 			ID3D12Resource* resourcePtr = nullptr;
 			if (FAILED(swap_chain_ptr->GetBuffer(static_cast<UINT>(i), IID_PPV_ARGS(&resourcePtr))))
-				return false;
+				THROW_EXCEPTION("");
 			frameBuffer[i].initialize(resourcePtr);
 		}
-
-		return true;
 	}
 
 
