@@ -1,10 +1,10 @@
 #pragma once
-#include"RootSignature/RootSignature.hpp"
-#include"Format.hpp"
-#include"Shader.hpp"
-#include"Device.hpp"
-#include"PrimitiveTopology.hpp"
-#include"Resource/vertex_buffer_resource.hpp"
+#include"root_signature/root_signature.hpp"
+#include"format.hpp"
+#include"shader.hpp"
+#include"device.hpp"
+#include"primitive_topology.hpp"
+#include"resource/vertex_buffer_resource.hpp"
 #include<d3d12.h>
 #include<dxgi1_6.h>
 #include<vector>

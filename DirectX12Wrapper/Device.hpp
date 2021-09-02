@@ -1,5 +1,5 @@
 #pragma once
-#include"Utility.hpp"
+#include"utility.hpp"
 #include<d3d12.h>
 #include<dxgi1_6.h>
 #include<array>

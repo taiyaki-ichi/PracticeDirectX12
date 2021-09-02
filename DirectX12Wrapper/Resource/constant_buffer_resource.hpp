@@ -1,6 +1,6 @@
 #pragma once
 #include"buffer_resource.hpp"
-#include"../Utility.hpp"
+#include"../utility.hpp"
 
 namespace DX12
 {

@@ -1,16 +1,16 @@
 #pragma once
-#include"Window.hpp"
-#include"Device.hpp"
-#include"PipelineState.hpp"
-#include"Command.hpp"
-#include"SwapChain.hpp"
+#include"window.hpp"
+#include"device.hpp"
+#include"pipeline_state.hpp"
+#include"command.hpp"
+#include"swap_chain.hpp"
 #include"OffLoader.hpp"
 #include"utility.hpp"
-#include"Resource/vertex_buffer_resource.hpp"
-#include"Resource/index_buffer_resource.hpp"
-#include"Resource/shader_resource.hpp"
-#include"Resource/constant_buffer_resource.hpp"
-#include"Resource/map.hpp"
+#include"resource/vertex_buffer_resource.hpp"
+#include"resource/index_buffer_resource.hpp"
+#include"resource/shader_resource.hpp"
+#include"resource/constant_buffer_resource.hpp"
+#include"resource/map.hpp"
 
 #include<array>
 #include<DirectXMath.h>

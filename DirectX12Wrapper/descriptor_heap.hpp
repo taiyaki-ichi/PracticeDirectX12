@@ -1,7 +1,7 @@
 #pragma once
-#include"Device.hpp"
-#include"View.hpp"
-#include"Utility.hpp"
+#include"device.hpp"
+#include"view.hpp"
+#include"utility.hpp"
 #include<utility>
 #include<d3d12.h>
 #include<dxgi1_6.h>

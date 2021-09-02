@@ -1,7 +1,7 @@
 #pragma once
-#include"Resource/frame_buffer_resource.hpp"
-#include"Command.hpp"
-#include"PipelineState.hpp"
+#include"resource/frame_buffer_resource.hpp"
+#include"command.hpp"
+#include"pipeline_state.hpp"
 #include<array>
 #include<d3d12.h>
 #include<dxgi1_6.h>

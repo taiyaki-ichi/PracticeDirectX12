@@ -14,26 +14,26 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Command.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Format.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)PipelineState.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)PrimitiveTopology.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)DescriptorHeap.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\buffer_resource.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\constant_buffer_resource.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\frame_buffer_resource.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\index_buffer_resource.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\map.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\resource.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\shader_resource.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\vertex_buffer_resource.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)SwapChain.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)View.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Window.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Utility.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Shader.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)RootSignature\RootSignature.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)RootSignature\RootSignatureHelper.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Device.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)command.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)format.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)pipeline_state.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)primitive_topology.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)descriptor_heap.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)resource\buffer_resource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)resource\constant_buffer_resource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)resource\frame_buffer_resource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)resource\index_buffer_resource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)resource\map.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)resource\resource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)resource\shader_resource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)resource\vertex_buffer_resource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)swap_chain.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)view.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)window.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)utility.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)shader.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)root_signature\root_signature.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)root_signature\root_signature_helper.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)device.hpp" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 #pragma once
-#include"Device.hpp"
-#include"RootSignatureHelper.hpp"
+#include"device.hpp"
+#include"root_signature_helper.hpp"
 #include<string>
 
 namespace DX12

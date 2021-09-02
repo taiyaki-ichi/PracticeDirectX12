@@ -1,10 +1,10 @@
 #pragma once
-#include"Device.hpp"
-#include"SwapChain.hpp"
-#include"PipelineState.hpp"
-#include"Resource/vertex_buffer_resource.hpp"
-#include"Resource/index_buffer_resource.hpp"
-#include"DescriptorHeap.hpp"
+#include"device.hpp"
+#include"swap_chain.hpp"
+#include"pipeline_state.hpp"
+#include"resource/vertex_buffer_resource.hpp"
+#include"resource/index_buffer_resource.hpp"
+#include"descriptor_heap.hpp"
 #include<array>
 #include<algorithm>
 #include<optional>

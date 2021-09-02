@@ -1,6 +1,6 @@
 #pragma once
 #include"buffer_resource.hpp"
-#include"../Format.hpp"
+#include"../format.hpp"
 
 namespace DX12
 {

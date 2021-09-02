@@ -1,6 +1,6 @@
 #pragma once
-#include"../Device.hpp"
-#include"../Format.hpp"
+#include"../device.hpp"
+#include"../format.hpp"
 #include<optional>
 #include<variant>
 #include<array>
