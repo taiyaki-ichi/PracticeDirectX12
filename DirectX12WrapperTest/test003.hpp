@@ -144,7 +144,7 @@ namespace test003
 			command.Barrior(depthBuffer, resource_state::DepthWrite);
 			command.ClearDepthView(depthStencilDescriptorHeap.get_CPU_handle(), 1.f);
 
-			command.SetRenderTarget(rtvDescriptorHeap.get_CPU_handle(backBufferIndex),depthStencilDescriptorHeap.get_CPU_handle());
+			command.SetRenderTarget({ {rtvDescriptorHeap.get_CPU_handle(backBufferIndex)} }, depthStencilDescriptorHeap.get_CPU_handle());
 
 			//–Ê‚Ì•`ŽÊ
 			{

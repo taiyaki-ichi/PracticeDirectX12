@@ -121,7 +121,7 @@ namespace test002
 			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
 			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
 
-			command.SetRenderTarget(rtvDescriptorHeap.get_CPU_handle(backBufferIndex));
+			command.SetRenderTarget({ {rtvDescriptorHeap.get_CPU_handle(backBufferIndex)} });
 
 			command.SetPipelineState(pipelineState);
 			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);

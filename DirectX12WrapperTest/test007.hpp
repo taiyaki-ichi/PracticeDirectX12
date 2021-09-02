@@ -513,7 +513,7 @@ namespace test007
 			command.SetPipelineState(sphereDepthPipelineState);
 			command.SetVertexBuffer(sphereVertexBuffer);
 			command.SetIndexBuffer(sphereIndexBuffer);
-			command.SetRenderTarget(groundDepthRTVDescriptorHeap.get_CPU_handle(), groundDepthStencilDescriptorHeap.get_CPU_handle());
+			command.SetRenderTarget({ {groundDepthRTVDescriptorHeap.get_CPU_handle()} }, groundDepthStencilDescriptorHeap.get_CPU_handle());
 			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);
 			command.DrawIndexedInstanced(sphereFaceNum * 3, 2);
 			command.Barrior(groundDepthShaderResource, resource_state::PixcelShaderResource);
@@ -556,7 +556,7 @@ namespace test007
 
 			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
 			command.ClearDepthView(depthStencilDescriptorHeap.get_CPU_handle(), 1.f);
-			command.SetRenderTarget(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), depthStencilDescriptorHeap.get_CPU_handle());
+			command.SetRenderTarget({ {rtvDescriptorHeap.get_CPU_handle(backBufferIndex)} }, depthStencilDescriptorHeap.get_CPU_handle());
 			command.SetViewport(viewport);
 			command.SetScissorRect(scissorRect);
 

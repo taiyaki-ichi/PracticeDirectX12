@@ -53,9 +53,8 @@ namespace test006
 			{}
 		);
 
-		//
 		compute_pipeline_state computePipelineState{};
-		computePipelineState.Initialize(device, computeRootsignature, &cs);
+		computePipelineState.Initialize(device, computeRootsignature, cs);
 
 		int x, y, n;
 		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> textureResource{};
@@ -156,7 +155,7 @@ namespace test006
 			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
 			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5f,0.5f,0.5f,1.f });
 
-			command.SetRenderTarget(rtvDescriptorHeap.get_CPU_handle(backBufferIndex));
+			command.SetRenderTarget({ {rtvDescriptorHeap.get_CPU_handle(backBufferIndex)} });
 
 			command.SetPipelineState(pipelineState);
 			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);

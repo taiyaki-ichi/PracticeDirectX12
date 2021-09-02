@@ -330,7 +330,7 @@ namespace test009
 
 			command.ClearDepthView(shadowMapDSVDescriptorHeap.get_CPU_handle(), 1.f);
 			command.ClearRenderTargetView(shadowMapRTVDescriptorHeap.get_CPU_handle(), { 1,1 });
-			command.SetRenderTarget(shadowMapRTVDescriptorHeap.get_CPU_handle(), shadowMapDSVDescriptorHeap.get_CPU_handle());
+			command.SetRenderTarget({ {shadowMapRTVDescriptorHeap.get_CPU_handle()} }, shadowMapDSVDescriptorHeap.get_CPU_handle());
 			command.SetViewport(shadowMapViewport);
 			command.SetScissorRect(shadowMapScissorRect);
 
@@ -377,7 +377,7 @@ namespace test009
 
 			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
 			command.ClearDepthView(dsvDescriptorHeap.get_CPU_handle(), 1.f);
-			command.SetRenderTarget(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), dsvDescriptorHeap.get_CPU_handle());
+			command.SetRenderTarget({ {rtvDescriptorHeap.get_CPU_handle(backBufferIndex)} }, dsvDescriptorHeap.get_CPU_handle());
 			command.SetViewport(viewport);
 			command.SetScissorRect(scissorRect);
 

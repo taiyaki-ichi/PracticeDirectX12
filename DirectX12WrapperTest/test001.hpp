@@ -79,7 +79,7 @@ namespace test001
 			command.Barrior(swapChain.GetFrameBuffer(backBufferIndex), resource_state::RenderTarget);
 			command.ClearRenderTargetView(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5f,0.5f,0.5f,1.0f });
 
-			command.SetRenderTarget(rtvDescriptorHeap.get_CPU_handle(backBufferIndex));
+			command.SetRenderTarget({ { rtvDescriptorHeap.get_CPU_handle(backBufferIndex) } });
 
 			command.SetPipelineState(pipelineState);
 			command.SetPrimitiveTopology(PrimitiveTopology::TriangleList);

@@ -64,10 +64,8 @@ namespace DX12
 		void SetPipelineState(compute_pipeline_state&);
 
 		//OMSetRenderTargetsの最適化について、どのターゲットのViewもおなじディスクリプタヒープ連続して生成されていないとみなしている
-		//
-		void SetRenderTarget(std::optional<D3D12_CPU_DESCRIPTOR_HANDLE> renderTargetHandle, std::optional<D3D12_CPU_DESCRIPTOR_HANDLE> depthStencilHandle = std::nullopt);
-		void SetRenderTarget(std::uint32_t renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget);
-		void SetRenderTarget(std::uint32_t renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget, D3D12_CPU_DESCRIPTOR_HANDLE depthStencilHandle);
+		void SetRenderTarget(std::optional<std::initializer_list<D3D12_CPU_DESCRIPTOR_HANDLE>> renderTargetHandle,
+			std::optional<D3D12_CPU_DESCRIPTOR_HANDLE> depthStencilHandle = std::nullopt);
 
 		void SetViewport(const D3D12_VIEWPORT& viewport);
 		void SetViewport(std::initializer_list<D3D12_VIEWPORT>);
@@ -177,8 +175,7 @@ namespace DX12
 		DXGI_SWAP_CHAIN_DESC1 swapchainDesc{};
 		swapchainDesc.Width = windowRect.right - windowRect.left;
 		swapchainDesc.Height = windowRect.bottom - windowRect.top;
-		//
-		swapchainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		swapchainDesc.Format = get_dxgi_format(Format::component_type, Format::component_size, Format::component_num).value();
 		swapchainDesc.Stereo = false;
 		swapchainDesc.SampleDesc.Count = 1;
 		swapchainDesc.SampleDesc.Quality = 0;
@@ -306,26 +303,13 @@ namespace DX12
 	}
 
 	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::SetRenderTarget(std::optional<D3D12_CPU_DESCRIPTOR_HANDLE> renderTargetHandle, std::optional<D3D12_CPU_DESCRIPTOR_HANDLE> depthStencilHandle)
+	inline void Command<FrameLatencyNum>::SetRenderTarget(std::optional<std::initializer_list<D3D12_CPU_DESCRIPTOR_HANDLE>> renderTargetHandle,
+		std::optional<D3D12_CPU_DESCRIPTOR_HANDLE> depthStencilHandle)
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE* rth = renderTargetHandle ? (&renderTargetHandle.value()) : nullptr;
-		D3D12_CPU_DESCRIPTOR_HANDLE* dsh = depthStencilHandle ? (&depthStencilHandle.value()) : nullptr;
-		if (rth)
-			list_ptr->OMSetRenderTargets(1, rth, false, dsh);
-		else 
-			list_ptr->OMSetRenderTargets(0, rth, false, dsh);
-	}
-
-	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::SetRenderTarget(std::uint32_t renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget)
-	{
-		list_ptr->OMSetRenderTargets(renderTagetHandleNum, renderTarget, false, nullptr);
-	}
-
-	template<std::size_t FrameLatencyNum>
-	inline void Command<FrameLatencyNum>::SetRenderTarget(std::uint32_t renderTagetHandleNum, D3D12_CPU_DESCRIPTOR_HANDLE* renderTarget, D3D12_CPU_DESCRIPTOR_HANDLE depthStencilHandle)
-	{
-		list_ptr->OMSetRenderTargets(renderTagetHandleNum, renderTarget, false, &depthStencilHandle);
+		const D3D12_CPU_DESCRIPTOR_HANDLE* rth = (renderTargetHandle && renderTargetHandle.value().size() > 0) ? renderTargetHandle.value().begin() : nullptr;
+		std::size_t rthNum = renderTargetHandle ? renderTargetHandle.value().size() : 0;
+		const D3D12_CPU_DESCRIPTOR_HANDLE* dsh = depthStencilHandle ? (&depthStencilHandle.value()) : nullptr;
+		list_ptr->OMSetRenderTargets(rthNum, rth, false, dsh);
 	}
 
 	template<std::size_t FrameLatencyNum>

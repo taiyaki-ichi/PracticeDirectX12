@@ -28,7 +28,7 @@ namespace DX12
 
 		//レンダリングされた画像を表示する
 		//また、GetCurrentBackBufferIndexの戻り値が更新される
-		void Present();
+		void Present(std::uint32_t syncInterval = 1);
 
 		//現在控えているBackBufferのインデックスの取得
 		std::uint32_t GetCurrentBackBufferIndex();
@@ -55,9 +55,9 @@ namespace DX12
 	}
 
 	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
-	inline void SwapChain<FrameBufferFormat,FrameBufferNum>::Present()
+	inline void SwapChain<FrameBufferFormat,FrameBufferNum>::Present(std::uint32_t syncInterval)
 	{
-		swap_chain_ptr->Present(1, 0);
+		swap_chain_ptr->Present(syncInterval, 0);
 	}
 
 	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
