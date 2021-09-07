@@ -112,7 +112,7 @@ namespace test002
 		D3D12_RECT scissorRect{ 0,0,static_cast<LONG>(WINDOW_WIDTH),static_cast<LONG>(WINDOW_HEIGHT) };
 
 
-		while (UpdateWindow()) {
+		while (update_window()) {
 			auto backBufferIndex = swapChain.get_vcurrent_back_buffer_index();
 			command.reset(backBufferIndex);
 

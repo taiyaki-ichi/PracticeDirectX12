@@ -383,7 +383,7 @@ namespace test004
 		XMFLOAT4 lightDir{ 1.f,1.f,1.f,1.f };
 		XMFLOAT3 mirrorPos{ 0.f, 0.f, 0.f };
 
-		while (UpdateWindow())
+		while (update_window())
 		{
 			map(&sceneDataConstantBuffer, SceneData{ view,proj,lightDir,eye });
 

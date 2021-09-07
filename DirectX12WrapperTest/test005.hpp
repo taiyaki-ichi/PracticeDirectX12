@@ -220,7 +220,7 @@ namespace test005
 		map(&sceneDataConstantBuffer, SceneData{ view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) });
 
 		std::size_t cnt = 0;
-		while (UpdateWindow())
+		while (update_window())
 		{
 			eye.x = len * std::cos(cnt / 60.0) - len / 3.f * 2.f;
 			//eye.z = len * std::sin(cnt / 600.0);

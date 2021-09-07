@@ -470,7 +470,7 @@ namespace test007
 		std::size_t cnt = 0;
 		auto time = std::chrono::system_clock::now();
 
-		while (UpdateWindow())
+		while (update_window())
 		{
 			//
 			//çXêV

@@ -304,7 +304,7 @@ namespace test009
 
 
 		std::size_t cnt = 0;
-		while (UpdateWindow())
+		while (update_window())
 		{
 			//
 			//update

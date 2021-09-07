@@ -53,7 +53,7 @@ namespace DX12
 	}
 
 	//メッセージの処理
-	inline bool UpdateWindow()
+	inline bool update_window()
 	{
 		MSG msg;
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))

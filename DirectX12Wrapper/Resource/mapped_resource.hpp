@@ -3,32 +3,13 @@
 
 namespace DX12
 {
-	template<std::size_t Index, typename Head, typename... Tails>
-	struct get_index_type {
-		using type = typename get_index_type<Index - 1, Tails...>::type;
-	};
-
-	template<typename Head, typename... Tails>
-	struct get_index_type<0, Head, Tails...> {
-		using type = Head;
-	};
-
-	//indexまでのフォーマットのストライドの合計の取得
-	template<std::size_t Index, typename HeadFormat, typename... TaisFormats>
-	inline constexpr std::size_t get_formats_stride_to_index()
-	{
-		if constexpr (Index <= 0)
-			return 0;
-		else
-			return get_format_stride<HeadFormat>() + get_formats_stride_to_index<Index - 1, TaisFormats...>();
-	}
-
 
 	//初期化済みのmapped_resourceを返す
-	//今のところindex_buffer_resource,vertex_buffer_resource,constant_buffer_resourceで使用可能
+	//Resourceのmapped_resource_typeを使い型を自動的に導く用
 	template<typename Resource>
 	inline auto map(Resource&)->typename Resource::mapped_resource_type;
 
+	
 	template<typename FormatTuple>
 	class formats_mapped_resource
 	{

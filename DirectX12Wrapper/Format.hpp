@@ -9,6 +9,7 @@
 
 namespace DX12
 {
+	//フォーマットの要素の型用
 	enum class component_type
 	{
 		FLOAT,
@@ -25,20 +26,26 @@ namespace DX12
 	};
 
 	struct unknow_format {
-		//
+		//size、numの値はとりあえず
 		static constexpr std::uint32_t component_size = 0;
 		static constexpr std::uint32_t component_num = 0;
 	};
 
+	//formatの用をを実際の型に変換する用
 	template<component_type Type, std::size_t Size>
 	struct convert_type {
 		using type;
 	};
 
+	//１format当たりの大きさの取得
 	template<typename Format>
 	inline constexpr std::uint32_t get_format_stride();
 
+	//indexまでのフォーマットのストライドの合計の取得
+	template<std::size_t Index, typename HeadFormat, typename... TaisFormats>
+	inline constexpr std::size_t get_formats_stride_to_index();
 
+	//formatを複数個扱う際に使用
 	template<typename... Formats>
 	struct format_tuple
 	{
@@ -61,6 +68,88 @@ namespace DX12
 
 
 	//0-3bitでnum、4-6でsize、残りがtype
+	inline constexpr std::uint32_t get_format_hash(component_type type, std::uint32_t size, std::uint32_t num);
+	
+	//dxgiのフォーマットの変数の取得
+	inline constexpr std::optional<DXGI_FORMAT> get_dxgi_format(component_type type, std::uint32_t size, std::uint32_t num);
+
+	//DepthStencilのDescriptorHeapにViewを作る時に使用
+	inline constexpr std::optional<DXGI_FORMAT> get_depth_stencil_dxgi_format(component_type componentType, std::uint8_t componentSize, std::uint8_t componentNum);
+
+
+
+	//
+	//
+	//
+
+
+	template<>
+	struct convert_type<component_type::FLOAT,32> {
+		using type = float;
+	};
+
+	template<>
+	struct convert_type<component_type::UINT, 32> {
+		using type = std::uint32_t;
+	};
+
+	template<>
+	struct convert_type<component_type::UINT, 16> {
+		using type = std::uint16_t;
+	};
+
+	template<>
+	struct convert_type<component_type::UINT, 8> {
+		using type = std::uint8_t;
+	};
+
+
+	template<typename Format>
+	inline constexpr std::uint32_t get_format_stride()
+	{
+		return Format::component_size / 8 * Format::component_num;
+	}
+
+	template<std::size_t Index, typename HeadFormat, typename... TaisFormats>
+	inline constexpr std::size_t get_formats_stride_to_index()
+	{
+		if constexpr (Index <= 0)
+			return 0;
+		else
+			return get_format_stride<HeadFormat>() + get_formats_stride_to_index<Index - 1, TaisFormats...>();
+	}
+
+	template<typename ...Formats>
+	template<std::size_t I>
+	inline constexpr DXGI_FORMAT format_tuple<Formats...>::get_dxgi_format()
+	{
+		return DX12::get_dxgi_format(format_type<I>::component_type, format_type<I>::component_size, format_type<I>::component_num).value();
+	}
+
+
+	template<typename ...Formats>
+	inline constexpr std::uint32_t format_tuple<Formats...>::get_formats_stride()
+	{
+		return (get_format_stride<Formats>() + ...);
+	}
+
+
+	template<typename ...Formats>
+	template<std::size_t I>
+	inline constexpr std::uint32_t format_tuple<Formats...>::get_formats_stride_to_index()
+	{
+		if constexpr (I <= 0)
+			return 0;
+		else
+			return get_format_stride<format_type<I - 1>>() + get_formats_stride_to_index<I - 2>();
+	}
+
+	template<typename ...Formats>
+	inline constexpr std::uint32_t format_tuple<Formats...>::get_formats_num()
+	{
+		return sizeof...(Formats);
+	}
+
 	inline constexpr std::uint32_t get_format_hash(component_type type, std::uint32_t size, std::uint32_t num)
 	{
 		std::uint32_t numHash = 1 << (num - 1);
@@ -115,80 +204,17 @@ namespace DX12
 		throw std::nullopt;
 	}
 
-
-	//DepthStencilのDescriptorHeapにViewを作る時に使用
 	inline constexpr std::optional<DXGI_FORMAT> get_depth_stencil_dxgi_format(component_type componentType, std::uint8_t componentSize, std::uint8_t componentNum) {
 
-		switch (get_format_hash(componentType,componentSize,componentNum))
+		switch (get_format_hash(componentType, componentSize, componentNum))
 		{
 
-		case get_format_hash(component_type::UNSIGNED_NORMALIZE_FLOAT,16,1):  
+		case get_format_hash(component_type::UNSIGNED_NORMALIZE_FLOAT, 16, 1):
 			return DXGI_FORMAT_D16_UNORM;
 
-		case get_format_hash(component_type::FLOAT,32,1): 
+		case get_format_hash(component_type::FLOAT, 32, 1):
 			return DXGI_FORMAT_D32_FLOAT;
 		}
 		return std::nullopt;
-	}
-
-
-
-	//
-	//
-	//
-
-	template<>
-	struct convert_type<component_type::FLOAT,32> {
-		using type = float;
-	};
-
-	template<>
-	struct convert_type<component_type::UINT, 32> {
-		using type = std::uint32_t;
-	};
-
-	template<>
-	struct convert_type<component_type::UINT, 16> {
-		using type = std::uint16_t;
-	};
-
-	template<>
-	struct convert_type<component_type::UINT, 8> {
-		using type = std::uint8_t;
-	};
-
-	template<typename Format>
-	inline constexpr std::uint32_t get_format_stride()
-	{
-		return Format::component_size / 8 * Format::component_num;
-	}
-
-	template<typename ...Formats>
-	template<std::size_t I>
-	inline constexpr DXGI_FORMAT format_tuple<Formats...>::get_dxgi_format()
-	{
-		return DX12::get_dxgi_format(format_type<I>::component_type, format_type<I>::component_size, format_type<I>::component_num).value();
-	}
-
-	template<typename ...Formats>
-	inline constexpr std::uint32_t format_tuple<Formats...>::get_formats_stride()
-	{
-		return (get_format_stride<Formats>() + ...);
-	}
-
-	template<typename ...Formats>
-	template<std::size_t I>
-	inline constexpr std::uint32_t format_tuple<Formats...>::get_formats_stride_to_index()
-	{
-		if constexpr (I <= 0)
-			return 0;
-		else
-			return get_format_stride<format_type<I - 1>>() + get_formats_stride_to_index<I - 2>();
-	}
-
-	template<typename ...Formats>
-	inline constexpr std::uint32_t format_tuple<Formats...>::get_formats_num()
-	{
-		return sizeof...(Formats);
 	}
 }

@@ -125,7 +125,7 @@ namespace test003
 
 		
 		std::size_t cnt = 0;
-		while (UpdateWindow()) {
+		while (update_window()) {
 
 			eye.x = len * std::cos(cnt / 60.0);
 			eye.z = len * std::sin(cnt / 60.0);

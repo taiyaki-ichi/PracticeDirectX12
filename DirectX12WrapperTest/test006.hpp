@@ -145,7 +145,7 @@ namespace test006
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
 		D3D12_RECT scissorRect{ 0,0,static_cast<LONG>(WINDOW_WIDTH),static_cast<LONG>(WINDOW_HEIGHT) };
 
-		while (UpdateWindow()) {
+		while (update_window()) {
 
 			auto backBufferIndex = swapChain.get_vcurrent_back_buffer_index();
 			command.reset(backBufferIndex);
