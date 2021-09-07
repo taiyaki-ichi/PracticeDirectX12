@@ -7,6 +7,7 @@
 
 namespace DX12
 {
+	/*
 	template<typename Resource, typename T>
 	inline void map_impl(Resource* resource, T&& t)
 	{
@@ -101,5 +102,5 @@ namespace DX12
 		map_impl(resource, std::forward<Ts>(ts)...);
 	}
 
-
+	*/
 }

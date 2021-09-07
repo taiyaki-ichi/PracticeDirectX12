@@ -3,10 +3,25 @@
 //#include"test003.hpp"
 //#include"test004.hpp"
 //#include"test005.hpp"
-#include"test006.hpp"
+//#include"test006.hpp"
 //#include"test007.hpp"
 //#include"test008.hpp"
 //#include"test009.hpp"
+#include"test010.hpp"
+
+template<int I>
+struct Hoge
+{
+	template<int J>
+	static constexpr int value = I * J;
+};
+
+
+template<typename T>
+auto func() {
+	return T::template value<5>;
+}
+
 
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -22,10 +37,18 @@ int main()
 	//return test003::main();
 	//return test004::main();
 	//return test005::main();
-	return test006::main();
+	//return test006::main();
 	//return test007::main();
 	//return test008::main();
 	//return test009::main();
+	return test010::main();
 
+	/*
+	auto a = Hoge<2>::value<5>;
 
+	using Hoge3 = Hoge<3>;
+	auto b = Hoge3::value<5>;
+
+	auto c = func<Hoge3>();
+	*/
 }

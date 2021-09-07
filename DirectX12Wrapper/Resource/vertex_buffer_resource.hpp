@@ -1,10 +1,11 @@
 #pragma once
 #include"buffer_resource.hpp"
+#include"mapped_resource.hpp"
 
 namespace DX12
 {
-	template<typename... Formats>
-	class vertex_buffer_resource : public buffer_resource
+	template<typename FormatTuple>
+	class vertex_buffer_resource : public buffer_resource<resource_heap_property::Upload>
 	{
 		D3D12_VERTEX_BUFFER_VIEW buffer_view{};
 
@@ -12,21 +13,20 @@ namespace DX12
 		void initialize(device& device, std::uint32_t num);
 
 		const D3D12_VERTEX_BUFFER_VIEW& get_view() const noexcept;
+
+		using mapped_resource_type = formats_mapped_resource<FormatTuple>;
 	};
 
-	//ƒwƒ‹ƒp
-	//utility‚É‚¢‚Ç‚¤‚©‚È
-	template<typename Format>
-	inline constexpr std::uint32_t get_format_stride();
+
 
 	//
 	//
 	//
 
-	template<typename... Formats>
-	void vertex_buffer_resource<Formats...>::initialize(device& device, std::uint32_t num)
+	template<typename FormatTuple>
+	void vertex_buffer_resource<FormatTuple>::initialize(device& device, std::uint32_t num)
 	{
-		constexpr auto strideSum = (get_format_stride<Formats>() + ...);
+		constexpr auto strideSum = FormatTuple::get_formats_stride();
 
 		buffer_resource::initialize(device, strideSum * num);
 
@@ -35,15 +35,10 @@ namespace DX12
 		buffer_view.StrideInBytes = strideSum;
 	}
 
-	template<typename... Formats>
-	inline const D3D12_VERTEX_BUFFER_VIEW& vertex_buffer_resource<Formats...>::get_view() const noexcept
+	template<typename FormatTuple>
+	inline const D3D12_VERTEX_BUFFER_VIEW& vertex_buffer_resource<FormatTuple>::get_view() const noexcept
 	{
 		return buffer_view;
 	}
 
-	template<typename Format>
-	constexpr std::uint32_t get_format_stride()
-	{
-		return Format::component_size / 8 * Format::component_num;
-	}
 }

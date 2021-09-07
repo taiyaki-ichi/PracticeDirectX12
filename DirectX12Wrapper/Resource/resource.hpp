@@ -40,7 +40,6 @@ namespace DX12
 		Texture2D = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
 	};
 
-	//
 	template<resource_dimention>
 	inline D3D12_TEXTURE_LAYOUT get_texture_layout()
 	{
@@ -56,22 +55,6 @@ namespace DX12
 	{
 		return D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	}
-
-
-
-
-	template<component_type ComponentType, std::uint32_t ComponentSize, std::uint8_t ComponentNum>
-	struct format {
-		static constexpr component_type component_type = ComponentType;
-		static constexpr std::uint32_t component_size = ComponentSize;
-		static constexpr std::uint32_t component_num = ComponentNum;
-	};
-
-	struct unknow_format {
-		//
-		static constexpr std::uint32_t component_size = 0;
-		static constexpr std::uint32_t component_num = 0;
-	};
 
 
 	template<typename Format>

@@ -24,6 +24,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)resource\frame_buffer_resource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)resource\index_buffer_resource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)resource\map.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Resource\mapped_resource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)resource\resource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)resource\shader_resource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)resource\vertex_buffer_resource.hpp" />

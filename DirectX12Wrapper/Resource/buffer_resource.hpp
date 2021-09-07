@@ -3,7 +3,8 @@
 
 namespace DX12
 {
-	class buffer_resource : public resource<resource_dimention::Buffer, unknow_format, resource_heap_property::Upload>
+	template<resource_heap_property HeapProperty>
+	class buffer_resource : public resource<resource_dimention::Buffer, unknow_format, HeapProperty>
 	{
 	public:
 		buffer_resource() = default;
@@ -19,8 +20,9 @@ namespace DX12
 	//
 	//
 
-	void DX12::buffer_resource::initialize(device& device, std::uint32_t size)
+	template<resource_heap_property HeapProperty>
+	void DX12::buffer_resource<HeapProperty>::initialize(device& device, std::uint32_t size)
 	{
-		resource::initialize(device, size, 1, 1, 1);
+		resource<resource_dimention::Buffer, unknow_format, HeapProperty>::initialize(device, size, 1, 1, 1);
 	}
 }

@@ -15,29 +15,6 @@
 
 namespace DX12
 {
-
-	template<component_type Type, std::uint32_t Size, std::uint32_t Num>
-	struct converte_format;
-
-	template<std::size_t Num, typename... Formats>
-	struct vertex_layout_format_type;
-
-	template<typename... Formats>
-	struct vertex_layout
-	{
-		constexpr static std::size_t format_num = sizeof...(Formats);
-		using format_tuple = std::tuple<Formats...>;
-		using struct_type = typename vertex_layout_format_type<sizeof...(Formats), Formats...>::type;
-		using resource_type = vertex_buffer_resource<Formats...>;
-	};
-
-	template<typename... Formats>
-	struct render_target_formats
-	{
-		constexpr static std::size_t format_num = sizeof...(Formats);
-		using format_tuple = std::tuple<Formats...>;
-	};
-
 	struct ShaderDesc {
 		shader* vertexShader = nullptr;
 		shader* pixcelShader = nullptr;
@@ -47,7 +24,7 @@ namespace DX12
 	};
 
 
-	template<typename VertexLayout,typename ResnderTargetFormats>
+	template<typename VertexFormatTuple,typename RenderTargetFormatTuple>
 	class graphics_pipeline_state
 	{
 		release_unique_ptr<ID3D12PipelineState> pipeline_state_ptr{};
@@ -60,7 +37,7 @@ namespace DX12
 		graphics_pipeline_state& operator=(graphics_pipeline_state&&) = default;
 
 		void initialize(device&, root_signature&, ShaderDesc,
-			std::array<const char*,VertexLayout::format_num> vertexName,
+			std::array<const char*,VertexFormatTuple::get_formats_num()> vertexName,
 			bool depthEnable, bool alphaBlend, primitive_topology primitiveTopology
 		);
 
@@ -86,88 +63,48 @@ namespace DX12
 		ID3D12PipelineState* Get() const noexcept;
 	};
 
-	//
-	//
-	//
-	template<component_type Type, std::uint32_t Size, std::uint32_t Num>
-	struct converte_format {
-		using type;
-	};
-
-	template<std::uint32_t Num>
-	struct converte_format<component_type::FLOAT, 32, Num> {
-		using type = std::array<float, Num>;
-	};
-
-	template<std::uint32_t Num>
-	struct converte_format<component_type::UINT, 32, Num> {
-		using type = std::array<std::uint32_t, Num>;
-	};
-
-	template<std::uint32_t Num>
-	struct converte_format<component_type::UINT, 16, Num> {
-		using type = std::array<std::uint16_t, Num>;
-	};
-
-	template<std::uint32_t Num>
-	struct converte_format<component_type::UINT, 8, Num> {
-		using type = std::array<std::uint8_t, Num>;
-	};
-
-	template<std::size_t Num, typename... Formats>
-	struct vertex_layout_format_type {
-		using type = std::tuple<typename converte_format<Formats::component_type, Formats::component_size, Formats::component_num>::type...>;
-	};
-
-	template<typename Formats>
-	struct vertex_layout_format_type<1, Formats> {
-		using type = typename converte_format<Formats::component_type, Formats::component_size, Formats::component_num>::type;
-	};
 
 	//
 	//ヘルパ
 	//
 
-	template<std::size_t I, typename VertexLayout>
-	inline constexpr void get_input_element_desc_impl(std::array<const char*, VertexLayout::format_num>& vertexName,
-		std::array<D3D12_INPUT_ELEMENT_DESC, VertexLayout::format_num>& result)
+	template<std::size_t I, typename VertexFormatTuple>
+	inline constexpr void get_input_element_desc_impl(std::array<const char*, VertexFormatTuple::get_formats_num()>& vertexName,
+		std::array<D3D12_INPUT_ELEMENT_DESC, VertexFormatTuple::get_formats_num()>& result)
 	{
 		result[I].SemanticName = vertexName[I];
 		result[I].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
 		result[I].InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+		result[I].Format = VertexFormatTuple::template get_dxgi_format<I>();
 
-		using Format = std::remove_reference_t<decltype(std::get<I>(std::declval<typename VertexLayout::format_tuple>()))>;
-		result[I].Format = get_dxgi_format(Format::component_type, Format::component_size, Format::component_num).value();
-
-		if constexpr (I + 1 < VertexLayout::format_num)
-			get_input_element_desc_impl<I + 1, VertexLayout>(vertexName, result);
+		if constexpr (I + 1 < VertexFormatTuple::get_formats_num())
+			get_input_element_desc_impl<I + 1, VertexFormatTuple>(vertexName, result);
 	}
 
-	template<typename VertexLayout>
-	inline constexpr std::array<D3D12_INPUT_ELEMENT_DESC, VertexLayout::format_num> get_input_element_desc(std::array<const char*, VertexLayout::format_num>& vertexName)
+	template<typename VertexFormatTuple>
+	inline constexpr std::array<D3D12_INPUT_ELEMENT_DESC, VertexFormatTuple::get_formats_num()> get_input_element_desc(std::array<const char*, VertexFormatTuple::get_formats_num()>& vertexName)
 	{
-		std::array<D3D12_INPUT_ELEMENT_DESC, VertexLayout::format_num> result{};
-		get_input_element_desc_impl<0, VertexLayout>(vertexName, result);
+		std::array<D3D12_INPUT_ELEMENT_DESC, VertexFormatTuple::get_formats_num()> result{};
+		get_input_element_desc_impl<0, VertexFormatTuple>(vertexName, result);
 		return result;
 	}
 
-	template<std::size_t I, typename RenderTargetFormats>
+	template<std::size_t I, typename RenderTargetFormatTuple>
 	inline constexpr void get_render_target_format(DXGI_FORMAT(&result)[8])
 	{
-		using Format = std::remove_reference_t<decltype(std::get<I>(std::declval<typename RenderTargetFormats::format_tuple>()))>;
-		result[I] = get_dxgi_format(Format::component_type, Format::component_size, Format::component_num).value();
+		result[I] = RenderTargetFormatTuple::template get_dxgi_format<I>();
 
-		if constexpr (I + 1 < RenderTargetFormats::format_num)
-			get_render_target_format<I + 1, RenderTargetFormats>(result);
+		if constexpr (I + 1 < RenderTargetFormatTuple::get_formats_num())
+			get_render_target_format<I + 1, RenderTargetFormatTuple>(result);
 	}
 
 	//
 	//
 	//
 
-	template<typename VertexLayout, typename ResnderTargetFormats>
-	inline void graphics_pipeline_state<VertexLayout, ResnderTargetFormats>::initialize(device& device, root_signature& rootSignature, ShaderDesc shaderDesc, 
-		std::array<const char*, VertexLayout::format_num> vertexName, bool depthEnable, bool alphaBlend, primitive_topology primitiveTopology)
+	template<typename VertexFormatTuple, typename RenderTargetFormatTuple>
+	inline void graphics_pipeline_state<VertexFormatTuple, RenderTargetFormatTuple>::initialize(device& device, root_signature& rootSignature, ShaderDesc shaderDesc, 
+		std::array<const char*, VertexFormatTuple::get_formats_num()> vertexName, bool depthEnable, bool alphaBlend, primitive_topology primitiveTopology)
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineDesc{};
 
@@ -192,7 +129,7 @@ namespace DX12
 			graphicsPipelineDesc.DS.BytecodeLength = shaderDesc.domainShader->get()->GetBufferSize();
 		}
 
-		auto inputElementDescs = get_input_element_desc<VertexLayout>(vertexName);
+		auto inputElementDescs = get_input_element_desc<VertexFormatTuple>(vertexName);
 
 		graphicsPipelineDesc.InputLayout.pInputElementDescs = inputElementDescs.data();
 		graphicsPipelineDesc.InputLayout.NumElements = inputElementDescs.size();
@@ -248,9 +185,9 @@ namespace DX12
 
 		graphicsPipelineDesc.BlendState = blendDesc;
 
-		graphicsPipelineDesc.NumRenderTargets = ResnderTargetFormats::format_num;
-		if constexpr (ResnderTargetFormats::format_num > 0)
-			get_render_target_format<0, ResnderTargetFormats>(graphicsPipelineDesc.RTVFormats);
+		graphicsPipelineDesc.NumRenderTargets = RenderTargetFormatTuple::get_formats_num();
+		if constexpr (RenderTargetFormatTuple::get_formats_num() > 0)
+			get_render_target_format<0, RenderTargetFormatTuple>(graphicsPipelineDesc.RTVFormats);
 
 
 		//デプスステンシル

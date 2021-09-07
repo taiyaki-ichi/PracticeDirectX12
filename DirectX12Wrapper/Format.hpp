@@ -1,4 +1,5 @@
 #pragma once
+#include"utility.hpp"
 #include<optional>
 #include<d3d12.h>
 #include<dxgi1_6.h>
@@ -16,11 +17,46 @@ namespace DX12
 		TYPELSEE,
 	};
 
-	struct dynamic_format
+	template<component_type ComponentType, std::uint32_t ComponentSize, std::uint8_t ComponentNum>
+	struct format {
+		static constexpr component_type component_type = ComponentType;
+		static constexpr std::uint32_t component_size = ComponentSize;
+		static constexpr std::uint32_t component_num = ComponentNum;
+	};
+
+	struct unknow_format {
+		//
+		static constexpr std::uint32_t component_size = 0;
+		static constexpr std::uint32_t component_num = 0;
+	};
+
+	template<component_type Type, std::size_t Size>
+	struct convert_type {
+		using type;
+	};
+
+	template<typename Format>
+	inline constexpr std::uint32_t get_format_stride();
+
+
+	template<typename... Formats>
+	struct format_tuple
 	{
-		component_type type;
-		std::uint32_t size;
-		std::uint32_t num;
+		template<std::size_t I>
+		using format_type = typename index_element<I, Formats...>::type;
+
+		template<std::size_t I>
+		using value_type = typename convert_type<format_type<I>::component_type, format_type<I>::component_size>::type;
+
+		template<std::size_t I>
+		static constexpr DXGI_FORMAT get_dxgi_format();
+
+		static constexpr std::uint32_t get_formats_stride();
+		
+		template<std::size_t I>
+		static constexpr std::uint32_t get_formats_stride_to_index();
+
+		static constexpr std::uint32_t get_formats_num();
 	};
 
 
@@ -96,4 +132,63 @@ namespace DX12
 	}
 
 
+
+	//
+	//
+	//
+
+	template<>
+	struct convert_type<component_type::FLOAT,32> {
+		using type = float;
+	};
+
+	template<>
+	struct convert_type<component_type::UINT, 32> {
+		using type = std::uint32_t;
+	};
+
+	template<>
+	struct convert_type<component_type::UINT, 16> {
+		using type = std::uint16_t;
+	};
+
+	template<>
+	struct convert_type<component_type::UINT, 8> {
+		using type = std::uint8_t;
+	};
+
+	template<typename Format>
+	inline constexpr std::uint32_t get_format_stride()
+	{
+		return Format::component_size / 8 * Format::component_num;
+	}
+
+	template<typename ...Formats>
+	template<std::size_t I>
+	inline constexpr DXGI_FORMAT format_tuple<Formats...>::get_dxgi_format()
+	{
+		return DX12::get_dxgi_format(format_type<I>::component_type, format_type<I>::component_size, format_type<I>::component_num).value();
+	}
+
+	template<typename ...Formats>
+	inline constexpr std::uint32_t format_tuple<Formats...>::get_formats_stride()
+	{
+		return (get_format_stride<Formats>() + ...);
+	}
+
+	template<typename ...Formats>
+	template<std::size_t I>
+	inline constexpr std::uint32_t format_tuple<Formats...>::get_formats_stride_to_index()
+	{
+		if constexpr (I <= 0)
+			return 0;
+		else
+			return get_format_stride<format_type<I - 1>>() + get_formats_stride_to_index<I - 2>();
+	}
+
+	template<typename ...Formats>
+	inline constexpr std::uint32_t format_tuple<Formats...>::get_formats_num()
+	{
+		return sizeof...(Formats);
+	}
 }

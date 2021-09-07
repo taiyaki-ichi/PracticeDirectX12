@@ -42,4 +42,15 @@ namespace DX12
 
 #define THROW_EXCEPTION(s)	throw_exception(__FILE__,__LINE__,__func__,s);
 
+
+	//I”Ô–Ú‚ÌŒ^‚ðŽæ“¾
+	template<std::size_t I,typename Head,typename... Tails>
+	struct index_element {
+		using type = typename index_element<I - 1, Tails...>::type;
+	};
+
+	template<typename Head,typename... Tails>
+	struct index_element<0,Head,Tails...> {
+		using type = Head;
+	};
 }

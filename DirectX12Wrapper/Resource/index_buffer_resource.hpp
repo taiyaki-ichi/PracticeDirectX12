@@ -5,7 +5,7 @@
 namespace DX12
 {
 	template<typename Format>
-	class index_buffer_resource : public buffer_resource
+	class index_buffer_resource : public buffer_resource<resource_heap_property::Upload>
 	{
 		D3D12_INDEX_BUFFER_VIEW index_buffer_view{};
 
@@ -14,7 +14,7 @@ namespace DX12
 
 		const D3D12_INDEX_BUFFER_VIEW& get_view() const noexcept;
 
-		static_assert(get_dxgi_format(Format::component_type, Format::component_size, Format::component_num));
+		using mapped_resource_type = formats_mapped_resource<format_tuple<format>>;
 	};
 
 	//

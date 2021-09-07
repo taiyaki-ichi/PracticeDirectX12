@@ -5,12 +5,14 @@
 namespace DX12
 {
 	template<typename T>
-	class constant_buffer_resource : public buffer_resource
+	class constant_buffer_resource : public buffer_resource<resource_heap_property::Upload>
 	{
 	public:
 		void initialize(device& device);
 
 		std::uint32_t get_size() const noexcept;
+
+		using mapped_resource_type = struct_mapped_resource<T>;
 	};
 
 	//

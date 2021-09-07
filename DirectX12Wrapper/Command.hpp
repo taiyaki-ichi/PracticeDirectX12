@@ -16,7 +16,7 @@
 
 namespace DX12
 {
-	template<std::size_t FrameLatencyNum = 2>
+	template<std::size_t FrameLatencyNum>
 	class command
 	{
 		release_unique_ptr<ID3D12CommandQueue> queue_ptr{};
