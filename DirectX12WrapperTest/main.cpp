@@ -1,4 +1,4 @@
-//#include"test001.hpp"
+#include"test001.hpp"
 //#include"test002.hpp"
 //#include"test003.hpp"
 //#include"test004.hpp"
@@ -7,20 +7,6 @@
 //#include"test007.hpp"
 //#include"test008.hpp"
 //#include"test009.hpp"
-#include"test010.hpp"
-
-template<int I>
-struct Hoge
-{
-	template<int J>
-	static constexpr int value = I * J;
-};
-
-
-template<typename T>
-auto func() {
-	return T::template value<5>;
-}
 
 
 #define _CRTDBG_MAP_ALLOC
@@ -32,7 +18,7 @@ int main()
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-	//return test001::main();
+	return test001::main();
 	//return test002::main();
 	//return test003::main();
 	//return test004::main();
@@ -41,14 +27,4 @@ int main()
 	//return test007::main();
 	//return test008::main();
 	//return test009::main();
-	return test010::main();
-
-	/*
-	auto a = Hoge<2>::value<5>;
-
-	using Hoge3 = Hoge<3>;
-	auto b = Hoge3::value<5>;
-
-	auto c = func<Hoge3>();
-	*/
 }

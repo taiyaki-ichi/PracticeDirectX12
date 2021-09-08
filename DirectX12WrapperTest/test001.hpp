@@ -7,7 +7,7 @@
 #include"resource/vertex_buffer_resource.hpp"
 #include"root_signature/root_signature.hpp"
 #include"pipeline_state.hpp"
-#include"resource/map.hpp"
+#include"resource/mapped_resource.hpp"
 
 #include<array>
 
@@ -15,7 +15,6 @@
 //ƒ|ƒŠƒSƒ“‚Ì•`ŽÊ‚Ì•`ŽÊ‚ð‚·‚é
 namespace test001
 {
-
 	inline int main()
 	{
 		using namespace DX12;
@@ -24,32 +23,44 @@ namespace test001
 		constexpr std::size_t WINDOW_HEIGHT = 768;
 
 		using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
+		constexpr std::uint32_t FRAME_BUFFER_NUM = 2;
 
 		auto hwnd = create_simple_window(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		device device{};
 		device.initialize();
 
-		command command{};
+		command<1> command{};
 		command.initialize(device);
 
-		swap_chain<FrameBufferFormat, 2> swapChain{};
+		swap_chain<FrameBufferFormat, FRAME_BUFFER_NUM> swapChain{};
 		swapChain.initialize(command, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
-		rtvDescriptorHeap.initialize(device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(1), 0, 0);
+		rtvDescriptorHeap.initialize(device, FRAME_BUFFER_NUM);
+		for (std::size_t i = 0; i < FRAME_BUFFER_NUM; i++)
+			rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(i), 0, 0);
 
-		using VertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>>;
+		using VertexFormatTuple = format_tuple<format<component_type::FLOAT, 32, 3>>;
 
-		std::array<VertexLayout::struct_type, 3> vertex{
-			{{-0.8f,-0.8f,0.f},{-0.8f,0.8f,0.f},{0.8f,-0.8f,0.f}}
-		};
+		vertex_buffer_resource<VertexFormatTuple> vertexBuffer{};
+		vertexBuffer.initialize(device, 3);
 
-		vertex_buffer_resource<format<component_type::FLOAT, 32, 3>> vertexBuffer{};
-		vertexBuffer.initialize(device, vertex.size());
-		map(&vertexBuffer, vertex);
+		auto vertexMappedResource = map(vertexBuffer);
+		vertexMappedResource.initialize(vertexBuffer);
+
+		vertexMappedResource.reference<0>(0, 0) = -0.8f;
+		vertexMappedResource.reference<0>(0, 1) = -0.8f;
+		vertexMappedResource.reference<0>(0, 2) = 0.f;
+
+		vertexMappedResource.reference<0>(1, 0) = -0.8f;
+		vertexMappedResource.reference<0>(1, 1) = 0.8f;
+		vertexMappedResource.reference<0>(1, 2) = 0.f;
+
+		vertexMappedResource.reference<0>(2, 0) = 0.8f;
+		vertexMappedResource.reference<0>(2, 1) = -0.8f;
+		vertexMappedResource.reference<0>(2, 2) = 0.f;
+
 
 		root_signature rootSignature{};
 		rootSignature.initialize(device, {}, {});
@@ -61,7 +72,7 @@ namespace test001
 		shader pixelShader{};
 		pixelShader.initialize(L"Shader/PixelShader001.hlsl", "main", "ps_5_0");
 
-		graphics_pipeline_state<VertexLayout,render_target_formats<FrameBufferFormat>> pipelineState{};
+		graphics_pipeline_state<VertexFormatTuple, format_tuple<FrameBufferFormat>> pipelineState{};
 		pipelineState.initialize(device, rootSignature, { &vertexShader, &pixelShader },
 			{ "POSITION" }, false, false, primitive_topology::TRIANGLE
 		);
@@ -74,7 +85,7 @@ namespace test001
 		while (update_window()) {
 
 			auto backBufferIndex = swapChain.get_vcurrent_back_buffer_index();
-			command.reset(backBufferIndex);
+			command.reset(0);
 
 			command.set_viewport(viewport);
 			command.set_scissor_rect(scissorRect);
@@ -97,15 +108,11 @@ namespace test001
 			command.execute();
 
 			swapChain.present();
-			command.fence(backBufferIndex);
+			command.fence(0);
 
-			command.wait(swapChain.get_vcurrent_back_buffer_index());
-
-			map(&vertexBuffer, vertex);
+			command.wait(0);
 		};
 
-
-		command.wait_all(device);
 		return 0;
 	}
 }
