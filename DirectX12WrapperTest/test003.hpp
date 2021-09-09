@@ -35,14 +35,14 @@ namespace test003
 
 		using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
 
-		using VertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>>;
+		using VertexFormatTuple = format_tuple<format<component_type::FLOAT, 32, 3>>;
 
 		auto hwnd = create_simple_window(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		device device{};
 		device.initialize();
 
-		command command{};
+		command<2> command{};
 		command.initialize(device);
 
 		swap_chain<FrameBufferFormat, 2> swapChain{};
@@ -55,13 +55,23 @@ namespace test003
 
 		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/bunny.off");
 		
-		VertexLayout::resource_type vertexBuffer{};
+		vertex_buffer_resource<VertexFormatTuple> vertexBuffer{};
 		vertexBuffer.initialize(device, vertex.size());
-		map(&vertexBuffer, vertex.begin(), vertex.end());
+
+		auto vertexMappedResource = map(vertexBuffer);
+		for (std::uint32_t i = 0; i < vertex.size(); i++)
+			for (std::uint32_t j = 0; j < 3; j++)
+				vertexMappedResource.reference<0>(i, j) = vertex[i][j];
+
 		
 		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
 		indexBuffer.initialize(device, face.size() * 3);
-		map(&indexBuffer, face.begin(), face.end());
+
+		auto indexMappedResource = map(indexBuffer);
+		for (std::uint32_t i = 0; i < face.size(); i++)
+			for (std::uint32_t j = 0; j < 3; j++)
+				indexMappedResource.reference<0>(i * 3 + j, 0) = face[i][j];
+
 
 		root_signature rootSignature{};
 		rootSignature.initialize(device, { {descriptor_range_type::CBV} }, {});
@@ -81,12 +91,12 @@ namespace test003
 		shader drawNormalGeometryShader{};
 		drawNormalGeometryShader.initialize(L"Shader/GeometryShader003_DrawNormal.hlsl", "main", "gs_5_0");
 		
-		graphics_pipeline_state<VertexLayout, render_target_formats<FrameBufferFormat>> drawFacePipelineState{};
+		graphics_pipeline_state<VertexFormatTuple, format_tuple<FrameBufferFormat>> drawFacePipelineState{};
 		drawFacePipelineState.initialize(device, rootSignature, { &vertexShader, &drawFacePixelShader,&drawFaceGeometryShader },
 			{ "POSITION" }, true, false, primitive_topology::TRIANGLE
 		);
 
-		graphics_pipeline_state<VertexLayout, render_target_formats<FrameBufferFormat>> drawNormalPipelineState{};
+		graphics_pipeline_state<VertexFormatTuple, format_tuple<FrameBufferFormat>> drawNormalPipelineState{};
 		drawNormalPipelineState.initialize(device, rootSignature, { &vertexShader, &drawNormalPixelShader,&drawNormalGeometryShader },
 			{ "POSITION" }, true, false, primitive_topology::TRIANGLE
 		);
@@ -115,8 +125,10 @@ namespace test003
 		
 		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
 		sceneDataConstantBuffer.initialize(device);
-		map(&sceneDataConstantBuffer, SceneData{ view,proj });
-	
+
+		auto sceneDataMappedResource = map(sceneDataConstantBuffer);
+		sceneDataMappedResource.reference() = { view,proj };
+
 		
 		//SceneDataをシェーダに渡す用
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
@@ -130,7 +142,9 @@ namespace test003
 			eye.x = len * std::cos(cnt / 60.0);
 			eye.z = len * std::sin(cnt / 60.0);
 			auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
-			map(&sceneDataConstantBuffer, SceneData{ view,proj });
+
+			sceneDataMappedResource.reference().view = view;
+
 			cnt++;
 
 			auto backBufferIndex = swapChain.get_vcurrent_back_buffer_index();
