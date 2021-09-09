@@ -49,17 +49,17 @@ namespace test001
 		auto vertexMappedResource = map(vertexBuffer);
 		vertexMappedResource.initialize(vertexBuffer);
 
-		vertexMappedResource.reference<0>(0, 0) = -0.8f;
-		vertexMappedResource.reference<0>(0, 1) = -0.8f;
-		vertexMappedResource.reference<0>(0, 2) = 0.f;
+		vertexMappedResource.reference(0, 0) = -0.8f;
+		vertexMappedResource.reference(0, 1) = -0.8f;
+		vertexMappedResource.reference(0, 2) = 0.f;
 
-		vertexMappedResource.reference<0>(1, 0) = -0.8f;
-		vertexMappedResource.reference<0>(1, 1) = 0.8f;
-		vertexMappedResource.reference<0>(1, 2) = 0.f;
+		vertexMappedResource.reference(1, 0) = -0.8f;
+		vertexMappedResource.reference(1, 1) = 0.8f;
+		vertexMappedResource.reference(1, 2) = 0.f;
 
-		vertexMappedResource.reference<0>(2, 0) = 0.8f;
-		vertexMappedResource.reference<0>(2, 1) = -0.8f;
-		vertexMappedResource.reference<0>(2, 2) = 0.f;
+		vertexMappedResource.reference(2, 0) = 0.8f;
+		vertexMappedResource.reference(2, 1) = -0.8f;
+		vertexMappedResource.reference(2, 2) = 0.f;
 
 
 		root_signature rootSignature{};

@@ -222,7 +222,7 @@ namespace test005
 
 		auto indexBufferMappedResource = map(indexBuffer);
 		for (std::uint32_t i = 0; i < indexList.size(); i++)
-			indexBufferMappedResource.reference<0>(i, 0) = indexList[i];
+			indexBufferMappedResource.reference(i) = indexList[i];
 
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };

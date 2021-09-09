@@ -84,12 +84,12 @@ namespace test002
 
 		auto indexMappedResource = map(indexBuffer);
 
-		indexMappedResource.reference<0>(0, 0) = 0;
-		indexMappedResource.reference<0>(1, 0) = 1;
-		indexMappedResource.reference<0>(2, 0) = 2;
-		indexMappedResource.reference<0>(3, 0) = 2;
-		indexMappedResource.reference<0>(4, 0) = 1;
-		indexMappedResource.reference<0>(5, 0) = 3;
+		indexMappedResource.reference(0) = 0;
+		indexMappedResource.reference(1) = 1;
+		indexMappedResource.reference(2) = 2;
+		indexMappedResource.reference(3) = 2;
+		indexMappedResource.reference(4) = 1;
+		indexMappedResource.reference(5) = 3;
 
 		int x, y, n;
 		std::uint8_t* data = stbi_load("../../Assets/icon.png", &x, &y, &n, 0);

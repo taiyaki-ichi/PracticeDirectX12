@@ -138,7 +138,7 @@ namespace test006
 
 		auto indexBufferMappedResource = map(indexBuffer);
 		for (std::uint32_t i = 0; i < index.size(); i++)
-			indexBufferMappedResource.reference<0>(i, 0) = index[i];
+			indexBufferMappedResource.reference(i) = index[i];
 
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 		descriptorHeap.initialize(device, 1);

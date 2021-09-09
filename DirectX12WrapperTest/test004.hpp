@@ -82,7 +82,7 @@ namespace test004
 
 			for (std::uint32_t i = 0; i < faceList.size(); i++)
 				for (std::uint32_t j = 0; j < 3; j++)
-					indexMappedResource.reference<0>(i * 3 + j, 0) = faceList[i][j];
+					indexMappedResource.reference(i * 3 + j) = faceList[i][j];
 
 			faceNum = faceList.size();
 		}

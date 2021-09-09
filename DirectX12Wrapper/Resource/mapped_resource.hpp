@@ -7,13 +7,28 @@ namespace DX12
 	//初期化済みのmapped_resourceを返す
 	//Resourceのmapped_resource_typeを使い型を自動的に導く用
 	template<typename Resource>
-	inline auto map(Resource&)->typename Resource::mapped_resource_type;
+	inline auto map(Resource&);
 
-	
 	template<typename FormatTuple>
-	class formats_mapped_resource
+	struct format_tuple_tag {
+		using value_type = FormatTuple;
+	};
+
+	template<typename T>
+	struct struct_tag {
+		using value_type = T;
+	};
+
+	template<typename Format>
+	struct texture_upload_tag {
+		using value_type = Format;
+	};
+
+
+	template<typename FormatTuple>
+	class format_tuple_mapped_resource
 	{
-		void* ptr;
+		void* ptr = nullptr;
 
 	public:
 		template<typename Resource>
@@ -24,10 +39,34 @@ namespace DX12
 			->typename FormatTuple::template value_type<FormatIndex>&;
 	};
 
+	template<typename Format>
+	class format_mapped_resource
+	{
+		void* ptr = nullptr;
+	public:
+		template<typename Resource>
+		void initialize(Resource&);
+
+		auto reference(std::size_t num, std::size_t elementNum)
+			-> typename convert_type<Format::component_type, Format::component_size>::type&;
+	};
+
+	template<typename Format>
+	class one_component_format_mapped_resource
+	{
+		void* ptr = nullptr;
+	public:
+		template<typename Resource>
+		void initialize(Resource&);
+
+		auto reference(std::size_t num)
+			-> typename convert_type<Format::component_type, Format::component_size>::type&;
+	};
+
 	template<typename T>
 	class struct_mapped_resource
 	{
-		void* ptr;
+		void* ptr = nullptr;
 	public:
 		template<typename Resource>
 		void initialize(Resource&);
@@ -38,7 +77,7 @@ namespace DX12
 	template<typename Format>
 	class texture_upload_mapped_resource
 	{
-		void* ptr;
+		void* ptr = nullptr;
 		std::uint32_t width = 0;
 	public:
 		template<typename Resource>
@@ -55,10 +94,33 @@ namespace DX12
 
 	
 	template<typename Resource>
-	auto map(Resource& r) -> typename Resource::mapped_resource_type
+	auto map(Resource& r)
 	{
-		using MappedResource = typename Resource::mapped_resource_type;
-		MappedResource result{};
+		using Tag = typename Resource::mapped_resource_tag;
+		using TagValueType = typename Resource::mapped_resource_tag::value_type;
+
+		auto getMappedResource = []() {
+			//テクスチャのマップ用
+			if constexpr (std::is_same_v<Tag, texture_upload_tag<TagValueType>>)
+				return texture_upload_mapped_resource<TagValueType>{};
+
+			//構造体のマップ用
+			if constexpr (std::is_same_v<Tag, struct_tag<TagValueType>>)
+				return struct_mapped_resource<TagValueType>{};
+
+			//フォーマットのマップ用
+			if constexpr (std::is_same_v<Tag, format_tuple_tag<TagValueType>>)
+			{
+				if constexpr (TagValueType::get_formats_num() == 1 && TagValueType::template format_type<0>::component_num == 1)
+					return one_component_format_mapped_resource<TagValueType::template format_type<0>>{};
+				else if constexpr (TagValueType::get_formats_num() == 1)
+					return format_mapped_resource<TagValueType::template format_type<0>>{};
+				else
+					return format_tuple_mapped_resource<TagValueType>{};
+			}
+		};
+
+		auto result = getMappedResource();
 		result.initialize(r);
 		return result;
 	}
@@ -67,7 +129,7 @@ namespace DX12
 
 	template<typename FormatTuple>
 	template<typename Resource>
-	inline void formats_mapped_resource<FormatTuple>::initialize(Resource& r)
+	inline void format_tuple_mapped_resource<FormatTuple>::initialize(Resource& r)
 	{
 		if(FAILED(r.get()->Map(0, nullptr, &ptr)))
 			THROW_EXCEPTION("");
@@ -75,7 +137,7 @@ namespace DX12
 
 	template<typename FormatTuple>
 	template<std::size_t FormatIndex>
-	inline auto formats_mapped_resource<FormatTuple>::reference(std::size_t num, std::size_t elementNum) -> typename FormatTuple::template value_type<FormatIndex>&
+	inline auto format_tuple_mapped_resource<FormatTuple>::reference(std::size_t num, std::size_t elementNum) -> typename FormatTuple::template value_type<FormatIndex>&
 	{
 		using ValueType = typename FormatTuple::template value_type<FormatIndex>;
 		constexpr auto formatStride = FormatTuple::get_formats_stride();
@@ -85,6 +147,43 @@ namespace DX12
 		tmpPtr += formatStride * num + formatStrideToIndex + sizeof(ValueType) * elementNum;
 
 		return *reinterpret_cast<ValueType*>(tmpPtr);
+	}
+
+	template<typename Format>
+	template<typename Resource>
+	inline void format_mapped_resource<Format>::initialize(Resource& r)
+	{
+		if (FAILED(r.get()->Map(0, nullptr, &ptr)))
+			THROW_EXCEPTION("");
+	}
+
+	template<typename Format>
+	inline auto format_mapped_resource<Format>::reference(std::size_t num, std::size_t elementNum)
+		-> typename convert_type<Format::component_type, Format::component_size>::type&
+	{
+		using ValueType = typename convert_type<Format::component_type, Format::component_size>::type;
+		auto stride = get_format_stride<Format>();
+
+		auto tmpPtr = static_cast<ValueType*>(ptr);
+		tmpPtr += Format::component_num * num + elementNum;
+		return *tmpPtr;
+	}
+
+	template<typename Format>
+	template<typename Resource>
+	inline void one_component_format_mapped_resource<Format>::initialize(Resource& r)
+	{
+		if (FAILED(r.get()->Map(0, nullptr, &ptr)))
+			THROW_EXCEPTION("");
+	}
+
+	template<typename Format>
+	inline auto one_component_format_mapped_resource<Format>::reference(std::size_t num)
+		-> typename convert_type<Format::component_type, Format::component_size>::type&
+	{
+		using ValueType = typename convert_type<Format::component_type, Format::component_size>::type;
+		auto p = static_cast<ValueType*>(ptr);
+		return *(p + num);
 	}
 
 	template<typename T>
@@ -113,7 +212,8 @@ namespace DX12
 	}
 
 	template<typename Format>
-	inline auto texture_upload_mapped_resource<Format>::reference(std::uint32_t x, std::uint32_t y, std::uint32_t elementNum) -> typename convert_type<Format::component_type, Format::component_size>::type&
+	inline auto texture_upload_mapped_resource<Format>::reference(std::uint32_t x, std::uint32_t y, std::uint32_t elementNum) 
+		-> typename convert_type<Format::component_type, Format::component_size>::type&
 	{
 		using ValueType = typename convert_type<Format::component_type, Format::component_size>::type;
 		

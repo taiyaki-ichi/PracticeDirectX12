@@ -12,7 +12,7 @@ namespace DX12
 
 		std::uint32_t get_size() const noexcept;
 
-		using mapped_resource_type = struct_mapped_resource<T>;
+		using mapped_resource_tag = struct_tag<T>;
 	};
 
 	//

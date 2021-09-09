@@ -61,7 +61,7 @@ namespace test003
 		auto vertexMappedResource = map(vertexBuffer);
 		for (std::uint32_t i = 0; i < vertex.size(); i++)
 			for (std::uint32_t j = 0; j < 3; j++)
-				vertexMappedResource.reference<0>(i, j) = vertex[i][j];
+				vertexMappedResource.reference(i, j) = vertex[i][j];
 
 		
 		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
@@ -70,7 +70,7 @@ namespace test003
 		auto indexMappedResource = map(indexBuffer);
 		for (std::uint32_t i = 0; i < face.size(); i++)
 			for (std::uint32_t j = 0; j < 3; j++)
-				indexMappedResource.reference<0>(i * 3 + j, 0) = face[i][j];
+				indexMappedResource.reference(i * 3 + j) = face[i][j];
 
 
 		root_signature rootSignature{};

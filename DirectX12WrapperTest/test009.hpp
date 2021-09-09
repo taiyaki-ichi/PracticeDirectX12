@@ -154,7 +154,7 @@ namespace test009
 			auto tmp = map(groundVertexBuffer);
 			for (std::uint32_t i = 0; i < vertex.size(); i++)
 				for (std::uint32_t j = 0; j < 3; j++)
-					tmp.reference<0>(i, j) = vertex[i][j];
+					tmp.reference(i, j) = vertex[i][j];
 		}
 
 		index_buffer_resource<format<component_type::UINT, 32, 1>> groundIndexBuffer{};
@@ -167,7 +167,7 @@ namespace test009
 
 			auto tmp = map(groundIndexBuffer);
 			for (std::uint32_t i = 0; i < index.size(); i++)
-				tmp.reference<0>(i, 0) = index[i];
+				tmp.reference(i) = index[i];
 			groundIndexNum = index.size();
 		}
 
@@ -240,7 +240,7 @@ namespace test009
 			auto bunnyIndexBufferMappedResource = map(bunnyIndexBuffer);
 			for (std::uint32_t i = 0; i < faceList.size(); i++)
 				for (std::uint32_t j = 0; j < 3; j++)
-					bunnyIndexBufferMappedResource.reference<0>(i * 3 + j, 0) = faceList[i][j];
+					bunnyIndexBufferMappedResource.reference(i * 3 + j) = faceList[i][j];
 		}
 
 		constant_buffer_resource<BunnyData> bunnyDataConstantBuffer{};

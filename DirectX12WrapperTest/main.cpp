@@ -8,8 +8,6 @@
 //#include"test008.hpp"
 #include"test009.hpp"
 
-#include"Format.hpp"
-
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>

@@ -274,7 +274,7 @@ namespace test007
 
 		auto indexBufferMappedResource = map(indexBuffer);
 		for (std::uint32_t i = 0; i < indexList.size(); i++)
-			indexBufferMappedResource.reference<0>(i, 0) = indexList[i];
+			indexBufferMappedResource.reference(i) = indexList[i];
 
 
 		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowRenderTarget> groundDepthShaderResource{};
@@ -343,7 +343,7 @@ namespace test007
 			auto sphereIndexBufferMappedResource = map(sphereIndexBuffer);
 			for (std::uint32_t i = 0; i < faceList.size(); i++)
 				for (std::uint32_t j = 0; j < 3; j++)
-					sphereIndexBufferMappedResource.reference<0>(i * 3 + j, 0) = faceList[i][j];
+					sphereIndexBufferMappedResource.reference(i * 3 + j) = faceList[i][j];
 
 		}
 
@@ -414,7 +414,7 @@ namespace test007
 			auto snowVertexBufferMappedResource = map(snowVertexBuffer);
 			for (std::uint32_t i = 0; i < SNOW_NUM; i++)
 				for (std::uint32_t j = 0; j < 3; j++)
-					snowVertexBufferMappedResource.reference<0>(i, j) = dist(engine);
+					snowVertexBufferMappedResource.reference(i, j) = dist(engine);
 		}
 
 		constant_buffer_resource<SnowData> snowDataConstantBuffer{};

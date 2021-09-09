@@ -15,7 +15,7 @@ namespace DX12
 
 		std::uint32_t get_width() const noexcept;
 
-		using mapped_resource_type = texture_upload_mapped_resource<Format>;
+		using mapped_resource_tag = texture_upload_tag<Format>;
 	};
 
 	//
