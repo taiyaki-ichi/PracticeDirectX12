@@ -1,8 +1,8 @@
 //#include"test001.hpp"
 //#include"test002.hpp"
 //#include"test003.hpp"
-#include"test004.hpp"
-//#include"test005.hpp"
+//#include"test004.hpp"
+#include"test005.hpp"
 //#include"test006.hpp"
 //#include"test007.hpp"
 //#include"test008.hpp"
@@ -21,8 +21,8 @@ int main()
 	//return test001::main();
 	//return test002::main();
 	//return test003::main();
-	return test004::main();
-	//return test005::main();
+	//return test004::main();
+	return test005::main();
 	//return test006::main();
 	//return test007::main();
 	//return test008::main();

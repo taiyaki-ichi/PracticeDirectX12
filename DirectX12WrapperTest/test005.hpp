@@ -12,6 +12,7 @@
 #include"resource/vertex_buffer_resource.hpp"
 #include"resource/index_buffer_resource.hpp"
 #include"resource/map.hpp"
+#include"resource/texture_upload_buffer_resource.hpp"
 
 #include<vector>
 #include<cmath>
@@ -42,11 +43,11 @@ namespace test005
 
 	using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
 
-	using VertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 2>>;
+	using VertexFormatTuple = format_tuple<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 2>>;
 
-	inline std::pair<std::vector<VertexLayout::struct_type>,std::vector<std::uint32_t>> GetGroundPatch()
+	inline std::pair<std::vector<std::array<float,5>>,std::vector<std::uint32_t>> GetGroundPatch()
 	{
-		std::vector<VertexLayout::struct_type> vertexList{};
+		std::vector<std::array<float, 5>> vertexList{};
 		std::vector<std::uint32_t> indexList{};
 
 		constexpr float EDGE = 200.f;
@@ -58,7 +59,7 @@ namespace test005
 			for (std::size_t x = 0; x < DIVIDE + 1; x++) {
 				auto posX = EDGE * x / DIVIDE;
 				auto posZ = EDGE * z / DIVIDE;
-				vertexList.push_back({ {posX,0.f,posZ},{posX / EDGE,posZ / EDGE } });
+				vertexList.push_back({ posX,0.f,posZ,posX / EDGE,posZ / EDGE });
 			}
 		}
 
@@ -79,8 +80,8 @@ namespace test005
 		}
 
 		for (auto& v : vertexList) {
-			std::get<0>(v)[0] -= EDGE / 2.f;
-			std::get<0>(v)[2] -= EDGE / 2.f;
+			v[0] -= EDGE / 2.f;
+			v[2] -= EDGE / 2.f;
 		}
 
 		return { std::move(vertexList),std::move(indexList) };
@@ -94,7 +95,7 @@ namespace test005
 		device device{};
 		device.initialize();
 
-		command command{};
+		command<2> command{};
 		command.initialize(device);
 
 		swap_chain<FrameBufferFormat, 2> swapChain{};
@@ -123,7 +124,7 @@ namespace test005
 			{ StaticSamplerType::Standard }
 		);
 
-		graphics_pipeline_state<VertexLayout,render_target_formats<FrameBufferFormat>> pipelineState{};
+		graphics_pipeline_state<VertexFormatTuple,format_tuple<FrameBufferFormat>> pipelineState{};
 		pipelineState.initialize(device, rootSignature, { &vs, &ps,nullptr,&hs, &ds },
 			{ "POSITION","TEXCOOD" }, true, false, primitive_topology::PATCH
 		);
@@ -143,9 +144,16 @@ namespace test005
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/heightmap.png", &textureWidth, &textureHeight, &n, 4);
-			buffer_resource uploadResource{};
-			uploadResource.initialize(device, texture_data_pitch_alignment(textureWidth * 4) * textureHeight);
-			map(&uploadResource, data, textureWidth * 4, textureHeight, texture_data_pitch_alignment(textureWidth * 4));
+
+			texture_upload_buffer_resource<format<component_type::UINT, 8, 4>> uploadResource{};
+			uploadResource.initialize(device, textureWidth, textureHeight);
+
+			auto mappedUploadResource = map(uploadResource);
+			for (std::uint32_t i = 0; i < textureHeight; i++)
+				for (std::uint32_t j = 0; j < textureWidth; j++)
+					for (std::uint32_t k = 0; k < 4; k++)
+						mappedUploadResource.reference(j, i, k) = data[(j + i * textureWidth) * 4 + k];
+
 
 			heightMapTextureResource.initialize(device, textureWidth, textureHeight, 1, 1);
 
@@ -165,9 +173,15 @@ namespace test005
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/normalmap.png", &textureWidth, &textureHeight, &n, 4);
-			buffer_resource uploadResource{};
-			uploadResource.initialize(device, texture_data_pitch_alignment(textureWidth * 4) * textureHeight);
-			map(&uploadResource, data, textureWidth * 4, textureHeight, texture_data_pitch_alignment(textureWidth * 4));
+
+			texture_upload_buffer_resource<format<component_type::UINT, 8, 4>> uploadResource{};
+			uploadResource.initialize(device, textureWidth, textureHeight);
+
+			auto mappedUploadResource = map(uploadResource);
+			for (std::uint32_t i = 0; i < textureHeight; i++)
+				for (std::uint32_t j = 0; j < textureWidth; j++)
+					for (std::uint32_t k = 0; k < 4; k++)
+						mappedUploadResource.reference(j, i, k) = data[(j + i * textureWidth) * 4 + k];
 
 			normalMapTextureResource.initialize(device, textureWidth, textureHeight, 1, 1);
 
@@ -192,13 +206,23 @@ namespace test005
 
 		auto [vertexList, indexList] = GetGroundPatch();
 
-		VertexLayout::resource_type vertexBuffer{};
+		vertex_buffer_resource<VertexFormatTuple> vertexBuffer{};
 		vertexBuffer.initialize(device, vertexList.size());
-		map(&vertexBuffer, vertexList.begin(), vertexList.end());
+
+		auto vertexBufferMappedResource = map(vertexBuffer);
+		for (std::uint32_t i = 0; i < vertexList.size(); i++) {
+			for (std::uint32_t j = 0; j < 3; j++)
+				vertexBufferMappedResource.reference<0>(i, j) = vertexList[i][j];
+			for (std::uint32_t j = 0; j < 2; j++)
+				vertexBufferMappedResource.reference<1>(i, j) = vertexList[i][j + 3];
+		}
 
 		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
 		indexBuffer.initialize(device, indexList.size());
-		map(&indexBuffer, indexList.begin(),indexList.end());
+
+		auto indexBufferMappedResource = map(indexBuffer);
+		for (std::uint32_t i = 0; i < indexList.size(); i++)
+			indexBufferMappedResource.reference<0>(i, 0) = indexList[i];
 
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
@@ -217,7 +241,9 @@ namespace test005
 			500.f
 		);
 
-		map(&sceneDataConstantBuffer, SceneData{ view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) });
+		auto sceneDataMappedResource = map(sceneDataConstantBuffer);
+		sceneDataMappedResource.reference() = { view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) };
+
 
 		std::size_t cnt = 0;
 		while (update_window())
@@ -226,7 +252,10 @@ namespace test005
 			//eye.z = len * std::sin(cnt / 600.0);
 			XMFLOAT3 t{ eye.x + 10.f,-1.f,0 };
 			auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&t), XMLoadFloat3(&up));
-			map(&sceneDataConstantBuffer, SceneData{ view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) });
+
+			sceneDataMappedResource.reference().eye = eye;
+			sceneDataMappedResource.reference().view = view;
+
 			cnt++;
 
 
