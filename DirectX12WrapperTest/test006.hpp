@@ -10,6 +10,7 @@
 #include"resource/vertex_buffer_resource.hpp"
 #include"resource/index_buffer_resource.hpp"
 #include"resource/map.hpp"
+#include"resource/texture_upload_buffer_resource.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include<stb_image.h>
@@ -23,7 +24,7 @@ namespace test006
 
 		using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
 
-		using VertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 2>>;
+		using VertexLayout = format_tuple<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 2>>;
 
 		constexpr std::size_t WINDOW_WIDTH = 1024;
 		constexpr std::size_t WINDOW_HEIGHT = 768;
@@ -33,7 +34,7 @@ namespace test006
 		device device{};
 		device.initialize();
 
-		command command{};
+		command<2> command{};
 		command.initialize(device);
 
 		swap_chain<FrameBufferFormat, 2> swapChain{};
@@ -61,9 +62,15 @@ namespace test006
 		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> textureResource{};
 		{
 			std::uint8_t* data = stbi_load("../../Assets/icon.png", &x, &y, &n, 4);
-			buffer_resource uploadResource{};
-			uploadResource.initialize(device, texture_data_pitch_alignment(x * 4) * y);
-			map(&uploadResource, data, x * 4, y, texture_data_pitch_alignment(x * 4));
+
+			texture_upload_buffer_resource<format<component_type::UINT, 8, 4>> uploadResource{};
+			uploadResource.initialize(device, x, y);
+
+			auto mappedUploadResource = map(uploadResource);
+			for (std::uint32_t i = 0; i < y; i++)
+				for (std::uint32_t j = 0; j < x; j++)
+					for (std::uint32_t k = 0; k < 4; k++)
+						mappedUploadResource.reference(j, i, k) = data[(j + i * y) * 4 + k];
 
 			textureResource.initialize(device, x, y, 1, 1);
 
@@ -103,25 +110,35 @@ namespace test006
 		command.wait(0);
 	
 
-
-		std::array<VertexLayout::struct_type, 4> vertex{ {
-			{{-0.8f,-0.8f,0.f},{0.f,1.f}},
-			{{-0.8f,0.8f,0.f},{0.f,0.f}},
-			{{0.8f,-0.8f,0.f},{1.f,1.f}},
-			{{0.8f,0.8f,0.f},{1.f,0.f}}
+		//
+		std::array<std::array<float, 5>, 4> vertex{ {
+			{-0.8f,-0.8f,0.f,0.f,1.f},
+			{-0.8f,0.8f,0.f,0.f,0.f},
+			{0.8f,-0.8f,0.f,1.f,1.f},
+			{0.8f,0.8f,0.f,1.f,0.f}
 			} };
 
 		std::array<std::uint32_t, 6> index{
 			0,1,2,2,1,3
 		};
 
-		VertexLayout::resource_type vertexBuffer{};
+		vertex_buffer_resource<VertexLayout> vertexBuffer{};
 		vertexBuffer.initialize(device, vertex.size());
-		map(&vertexBuffer, vertex.begin(), vertex.end());
+
+		auto vertexBufferMappedResource = map(vertexBuffer);
+		for (std::uint32_t i = 0; i < vertex.size(); i++) {
+			for (std::uint32_t j = 0; j < 3; j++)
+				vertexBufferMappedResource.reference<0>(i, j) = vertex[i][j];
+			for (std::uint32_t j = 0; j < 2; j++)
+				vertexBufferMappedResource.reference<1>(i, j) = vertex[i][j + 3];
+		}
 
 		index_buffer_resource<format<component_type::UINT,32,1>> indexBuffer{};
 		indexBuffer.initialize(device, index.size());
-		map(&indexBuffer, index);
+
+		auto indexBufferMappedResource = map(indexBuffer);
+		for (std::uint32_t i = 0; i < index.size(); i++)
+			indexBufferMappedResource.reference<0>(i, 0) = index[i];
 
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 		descriptorHeap.initialize(device, 1);
@@ -136,7 +153,7 @@ namespace test006
 		shader pixelShader{};
 		pixelShader.initialize(L"Shader/PixelShader002.hlsl", "main", "ps_5_0");
 
-		graphics_pipeline_state<VertexLayout,render_target_formats<FrameBufferFormat>> pipelineState{};
+		graphics_pipeline_state<VertexLayout,format_tuple<FrameBufferFormat>> pipelineState{};
 		pipelineState.initialize(device, rootSignature, { &vertexShader, &pixelShader },
 			{ "POSITION","TEXCOOD" }, false, false, primitive_topology::TRIANGLE
 		);
