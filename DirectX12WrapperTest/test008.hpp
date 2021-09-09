@@ -43,7 +43,7 @@ namespace test008
 
 	using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
 
-	using BunnyVertexLayout = format_tuple<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>>;
+	using BunnyVertexFormatTuple = format_tuple<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>>;
 
 	constexpr std::uint32_t BUNNY_NUM = 3;
 
@@ -224,13 +224,13 @@ namespace test008
 		shader bunnyShadowMapVS{};
 		bunnyShadowMapVS.initialize(L"Shader/Bunny/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
 
-		graphics_pipeline_state<BunnyVertexLayout,format_tuple<FrameBufferFormat>> bunnyPipelineState{};
+		graphics_pipeline_state<BunnyVertexFormatTuple,format_tuple<FrameBufferFormat>> bunnyPipelineState{};
 		bunnyPipelineState.initialize(device, bunnyRootSignature, { &bunnyVS,&bunnyPS },
 			{ "POSITION","NORMAL" },
 			true, false, primitive_topology::TRIANGLE
 		);
 
-		graphics_pipeline_state<BunnyVertexLayout,format_tuple<>> bunnyShadowMapPipelineState{};
+		graphics_pipeline_state<BunnyVertexFormatTuple,format_tuple<>> bunnyShadowMapPipelineState{};
 		bunnyShadowMapPipelineState.initialize(device, bunnyRootSignature, { &bunnyShadowMapVS },
 			{ "POSITION","NORMAL"},true, false, primitive_topology::TRIANGLE
 		);
@@ -267,11 +267,6 @@ namespace test008
 
 		auto groundDataMappedResource = map(groundDataConstantBuffer);
 		groundDataMappedResource.reference() = { XMMatrixScaling(100.f,100.f,100.f) };
-
-		BunnyData bunnyData{};
-		//for (std::size_t i = 0; i < BUNNY_NUM; i++)
-			//bunnyData.world[i] = XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixTranslation(30.f - 30.f * i, 5.f, 20.f - i * 10.f);
-		//bunnyDataConstantBuffer.Map(bunnyData);
 
 		auto bunnyDataMappedResource = map(bunnyDataConstantBuffer);
 
