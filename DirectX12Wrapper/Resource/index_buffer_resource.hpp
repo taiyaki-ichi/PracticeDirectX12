@@ -14,7 +14,7 @@ namespace DX12
 
 		const D3D12_INDEX_BUFFER_VIEW& get_view() const noexcept;
 
-		using mapped_resource_type = formats_mapped_resource<format_tuple<format>>;
+		using mapped_resource_type = formats_mapped_resource<format_tuple<Format>>;
 	};
 
 	//

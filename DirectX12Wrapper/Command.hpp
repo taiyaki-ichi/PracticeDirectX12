@@ -181,7 +181,7 @@ namespace DX12
 		srcLocation.PlacedFootprint.Footprint.Height = height;
 		srcLocation.PlacedFootprint.Footprint.Depth = 1;
 		srcLocation.PlacedFootprint.Footprint.RowPitch = uploadResourceRowPitch;
-		srcLocation.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		srcLocation.PlacedFootprint.Footprint.Format = dstDesc.Format;
 
 		dstLocation.pResource = dstResource.get();
 		dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;

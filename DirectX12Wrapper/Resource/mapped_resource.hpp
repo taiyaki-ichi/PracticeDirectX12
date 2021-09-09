@@ -35,6 +35,19 @@ namespace DX12
 		T& reference();
 	};
 
+	template<typename Format>
+	class texture_upload_mapped_resource
+	{
+		void* ptr;
+		std::uint32_t width = 0;
+	public:
+		template<typename Resource>
+		void initialize(Resource&);
+
+		auto reference(std::uint32_t x,std::uint32_t y, std::uint32_t elementNum)
+			-> typename convert_type<Format::component_type, Format::component_size>::type&;
+	};
+
 
 	//
 	//
@@ -89,5 +102,24 @@ namespace DX12
 	}
 
 
+	template<typename Format>
+	template<typename Resource>
+	inline void texture_upload_mapped_resource<Format>::initialize(Resource& r)
+	{
+		if (FAILED(r.get()->Map(0, nullptr, &ptr)))
+			THROW_EXCEPTION("");
 
+		width = r.get_width();
+	}
+
+	template<typename Format>
+	inline auto texture_upload_mapped_resource<Format>::reference(std::uint32_t x, std::uint32_t y, std::uint32_t elementNum) -> typename convert_type<Format::component_type, Format::component_size>::type&
+	{
+		using ValueType = typename convert_type<Format::component_type, Format::component_size>::type;
+		
+		auto p = static_cast<ValueType*>(ptr);
+		p += (width * y + x) * Format::component_num + elementNum;
+
+		return *p;
+	}
 }

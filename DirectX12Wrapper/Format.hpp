@@ -138,8 +138,10 @@ namespace DX12
 	template<std::size_t I>
 	inline constexpr std::uint32_t format_tuple<Formats...>::get_formats_stride_to_index()
 	{
-		if constexpr (I <= 0)
+		if constexpr (I == 0)
 			return 0;
+		else if constexpr (I == 1)
+			return get_format_stride<format_type<I - 1>>();
 		else
 			return get_format_stride<format_type<I - 1>>() + get_formats_stride_to_index<I - 2>();
 	}
