@@ -54,7 +54,7 @@ namespace DX12
 
 		template<std::size_t I>
 		using value_type = typename convert_type<format_type<I>::component_type, format_type<I>::component_size>::type;
-
+	
 		template<std::size_t I>
 		static constexpr DXGI_FORMAT get_dxgi_format();
 
@@ -66,6 +66,13 @@ namespace DX12
 		static constexpr std::uint32_t get_formats_num();
 	};
 
+	template<>
+	struct format_tuple<>
+	{
+		static constexpr std::uint32_t get_formats_stride() { return 0; };
+
+		static constexpr std::uint32_t get_formats_num() { return 0; };
+	};
 
 	//0-3bit‚ÅnumA4-6‚ÅsizeAc‚è‚ªtype
 	inline constexpr std::uint32_t get_format_hash(component_type type, std::uint32_t size, std::uint32_t num);

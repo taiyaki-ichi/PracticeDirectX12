@@ -43,7 +43,7 @@ namespace test008
 
 	using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
 
-	using BunnyVertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>>;
+	using BunnyVertexLayout = format_tuple<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>>;
 
 	constexpr std::uint32_t BUNNY_NUM = 3;
 
@@ -60,7 +60,7 @@ namespace test008
 		device device{};
 		device.initialize();
 
-		command command{};
+		command<2> command{};
 		command.initialize(device);
 
 		swap_chain<FrameBufferFormat, 2> swapChain{};
@@ -101,7 +101,7 @@ namespace test008
 		//Ground
 		//
 
-		vertex_buffer_resource<format<component_type::FLOAT, 32, 3>> groundVertexBuffer{};
+		vertex_buffer_resource<format_tuple<format<component_type::FLOAT, 32, 3>>> groundVertexBuffer{};
 		{
 			std::array<std::array<float, 3>, 4> vertex{ {
 				{-1.f,0.f,-1.f},
@@ -110,7 +110,10 @@ namespace test008
 				{1.f,0.f,1.f}
 				} };
 			groundVertexBuffer.initialize(device, vertex.size());
-			map(&groundVertexBuffer, std::move(vertex));
+			auto groundVertexBufferMappedResource = map(groundVertexBuffer);
+			for (std::uint32_t i = 0; i < vertex.size(); i++)
+				for (std::uint32_t j = 0; j < 3; j++)
+					groundVertexBufferMappedResource.reference<0>(i, j) = vertex[i][j];
 		}
 
 		index_buffer_resource<format<component_type::UINT,32,1>> groundIndexBuffer{};
@@ -120,7 +123,10 @@ namespace test008
 				0,1,2,2,1,3
 			};
 			groundIndexBuffer.initialize(device, index.size());
-			map(&groundIndexBuffer, std::move(index));
+			auto groundIndexBufferMappedResource = map(groundIndexBuffer);
+			for (std::uint32_t i = 0; i < index.size(); i++)
+				groundIndexBufferMappedResource.reference<0>(i, 0) = index[i];
+
 			groundIndexNum = index.size();
 		}
 
@@ -148,12 +154,12 @@ namespace test008
 		shader groundShadowMapVS{};
 		groundShadowMapVS.initialize(L"Shader/Ground3/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
 
-		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT,32,3>>,render_target_formats<FrameBufferFormat>> groundPipelineState{};
+		graphics_pipeline_state<format_tuple<format<component_type::FLOAT,32,3>>,format_tuple<FrameBufferFormat>> groundPipelineState{};
 		groundPipelineState.initialize(device, groundRootSignature, { &groundVS,&groundPS },
 			{ "POSITION" }, true, false, primitive_topology::TRIANGLE
 		);
 
-		graphics_pipeline_state<vertex_layout<format<component_type::FLOAT, 32, 3>>, render_target_formats<>> groundShadowMapPipelineState{};
+		graphics_pipeline_state<format_tuple<format<component_type::FLOAT, 32, 3>>, format_tuple<>> groundShadowMapPipelineState{};
 		groundShadowMapPipelineState.initialize(device, groundRootSignature, { &groundShadowMapVS },
 			{ "POSITION" }, true, false, primitive_topology::TRIANGLE
 		);
@@ -164,7 +170,7 @@ namespace test008
 		//Bunny
 		//
 
-		vertex_buffer_resource<format<component_type::FLOAT,32,3>, format<component_type::FLOAT, 32, 3>> bunnyVertexBuffer{};
+		vertex_buffer_resource<format_tuple<format<component_type::FLOAT,32,3>, format<component_type::FLOAT, 32, 3>>> bunnyVertexBuffer{};
 		index_buffer_resource<format<component_type::UINT,32,1>> bunnyIndexBuffer{};
 		std::uint32_t bunnyIndexNum{};
 		{
@@ -172,21 +178,26 @@ namespace test008
 			//auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/sphere.off");
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
-			std::vector<BunnyVertexLayout::struct_type> posNormalList{};
-			posNormalList.reserve(vertexList.size());
+			bunnyVertexBuffer.initialize(device, vertexList.size());
+			auto bunnyVertexBufferMappedResource = map(bunnyVertexBuffer);
+
 			XMFLOAT3 tmpFloat3;
 			for (std::size_t i = 0; i < vertexList.size(); i++) {
 				XMStoreFloat3(&tmpFloat3, normalList[i]);
-				posNormalList.push_back({ vertexList[i],{tmpFloat3.x,tmpFloat3.y,tmpFloat3.z} });
+				for (std::uint32_t j = 0; j < 3; j++)
+					bunnyVertexBufferMappedResource.reference<0>(i, j) = vertexList[i][j];
+				bunnyVertexBufferMappedResource.reference<1>(i, 0) = tmpFloat3.x;
+				bunnyVertexBufferMappedResource.reference<1>(i, 1) = tmpFloat3.y;
+				bunnyVertexBufferMappedResource.reference<1>(i, 2) = tmpFloat3.z;
 			}
 
 			bunnyIndexNum = faceList.size() * 3;
 
-			bunnyVertexBuffer.initialize(device, posNormalList.size());
-			map(&bunnyVertexBuffer, posNormalList.begin(), posNormalList.end());
-
 			bunnyIndexBuffer.initialize(device, faceList.size() * 3);
-			map(&bunnyIndexBuffer, faceList.begin(), faceList.end());
+			auto bunnyIndexBufferMappedResource = map(bunnyIndexBuffer);
+			for (std::uint32_t i = 0; i < faceList.size(); i++)
+				for (std::uint32_t j = 0; j < 3; j++)
+					bunnyIndexBufferMappedResource.reference<0>(i * 3 + j, 0) = faceList[i][j];
 		}
 
 		constant_buffer_resource<BunnyData> bunnyDataConstantBuffer{};
@@ -213,13 +224,13 @@ namespace test008
 		shader bunnyShadowMapVS{};
 		bunnyShadowMapVS.initialize(L"Shader/Bunny/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
 
-		graphics_pipeline_state<BunnyVertexLayout,render_target_formats<FrameBufferFormat>> bunnyPipelineState{};
+		graphics_pipeline_state<BunnyVertexLayout,format_tuple<FrameBufferFormat>> bunnyPipelineState{};
 		bunnyPipelineState.initialize(device, bunnyRootSignature, { &bunnyVS,&bunnyPS },
 			{ "POSITION","NORMAL" },
 			true, false, primitive_topology::TRIANGLE
 		);
 
-		graphics_pipeline_state<BunnyVertexLayout,render_target_formats<>> bunnyShadowMapPipelineState{};
+		graphics_pipeline_state<BunnyVertexLayout,format_tuple<>> bunnyShadowMapPipelineState{};
 		bunnyShadowMapPipelineState.initialize(device, bunnyRootSignature, { &bunnyShadowMapVS },
 			{ "POSITION","NORMAL"},true, false, primitive_topology::TRIANGLE
 		);
@@ -251,15 +262,18 @@ namespace test008
 
 		XMMATRIX shadowMapViewProj = XMMatrixLookAtLH(lightPos, XMLoadFloat3(&target), XMLoadFloat3(&up)) * XMMatrixOrthographicLH(100, 100, -100.f, 200.f);
 
-		map(&sceneDataConstantBuffer, SceneData{ view,proj,{eye.x,eye.y,eye.z,0.f}, {lightDir.x,lightDir.y,lightDir.z,0.f},shadowMapViewProj });
+		auto sceneDataMappedResource = map(sceneDataConstantBuffer);
+		sceneDataMappedResource.reference() = { view,proj,{eye.x,eye.y,eye.z,0.f}, {lightDir.x,lightDir.y,lightDir.z,0.f},shadowMapViewProj };
 
-		map(&groundDataConstantBuffer, GroundData{ XMMatrixScaling(100.f,100.f,100.f) });
+		auto groundDataMappedResource = map(groundDataConstantBuffer);
+		groundDataMappedResource.reference() = { XMMatrixScaling(100.f,100.f,100.f) };
 
 		BunnyData bunnyData{};
 		//for (std::size_t i = 0; i < BUNNY_NUM; i++)
 			//bunnyData.world[i] = XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixTranslation(30.f - 30.f * i, 5.f, 20.f - i * 10.f);
 		//bunnyDataConstantBuffer.Map(bunnyData);
 
+		auto bunnyDataMappedResource = map(bunnyDataConstantBuffer);
 
 		std::size_t cnt = 0;
 		while (update_window())
@@ -268,8 +282,7 @@ namespace test008
 			//update
 			//
 			for (std::size_t i = 0; i < BUNNY_NUM; i++)
-				bunnyData.world[i] = XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(30.f , 0.f, 40.f - i * 40.f);
-			map(&bunnyDataConstantBuffer, bunnyData);
+				bunnyDataMappedResource.reference().world[i] = XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(30.f, 0.f, 40.f - i * 40.f);
 
 			cnt++;
 

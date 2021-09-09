@@ -98,6 +98,7 @@ namespace DX12
 			get_render_target_format<I + 1, RenderTargetFormatTuple>(result);
 	}
 
+
 	//
 	//
 	//
@@ -188,7 +189,6 @@ namespace DX12
 		graphicsPipelineDesc.NumRenderTargets = RenderTargetFormatTuple::get_formats_num();
 		if constexpr (RenderTargetFormatTuple::get_formats_num() > 0)
 			get_render_target_format<0, RenderTargetFormatTuple>(graphicsPipelineDesc.RTVFormats);
-
 
 		//デプスステンシル
 		D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};
