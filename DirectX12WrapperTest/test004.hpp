@@ -47,13 +47,13 @@ namespace test004
 
 	using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
 
-	using MeshVertexLayout = vertex_layout<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>>;
+	using MeshVertexFormatTuple = format_tuple<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>>;
 
 	class Mesh
 	{
 		std::size_t faceNum{};
 
-		MeshVertexLayout::resource_type vertexBuffer{};
+		vertex_buffer_resource<MeshVertexFormatTuple> vertexBuffer{};
 		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
 
 
@@ -63,21 +63,28 @@ namespace test004
 			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>(fileName);
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
-			std::vector<MeshVertexLayout::struct_type> posNormalList{};
-			posNormalList.reserve(vertexList.size());
+			vertexBuffer.initialize(device, vertexList.size());
+			auto vertexMappedResource = map(vertexBuffer);
+
 			XMFLOAT3 tmpFloat3;
 			for (std::size_t i = 0; i < vertexList.size(); i++) {
 				XMStoreFloat3(&tmpFloat3, normalList[i]);
-				posNormalList.push_back({ vertexList[i],{tmpFloat3.x,tmpFloat3.y,tmpFloat3.z} });
+				for (std::uint32_t j = 0; j < 3; j++)
+					vertexMappedResource.reference<0>(i, j) = vertexList[i][j];
+				vertexMappedResource.reference<1>(i, 0) = tmpFloat3.x;
+				vertexMappedResource.reference<1>(i, 1) = tmpFloat3.y;
+				vertexMappedResource.reference<1>(i, 2) = tmpFloat3.z;
+
 			}
 
-			faceNum = faceList.size();
-
-			vertexBuffer.initialize(device, posNormalList.size());
-			map(&vertexBuffer, posNormalList.begin(), posNormalList.end());
-
 			indexBuffer.initialize(device, faceList.size() * 3);
-			map(&indexBuffer, faceList.begin(), faceList.end());
+			auto indexMappedResource = map(indexBuffer);
+
+			for (std::uint32_t i = 0; i < faceList.size(); i++)
+				for (std::uint32_t j = 0; j < 3; j++)
+					indexMappedResource.reference<0>(i * 3 + j, 0) = faceList[i][j];
+
+			faceNum = faceList.size();
 		}
 
 		void SetMesh(command<FRAME_LATENCY_NUM>& cl)
@@ -114,7 +121,8 @@ namespace test004
 		template<typename T>
 		void MapColorBunnyData(T&& t, std::size_t i)
 		{
-			map(&colorBunnyDataConstantBuffer[i], std::forward<T>(t));
+			auto tmp = map(colorBunnyDataConstantBuffer[i]);
+			tmp.reference() = std::forward<T>(t);
 		}
 
 		void SetDescriptorHeap(command<FRAME_LATENCY_NUM>& cl, std::size_t i)
@@ -129,8 +137,8 @@ namespace test004
 	class ColorObjectRenderer
 	{
 		root_signature rootSignature{};
-		graphics_pipeline_state<MeshVertexLayout, render_target_formats<FrameBufferFormat>> standerdPipelineState{};
-		graphics_pipeline_state<MeshVertexLayout, render_target_formats<FrameBufferFormat>> cubemapPipelineState{};
+		graphics_pipeline_state<MeshVertexFormatTuple, format_tuple<FrameBufferFormat>> standerdPipelineState{};
+		graphics_pipeline_state<MeshVertexFormatTuple, format_tuple<FrameBufferFormat>> cubemapPipelineState{};
 
 	public:
 		void initialize(device& device)
@@ -204,7 +212,8 @@ namespace test004
 
 		template<typename T>
 		void MapWorld(T&& t) {
-			map(&worldConstantBuffer, std::forward<T>(t));
+			auto tmp = map(worldConstantBuffer);
+			tmp.reference() = std::forward<T>(t);
 		}
 
 		auto& GetCubemapShaderResource() {
@@ -222,7 +231,7 @@ namespace test004
 	class MirrorObjectRenderer
 	{
 		root_signature rootSignature{};
-		graphics_pipeline_state<MeshVertexLayout,render_target_formats<FrameBufferFormat>> pipelineState{};
+		graphics_pipeline_state<MeshVertexFormatTuple, format_tuple<FrameBufferFormat>> pipelineState{};
 
 	public:
 		void initialize(device& device)
@@ -290,7 +299,7 @@ namespace test004
 		device device{};
 		device.initialize();
 
-		command command{};
+		command<2> command{};
 		command.initialize(device);
 
 		swap_chain<FrameBufferFormat, 2> swapChain{};
@@ -383,17 +392,19 @@ namespace test004
 		XMFLOAT4 lightDir{ 1.f,1.f,1.f,1.f };
 		XMFLOAT3 mirrorPos{ 0.f, 0.f, 0.f };
 
+		auto sceneDataMappedResource = map(sceneDataConstantBuffer);
+		sceneDataMappedResource.reference() = { view,proj,lightDir,eye };
+
+		auto cubemapSceneDataMappedResource = map(cubemapSceneDataConstant);
+
 		while (update_window())
 		{
-			map(&sceneDataConstantBuffer, SceneData{ view,proj,lightDir,eye });
-
 			for (std::size_t i = 0; i < ColorObjectNum; i++) {
 				colorObjectWorlds[i] *= XMMatrixRotationY(0.02);
 				colorObjectModel.MapColorBunnyData(ColorObjectData{ colorObjectWorlds[i] ,colorObjectColors[i] }, i);
 			}
 
-			auto cubemapSceneData = GetCubemapSceneData(mirrorPos);
-			map(&cubemapSceneDataConstant, cubemapSceneData);
+			cubemapSceneDataMappedResource.reference() = GetCubemapSceneData(mirrorPos);
 
 			mirrorObjectModel.MapWorld(XMMatrixScaling(3.f, 3.f, 3.f) * XMMatrixTranslation(mirrorPos.x, mirrorPos.y, mirrorPos.z));
 
