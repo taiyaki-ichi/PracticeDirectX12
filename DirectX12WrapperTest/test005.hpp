@@ -11,7 +11,6 @@
 #include"resource/shader_resource.hpp"
 #include"resource/vertex_buffer_resource.hpp"
 #include"resource/index_buffer_resource.hpp"
-#include"resource/map.hpp"
 #include"resource/texture_upload_buffer_resource.hpp"
 
 #include<vector>

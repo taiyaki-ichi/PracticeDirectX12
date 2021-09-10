@@ -9,7 +9,6 @@
 #include"descriptor_heap.hpp"
 #include"resource/vertex_buffer_resource.hpp"
 #include"resource/index_buffer_resource.hpp"
-#include"resource/map.hpp"
 #include"resource/texture_upload_buffer_resource.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION

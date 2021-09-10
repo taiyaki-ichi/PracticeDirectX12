@@ -9,7 +9,6 @@
 #include"pipeline_state.hpp"
 #include"resource/constant_buffer_resource.hpp"
 #include"resource/shader_resource.hpp"
-#include"resource/map.hpp"
 
 #include<array>
 

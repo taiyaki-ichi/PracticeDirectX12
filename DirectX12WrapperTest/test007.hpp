@@ -13,7 +13,6 @@
 #include"resource/shader_resource.hpp"
 #include"OffLoader.hpp"
 #include"utility.hpp"
-#include"resource/map.hpp"
 #include"resource/texture_upload_buffer_resource.hpp"
 
 #include<vector>

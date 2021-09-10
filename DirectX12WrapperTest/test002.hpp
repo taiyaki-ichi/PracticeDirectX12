@@ -6,7 +6,6 @@
 #include"descriptor_heap.hpp"
 #include"resource/vertex_buffer_resource.hpp"
 #include"resource/index_buffer_resource.hpp"
-#include"resource/map.hpp"
 #include"root_signature/root_signature.hpp"
 #include"pipeline_state.hpp"
 #include"resource/shader_resource.hpp"
