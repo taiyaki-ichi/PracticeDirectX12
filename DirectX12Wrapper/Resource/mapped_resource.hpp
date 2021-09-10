@@ -9,6 +9,10 @@ namespace DX12
 	template<typename Resource>
 	inline auto map(Resource&);
 
+	//unmap‚ª•K—v‚È‚Ì‚ÍŽå‚ÉREAD_BACK‚®‚ç‚¢
+	template<typename Resource>
+	inline void unmap(Resource&);
+
 	template<typename FormatTuple>
 	struct format_tuple_tag {
 		using value_type = FormatTuple;
@@ -125,7 +129,11 @@ namespace DX12
 		return result;
 	}
 	
-	
+	template<typename Resource>
+	void unmap(Resource& r)
+	{
+		r.get()->Unmap(0, nullptr);
+	}
 
 	template<typename FormatTuple>
 	template<typename Resource>
@@ -162,7 +170,7 @@ namespace DX12
 		-> typename convert_type<Format::component_type, Format::component_size>::type&
 	{
 		using ValueType = typename convert_type<Format::component_type, Format::component_size>::type;
-		auto stride = get_format_stride<Format>();
+		constexpr auto stride = get_format_stride<Format>();
 
 		auto tmpPtr = static_cast<ValueType*>(ptr);
 		tmpPtr += Format::component_num * num + elementNum;
