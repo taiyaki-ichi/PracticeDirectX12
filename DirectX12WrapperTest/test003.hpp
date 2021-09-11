@@ -3,7 +3,7 @@
 #include"device.hpp"
 #include"command.hpp"
 #include"swap_chain.hpp"
-#include"root_signature/root_signature.hpp"
+#include"root_signature.hpp"
 #include"pipeline_state.hpp"
 #include"resource/vertex_buffer_resource.hpp"
 #include"resource/index_buffer_resource.hpp"

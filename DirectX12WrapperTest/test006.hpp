@@ -3,7 +3,7 @@
 #include"device.hpp"
 #include"command.hpp"
 #include"shader.hpp"
-#include"root_signature/root_signature.hpp"
+#include"root_signature.hpp"
 #include"pipeline_state.hpp"
 #include"resource/shader_resource.hpp"
 #include"descriptor_heap.hpp"
@@ -144,7 +144,7 @@ namespace test006
 		descriptorHeap.push_back_texture2D_SRV(device, float4ShaderResource, 1, 0, 0, 0.f);
 
 		root_signature rootSignature{};
-		rootSignature.initialize(device, { {descriptor_range_type::SRV} }, { StaticSamplerType::Standard });
+		rootSignature.initialize(device, { {descriptor_range_type::SRV} }, { static_sampler_desc::clamp_anisotropic() });
 
 		shader vertexShader{};
 		vertexShader.initialize(L"Shader/VertexShader002.hlsl", "main", "vs_5_0");

@@ -4,7 +4,7 @@
 #include"command.hpp"
 #include"swap_chain.hpp"
 #include"shader.hpp"
-#include"root_signature/root_signature.hpp"
+#include"root_signature.hpp"
 #include"pipeline_state.hpp"
 #include"descriptor_heap.hpp"
 #include"resource/constant_buffer_resource.hpp"
@@ -120,7 +120,7 @@ namespace test005
 		root_signature rootSignature{};
 		rootSignature.initialize(device,
 			{ {descriptor_range_type::CBV,descriptor_range_type::SRV,descriptor_range_type::SRV} },
-			{ StaticSamplerType::Standard }
+			{ static_sampler_desc::clamp_anisotropic() }
 		);
 
 		graphics_pipeline_state<VertexFormatTuple,format_tuple<FrameBufferFormat>> pipelineState{};

@@ -17,8 +17,6 @@ int main()
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-	using namespace DX12;
-
 	//return test001::main();
 	//return test002::main();
 	//return test003::main();

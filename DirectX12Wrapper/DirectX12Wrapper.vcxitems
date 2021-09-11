@@ -28,13 +28,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)resource\shader_resource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Resource\texture_upload_buffer_resource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)resource\vertex_buffer_resource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)root_signature.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)swap_chain.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)view.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)window.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utility.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)shader.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)root_signature\root_signature.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)root_signature\root_signature_helper.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)device.hpp" />
   </ItemGroup>
 </Project>

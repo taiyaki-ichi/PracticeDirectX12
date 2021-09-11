@@ -5,7 +5,7 @@
 #include"swap_chain.hpp"
 #include"descriptor_heap.hpp"
 #include"resource/vertex_buffer_resource.hpp"
-#include"root_signature/root_signature.hpp"
+#include"root_signature.hpp"
 #include"pipeline_state.hpp"
 #include"resource/mapped_resource.hpp"
 

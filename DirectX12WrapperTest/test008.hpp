@@ -5,7 +5,7 @@
 #include"swap_chain.hpp"
 #include"descriptor_heap.hpp"
 #include"resource/vertex_buffer_resource.hpp"
-#include"root_signature/root_signature.hpp"
+#include"root_signature.hpp"
 #include"pipeline_state.hpp"
 #include"resource/constant_buffer_resource.hpp"
 #include"resource/shader_resource.hpp"
@@ -138,10 +138,13 @@ namespace test008
 		groundDescriptorHeap.push_back_CBV(device, groundDataConstantBuffer);
 		groundDescriptorHeap.push_back_texture2D_SRV(device, shadowMap, 1, 0, 0, 0.f);
 
+		auto shadowMapStaticSampler = static_sampler_desc::clamp_liner();
+		shadowMapStaticSampler.comparison = comparison_type::LESS_EQUAL;
+		
 		root_signature groundRootSignature{};
 		groundRootSignature.initialize(device,
 			{ {descriptor_range_type::CBV,descriptor_range_type::CBV,descriptor_range_type::SRV} },
-			{ StaticSamplerType::SadowMapping,StaticSamplerType::Standard }
+			{ shadowMapStaticSampler,static_sampler_desc::clamp_point() }
 		);
 
 		shader groundVS{};
@@ -211,7 +214,7 @@ namespace test008
 		root_signature bunnyRootSignature{};
 		bunnyRootSignature.initialize(device,
 			{ {descriptor_range_type::CBV,descriptor_range_type::CBV,descriptor_range_type::SRV} },
-			{ StaticSamplerType::SadowMapping,StaticSamplerType::Standard }
+			{ shadowMapStaticSampler,static_sampler_desc::clamp_point() }
 		);
 
 		shader bunnyVS{};

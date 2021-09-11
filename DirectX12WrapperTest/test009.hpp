@@ -5,7 +5,7 @@
 #include"swap_chain.hpp"
 #include"descriptor_heap.hpp"
 #include"resource/vertex_buffer_resource.hpp"
-#include"root_signature/root_signature.hpp"
+#include"root_signature.hpp"
 #include"pipeline_state.hpp"
 #include"resource/constant_buffer_resource.hpp"
 #include"resource/shader_resource.hpp"
@@ -182,7 +182,7 @@ namespace test009
 		root_signature groundRootSignature{};
 		groundRootSignature.initialize(device,
 			{ {descriptor_range_type::CBV,descriptor_range_type::CBV,descriptor_range_type::SRV} },
-			{ StaticSamplerType::Standard }
+			{ static_sampler_desc::clamp_point() }
 		);
 
 		shader groundVS{};
@@ -254,7 +254,7 @@ namespace test009
 		root_signature bunnyRootSignature{};
 		bunnyRootSignature.initialize(device,
 			{ {descriptor_range_type::CBV,descriptor_range_type::CBV,descriptor_range_type::SRV} },
-			{ StaticSamplerType::Standard }
+			{ static_sampler_desc::clamp_point() }
 		);
 
 		shader bunnyVS{};

@@ -235,9 +235,10 @@ namespace test004
 	public:
 		void initialize(device& device)
 		{
+
 			rootSignature.initialize(device,
 				{ {descriptor_range_type::CBV,descriptor_range_type::CBV , descriptor_range_type::SRV } },
-				{ StaticSamplerType::Cubemap }
+				{ static_sampler_desc::clamp_anisotropic() }
 			);
 
 			shader vs{};
