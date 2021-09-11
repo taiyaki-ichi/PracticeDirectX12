@@ -5,7 +5,7 @@
 namespace DX12
 {
 	template<typename FormatTuple>
-	class vertex_buffer_resource : public buffer_resource<resource_heap_property::Upload>
+	class vertex_buffer_resource : public buffer_resource<resource_heap_property::UPLOAD>
 	{
 		D3D12_VERTEX_BUFFER_VIEW buffer_view{};
 

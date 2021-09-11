@@ -5,7 +5,7 @@
 namespace DX12
 {
 	template<typename T>
-	class constant_buffer_resource : public buffer_resource<resource_heap_property::Upload>
+	class constant_buffer_resource : public buffer_resource<resource_heap_property::UPLOAD>
 	{
 	public:
 		void initialize(device& device);

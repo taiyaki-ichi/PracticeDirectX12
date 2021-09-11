@@ -17,27 +17,27 @@ namespace DX12
 	enum class resource_heap_property
 	{
 		//とりあえず
-		Default = D3D12_HEAP_TYPE_DEFAULT,
-		Upload = D3D12_HEAP_TYPE_UPLOAD,
-		ReadBack = D3D12_HEAP_TYPE_READBACK,
+		DEFAULT = D3D12_HEAP_TYPE_DEFAULT,
+		UPLOAD = D3D12_HEAP_TYPE_UPLOAD,
+		READ_BACK = D3D12_HEAP_TYPE_READBACK,
 	};
 
 	enum class resource_flag
 	{
-		AllowRenderTarget = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
-		AllowDepthStencil = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL,
-		AllowUnorderdAccess = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
-		DenyShederResource = D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE,
+		ALLOW_RENDER_TARGET = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
+		ALLOW_DEPTH_STENCIL = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL,
+		ALLOW_UNORDERED_ACCESS = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
+		DENY_SHADER_RESOURCE = D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE,
 	};
 
 	enum class resource_dimention
 	{
 		//Mapする時などに使用
 		//この場合LayoutはD3D12_TEXTURE_LAYOUT_ROW_MAJOR
-		Buffer = D3D12_RESOURCE_DIMENSION_BUFFER,
+		BUFFER = D3D12_RESOURCE_DIMENSION_BUFFER,
 		//基本的にはこっち
 		//LayoutはUnknowになる
-		Texture2D = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+		TEXTURE_2D = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
 	};
 
 	template<resource_dimention>
@@ -46,12 +46,12 @@ namespace DX12
 		static_assert(false);
 	}
 	template<>
-	inline D3D12_TEXTURE_LAYOUT get_texture_layout<resource_dimention::Buffer>()
+	inline D3D12_TEXTURE_LAYOUT get_texture_layout<resource_dimention::BUFFER>()
 	{
 		return D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	}
 	template<>
-	inline D3D12_TEXTURE_LAYOUT get_texture_layout<resource_dimention::Texture2D>()
+	inline D3D12_TEXTURE_LAYOUT get_texture_layout<resource_dimention::TEXTURE_2D>()
 	{
 		return D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	}
@@ -117,8 +117,8 @@ namespace DX12
 
 
 		//AllowDepthStencilとAllowRenderTargetを2つとも指定することはできない
-		static_assert(!(flags& static_cast<D3D12_RESOURCE_FLAGS>(resource_flag::AllowDepthStencil) &&
-			flags& static_cast<D3D12_RESOURCE_FLAGS>(resource_flag::AllowRenderTarget)));
+		static_assert(!(flags& static_cast<D3D12_RESOURCE_FLAGS>(resource_flag::ALLOW_DEPTH_STENCIL) &&
+			flags& static_cast<D3D12_RESOURCE_FLAGS>(resource_flag::ALLOW_RENDER_TARGET)));
 	};
 
 
@@ -152,21 +152,21 @@ namespace DX12
 		D3D12_CLEAR_VALUE cv{};
 		if (clearValue)
 		{
-			if constexpr (flags & static_cast<D3D12_RESOURCE_FLAGS>(resource_flag::AllowDepthStencil)) {
+			if constexpr (flags & static_cast<D3D12_RESOURCE_FLAGS>(resource_flag::ALLOW_DEPTH_STENCIL)) {
 				cv.Format = get_depth_stencil_dxgi_format(Format::component_type, Format::component_size, Format::component_num).value();
 				cv.DepthStencil.Depth = clearValue.value()[0];
 			}
 
-			if constexpr (flags & static_cast<D3D12_RESOURCE_FLAGS>(resource_flag::AllowRenderTarget)) {
+			if constexpr (flags & static_cast<D3D12_RESOURCE_FLAGS>(resource_flag::ALLOW_RENDER_TARGET)) {
 				cv.Format = get_dxgi_format(Format::component_type, Format::component_size, Format::component_num).value();
 				std::copy(clearValue.value().begin(), clearValue.value().end(), std::begin(cv.Color));
 			}
 		}
 
 		//とりあえず
-		if constexpr (HeapProperty == resource_heap_property::Upload)
+		if constexpr (HeapProperty == resource_heap_property::UPLOAD)
 			state = resource_state::GenericRead;
-		else if constexpr (HeapProperty == resource_heap_property::ReadBack)
+		else if constexpr (HeapProperty == resource_heap_property::READ_BACK)
 			state = resource_state::CopyDest;
 		else
 			state = resource_state::Common;

@@ -5,7 +5,7 @@
 namespace DX12
 {
 	template<typename Format>
-	class index_buffer_resource : public buffer_resource<resource_heap_property::Upload>
+	class index_buffer_resource : public buffer_resource<resource_heap_property::UPLOAD>
 	{
 		D3D12_INDEX_BUFFER_VIEW index_buffer_view{};
 

@@ -6,7 +6,7 @@ namespace DX12
 {
 	//テクスチャをアップロードするよう
 	template<typename Format>
-	class texture_upload_buffer_resource : public buffer_resource<resource_heap_property::Upload>
+	class texture_upload_buffer_resource : public buffer_resource<resource_heap_property::UPLOAD>
 	{
 		std::uint32_t width = 0;
 
@@ -27,7 +27,7 @@ namespace DX12
 	{
 		width = alignment<std::uint32_t>(w * get_format_stride<Format>(), D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 
-		buffer_resource<resource_heap_property::Upload>::initialize(device, width * h * get_format_stride<Format>());
+		buffer_resource<resource_heap_property::UPLOAD>::initialize(device, width * h * get_format_stride<Format>());
 	}
 
 	template<typename Format>

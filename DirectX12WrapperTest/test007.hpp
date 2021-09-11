@@ -132,7 +132,7 @@ namespace test007
 		for (std::size_t i = 0; i < FRAME_BUFFER_NUM; i++)
 			rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(i), 0, 0);
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> depthBuffer{};
 		depthBuffer.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { {1.f} });
 
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
@@ -177,13 +177,13 @@ namespace test007
 		groundDataMappedResource.reference() = { XMMatrixIdentity() };
 		
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowUnorderdAccess> heightMapResource{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_UNORDERED_ACCESS> heightMapResource{};
 		heightMapResource.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1);
 
-		shader_resource<format<component_type::UINT, 32, 1>, resource_flag::AllowUnorderdAccess> elapsedTimeMapResource{};
+		shader_resource<format<component_type::UINT, 32, 1>, resource_flag::ALLOW_UNORDERED_ACCESS> elapsedTimeMapResource{};
 		elapsedTimeMapResource.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1);
 
-		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>, resource_flag::AllowUnorderdAccess> normalMapResource{};
+		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>, resource_flag::ALLOW_UNORDERED_ACCESS> normalMapResource{};
 		normalMapResource.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1);
 
 
@@ -276,7 +276,7 @@ namespace test007
 			indexBufferMappedResource.reference(i) = indexList[i];
 
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowRenderTarget> groundDepthShaderResource{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_RENDER_TARGET> groundDepthShaderResource{};
 		groundDepthShaderResource.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, { {0.f} });
 
 		descriptor_heap_CBV_SRV_UAV computeHeightDescriptorHeap{};
@@ -347,7 +347,7 @@ namespace test007
 		}
 
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> groundDepthBuffer{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> groundDepthBuffer{};
 		groundDepthBuffer.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, { {1.f} });
 
 		descriptor_heap_DSV groundDepthStencilDescriptorHeap{};

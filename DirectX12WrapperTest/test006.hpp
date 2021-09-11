@@ -85,7 +85,7 @@ namespace test006
 			stbi_image_free(data);
 		}
 
-		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>, resource_flag::AllowUnorderdAccess> float4ShaderResource{};
+		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>, resource_flag::ALLOW_UNORDERED_ACCESS> float4ShaderResource{};
 		float4ShaderResource.initialize(device, x, y, 1, 0);
 
 		descriptor_heap_CBV_SRV_UAV computeDescriptorHeap{};

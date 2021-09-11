@@ -128,7 +128,7 @@ namespace test005
 			{ "POSITION","TEXCOOD" }, true, false, primitive_topology::PATCH
 		);
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthStencilBufferResource{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> depthStencilBufferResource{};
 		depthStencilBufferResource.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { {1.f} });
 
 		descriptor_heap_DSV depthStencilDescriptorHeap{};

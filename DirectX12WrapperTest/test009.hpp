@@ -77,7 +77,7 @@ namespace test009
 		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(1), 0, 0);
 
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> depthBuffer{};
 		depthBuffer.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { {1.f} });
 
 		descriptor_heap_DSV dsvDescriptorHeap{};
@@ -97,11 +97,11 @@ namespace test009
 
 
 		//float
-		shader_resource<format<component_type::FLOAT, 32, 2>, resource_flag::AllowRenderTarget> shadowMap{};
+		shader_resource<format<component_type::FLOAT, 32, 2>, resource_flag::ALLOW_RENDER_TARGET> shadowMap{};
 		shadowMap.initialize(device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, 1, 1, { {1.f,1.f} });
 
 		//float
-		shader_resource<format<component_type::FLOAT, 32, 2>, resource_flag::AllowUnorderdAccess> gaussianBlurShadowMap{};
+		shader_resource<format<component_type::FLOAT, 32, 2>, resource_flag::ALLOW_UNORDERED_ACCESS> gaussianBlurShadowMap{};
 		gaussianBlurShadowMap.initialize(device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, 1, 1);
 
 		constant_buffer_resource<ShadowMapData> shadowMapDataConstantBuffer{};
@@ -110,7 +110,7 @@ namespace test009
 		auto shadowMapDataMappedResource = map(shadowMapDataConstantBuffer);
 		shadowMapDataMappedResource.reference() = { SHADOW_MAP_EDGE,SHADOW_MAP_EDGE };
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> shadowMapDepthBuffer{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> shadowMapDepthBuffer{};
 		shadowMapDepthBuffer.initialize(device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, 1, 1, { {1.f} });
 
 		descriptor_heap_DSV shadowMapDSVDescriptorHeap{};

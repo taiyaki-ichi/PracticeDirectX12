@@ -190,7 +190,7 @@ namespace test004
 	class MirrorObjectModel
 	{
 		constant_buffer_resource<XMMATRIX> worldConstantBuffer{};
-		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>, resource_flag::AllowRenderTarget> cubemapShaderResource{};
+		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>, resource_flag::ALLOW_RENDER_TARGET> cubemapShaderResource{};
 
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 
@@ -354,7 +354,7 @@ namespace test004
 		MirrorObjectRenderer mirrorObjectRenderer{};
 		mirrorObjectRenderer.initialize(device);
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> cubemapDepthBuffer{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> cubemapDepthBuffer{};
 		cubemapDepthBuffer.initialize(device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, 6, 1, { {1.f} });
 
 		descriptor_heap_RTV cubemapRtvDescriptorHeap{};
@@ -362,7 +362,7 @@ namespace test004
 		cubemapRtvDescriptorHeap.push_back_texture2D_array_RTV(device, mirrorObjectModel.GetCubemapShaderResource(), 6, 0, 0, 0);
 
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> depthBuffer{};
 		depthBuffer.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { {1.f} });
 
 		descriptor_heap_DSV depthStencilDescriptorHeap{};

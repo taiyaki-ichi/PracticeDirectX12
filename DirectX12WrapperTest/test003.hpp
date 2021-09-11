@@ -100,7 +100,7 @@ namespace test003
 			{ "POSITION" }, true, false, primitive_topology::TRIANGLE
 		);
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::AllowDepthStencil> depthBuffer{};
+		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> depthBuffer{};
 		depthBuffer.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { { 1.f } });
 		
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
