@@ -38,6 +38,8 @@ namespace DX12
 
 		D3D12_GPU_DESCRIPTOR_HANDLE get_GPU_handle(std::size_t index = 0);
 		D3D12_CPU_DESCRIPTOR_HANDLE get_CPU_handle(std::size_t index = 0);
+
+		void reset() noexcept;
 	};
 
 
@@ -145,6 +147,11 @@ namespace DX12
 		auto gpuHandle = descriptor_heap_ptr->GetGPUDescriptorHandleForHeapStart();
 		gpuHandle.ptr += static_cast<UINT64>(increment_size) * static_cast<UINT64>(index);
 		return gpuHandle;
+	}
+
+	inline void DX12::descriptor_heap_base::reset() noexcept
+	{
+		offset = 0;
 	}
 
 	inline D3D12_CPU_DESCRIPTOR_HANDLE DX12::descriptor_heap_base::get_CPU_handle(std::size_t index)

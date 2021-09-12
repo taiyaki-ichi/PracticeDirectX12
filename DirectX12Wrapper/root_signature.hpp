@@ -257,7 +257,6 @@ namespace DX12
 					break;
 				}
 			}
-
 			
 			result[i].MaxAnisotropy = staticSamplerDescs[i].max_anisotropy;
 

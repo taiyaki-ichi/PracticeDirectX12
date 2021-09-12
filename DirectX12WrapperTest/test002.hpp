@@ -142,7 +142,7 @@ namespace test002
 
 
 		while (update_window()) {
-			auto backBufferIndex = swapChain.get_vcurrent_back_buffer_index();
+			auto backBufferIndex = swapChain.get_current_back_buffer_index();
 			command.reset(backBufferIndex);
 
 			command.set_viewport(viewport);
@@ -171,7 +171,7 @@ namespace test002
 			swapChain.present();
 			command.fence(backBufferIndex);
 
-			command.wait(swapChain.get_vcurrent_back_buffer_index());
+			command.wait(swapChain.get_current_back_buffer_index());
 		};
 
 		stbi_image_free(data);

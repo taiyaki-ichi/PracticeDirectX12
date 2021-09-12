@@ -409,7 +409,7 @@ namespace test004
 			mirrorObjectModel.MapWorld(XMMatrixScaling(3.f, 3.f, 3.f) * XMMatrixTranslation(mirrorPos.x, mirrorPos.y, mirrorPos.z));
 
 
-			auto backBufferIndex = swapChain.get_vcurrent_back_buffer_index();
+			auto backBufferIndex = swapChain.get_current_back_buffer_index();
 			command.reset(backBufferIndex);
 
 			//Cubemap
@@ -485,7 +485,7 @@ namespace test004
 			swapChain.present();
 			command.fence(backBufferIndex);
 
-			command.wait(swapChain.get_vcurrent_back_buffer_index());
+			command.wait(swapChain.get_current_back_buffer_index());
 		}
 
 		command.wait_all(device);

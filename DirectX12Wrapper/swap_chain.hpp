@@ -34,7 +34,7 @@ namespace DX12
 		void present(std::uint32_t syncInterval = 1);
 
 		//現在控えているBackBufferのインデックスの取得
-		std::uint32_t get_vcurrent_back_buffer_index();
+		std::uint32_t get_current_back_buffer_index();
 
 		frame_buffer_resource<FrameBufferFormat>& get_frame_buffer(std::uint32_t index);
 	};
@@ -99,7 +99,7 @@ namespace DX12
 	}
 
 	template<typename FrameBufferFormat,std::size_t FrameBufferNum>
-	inline std::uint32_t swap_chain<FrameBufferFormat,FrameBufferNum>::get_vcurrent_back_buffer_index()
+	inline std::uint32_t swap_chain<FrameBufferFormat,FrameBufferNum>::get_current_back_buffer_index()
 	{
 		return swap_chain_ptr->GetCurrentBackBufferIndex();
 	}

@@ -84,7 +84,7 @@ namespace test001
 		std::size_t cnt = 0;
 		while (update_window()) {
 
-			auto backBufferIndex = swapChain.get_vcurrent_back_buffer_index();
+			auto backBufferIndex = swapChain.get_current_back_buffer_index();
 			command.reset(0);
 
 			command.set_viewport(viewport);

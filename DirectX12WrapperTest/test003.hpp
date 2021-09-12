@@ -146,7 +146,7 @@ namespace test003
 
 			cnt++;
 
-			auto backBufferIndex = swapChain.get_vcurrent_back_buffer_index();
+			auto backBufferIndex = swapChain.get_current_back_buffer_index();
 			command.reset(backBufferIndex);
 
 			command.set_viewport(viewport);
@@ -196,7 +196,7 @@ namespace test003
 			swapChain.present();
 			command.fence(backBufferIndex);
 
-			command.wait(swapChain.get_vcurrent_back_buffer_index());
+			command.wait(swapChain.get_current_back_buffer_index());
 		};
 
 		command.wait_all(device);
