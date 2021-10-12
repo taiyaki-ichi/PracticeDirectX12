@@ -14,7 +14,7 @@
 #include<array>
 #include<DirectXMath.h>
 
-
+//‹¾‚Ì•\Œ»
 namespace test004
 {
 	using namespace DX12;

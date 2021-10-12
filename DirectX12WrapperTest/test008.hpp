@@ -17,7 +17,7 @@
 #include"OffLoader.hpp"
 #include"utility.hpp"
 
-//ポリゴンの描写の描写をする
+//ポアソンディスクサンプリングを用いた影
 namespace test008
 {
 	using namespace DirectX;

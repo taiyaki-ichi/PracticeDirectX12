@@ -23,6 +23,7 @@
 
 #include<DirectXMath.h>
 
+//テッセレーション
 namespace test005
 {
 	using namespace DX12;

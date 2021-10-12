@@ -69,6 +69,7 @@
     <ClInclude Include="test008.hpp" />
     <ClInclude Include="test009.hpp" />
     <ClInclude Include="test010.hpp" />
+    <ClInclude Include="test011.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Header002.hlsli" />
@@ -85,5 +86,6 @@
     <None Include="Shader\Ground4\Header.hlsli" />
     <None Include="Shader\Bunny2\Header.hlsli" />
     <None Include="Shader\Ground5\Header.hlsli" />
+    <None Include="README.md" />
   </ItemGroup>
 </Project>

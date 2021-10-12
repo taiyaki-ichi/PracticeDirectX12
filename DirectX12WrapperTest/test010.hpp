@@ -12,6 +12,7 @@
 #include<DirectXMath.h>
 #include<cmath>
 
+//mipmap
 namespace test010
 {
 	using namespace DX12;

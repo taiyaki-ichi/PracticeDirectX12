@@ -19,7 +19,6 @@
 //テクスチャの表示をする
 namespace test002
 {
-
 	inline int main()
 	{
 		using namespace DX12;

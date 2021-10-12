@@ -28,6 +28,7 @@
 
 #include<DirectXMath.h>
 
+//ê·
 namespace test007
 {
 	using namespace DX12;

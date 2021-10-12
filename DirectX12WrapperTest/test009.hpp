@@ -17,7 +17,7 @@
 #include"OffLoader.hpp"
 #include"utility.hpp"
 
-//ポリゴンの描写の描写をする
+//分散シャドウマップ
 namespace test009
 {
 	using namespace DirectX;

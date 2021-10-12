@@ -14,9 +14,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include<stb_image.h>
 
+//ó÷äsíäèo
 namespace test006
 {
-
 	int main()
 	{
 		using namespace DX12;
