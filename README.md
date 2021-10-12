@@ -1,2 +1,12 @@
-# PracticeDirectX12
-やる
+# DirectX12の練習
+
+load_mmdはmmdファイルの読み込み
+
+srcはmmdモデルの表示
+
+OffLoaderはoffファイルの読み込み
+
+DirectX12WrapperはDirectX12のラッパー
+
+DirectX12WrapperTestはDirectX12Wrapperの使用例
+
