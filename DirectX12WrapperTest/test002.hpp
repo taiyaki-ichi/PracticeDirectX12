@@ -4,12 +4,11 @@
 #include"command.hpp"
 #include"swap_chain.hpp"
 #include"descriptor_heap.hpp"
-#include"resource/vertex_buffer_resource.hpp"
-#include"resource/index_buffer_resource.hpp"
 #include"root_signature.hpp"
 #include"pipeline_state.hpp"
-#include"resource/shader_resource.hpp"
-#include"resource/texture_upload_buffer_resource.hpp"
+#include"resource/buffer_resource.hpp"
+#include"resource/texture_resource.hpp"
+#include"resource/mapped_resource.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include<stb_image.h>
@@ -47,61 +46,72 @@ namespace test002
 
 		using VertexFormat = format_tuple<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 2>>;
 
-		vertex_buffer_resource<VertexFormat> vertexBuffer{};
+		buffer_resource<VertexFormat,resource_heap_property::UPLOAD> vertexBuffer{};
 		vertexBuffer.initialize(device, 4);
 
 		auto vertexMappedResource = map(vertexBuffer);
+		{
+			auto iter = vertexMappedResource.begin<0>();
+			(*iter)[0] = -0.8f;
+			(*iter)[1] = -0.8f;
+			(*iter)[2] = 0.f;
+			iter++;
 
-		vertexMappedResource.reference<0>(0, 0) = -0.8f;
-		vertexMappedResource.reference<0>(0, 1) = -0.8f;
-		vertexMappedResource.reference<0>(0, 2) = 0.f;
-		vertexMappedResource.reference<1>(0, 0) = 0.f;
-		vertexMappedResource.reference<1>(0, 1) = 1.f;
+			(*iter)[0] = -0.8f;
+			(*iter)[1] = 0.8f;
+			(*iter)[2] = 0.f;
+			iter++;
 
-		vertexMappedResource.reference<0>(1, 0) = -0.8f;
-		vertexMappedResource.reference<0>(1, 1) = 0.8f;
-		vertexMappedResource.reference<0>(1, 2) = 0.f;
-		vertexMappedResource.reference<1>(1, 0) = 0.f;
-		vertexMappedResource.reference<1>(1, 1) = 0.f;
+			(*iter)[0] = 0.8f;
+			(*iter)[1] = -0.8f;
+			(*iter)[2] = 0.f;
+			iter++;
 
-		vertexMappedResource.reference<0>(2, 0) = 0.8f;
-		vertexMappedResource.reference<0>(2, 1) = -0.8f;
-		vertexMappedResource.reference<0>(2, 2) = 0.f;
-		vertexMappedResource.reference<1>(2, 0) = 1.f;
-		vertexMappedResource.reference<1>(2, 1) = 1.f;
+			(*iter)[0] = 0.8f;
+			(*iter)[1] = 0.8f;
+			(*iter)[2] = 0.f;
+		}
+		{
+			auto iter = vertexMappedResource.begin<1>();
+			(*iter)[0] = 0.f;
+			(*iter)[1] = 1.f;
+			iter++;
 
-		vertexMappedResource.reference<0>(3, 0) = 0.8f;
-		vertexMappedResource.reference<0>(3, 1) = 0.8f;
-		vertexMappedResource.reference<0>(3, 2) = 0.f;
-		vertexMappedResource.reference<1>(3, 0) = 1.f;
-		vertexMappedResource.reference<1>(3, 1) = 0.f;
+			(*iter)[0] = 0.f;
+			(*iter)[1] = 0.f;
+			iter++;
 
+			(*iter)[0] = 1.f;
+			(*iter)[1] = 1.f;
+			iter++;
 
-		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
+			(*iter)[0] = 1.f;
+			(*iter)[1] = 0.f;
+		}
+
+		buffer_resource<format<component_type::UINT, 32, 1>,resource_heap_property::UPLOAD> indexBuffer{};
 		indexBuffer.initialize(device, 6);
-
 		auto indexMappedResource = map(indexBuffer);
 
-		indexMappedResource.reference(0) = 0;
-		indexMappedResource.reference(1) = 1;
-		indexMappedResource.reference(2) = 2;
-		indexMappedResource.reference(3) = 2;
-		indexMappedResource.reference(4) = 1;
-		indexMappedResource.reference(5) = 3;
+		{
+			auto iter = indexMappedResource.begin();
+			(*iter++) = 0;
+			(*iter++) = 1;
+			(*iter++) = 2;
+			(*iter++) = 2;
+			(*iter++) = 1;
+			(*iter++) = 3;
+		}
 
 		int x, y, n;
 		std::uint8_t* data = stbi_load("../../Assets/icon.png", &x, &y, &n, 0);
 
-		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> textureResource{};
+		texture_2D_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> textureResource{};
 		{
-			texture_upload_buffer_resource<format<component_type::UINT, 8, 4>> uploadResource{};
-			uploadResource.initialize(device, x, y);
-
+			buffer_resource<format<component_type::UINT, 8, 1>,resource_heap_property::UPLOAD> uploadResource{};
+			uploadResource.initialize(device, x * y * 4);
 			auto mappedUploadResource = map(uploadResource);
-			for (std::uint32_t i = 0; i < y; i++)
-				for (std::uint32_t j = 0; j < x; j++)
-					for (std::uint32_t k = 0; k < 4; k++)
-						mappedUploadResource.reference(j, i, k) = data[(j + i * y) * 4 + k];
+			std::copy(&data[0], &data[x * y * 4], mappedUploadResource.begin());
 
 			textureResource.initialize(device, x, y, 1, 1);
 
@@ -129,7 +139,7 @@ namespace test002
 		shader pixelShader{};
 		pixelShader.initialize(L"Shader/PixelShader002.hlsl", "main", "ps_5_0");
 
-		graphics_pipeline_state<VertexFormat,format_tuple<FrameBufferFormat>> pipelineState{};
+		graphics_pipeline_state<VertexFormat, format_tuple<FrameBufferFormat>> pipelineState{};
 		pipelineState.initialize(device, rootSignature, { &vertexShader, &pixelShader },
 			{ "POSITION", "TEXCOOD" }
 			, false, false, primitive_topology::TRIANGLE
@@ -158,8 +168,10 @@ namespace test002
 
 			command.set_descriptor_heap(descriptorHeap);
 			command.set_graphics_root_descriptor_table(0, descriptorHeap.get_GPU_handle());
+
 			command.set_vertex_buffer(vertexBuffer);
 			command.set_index_buffer(indexBuffer);
+
 			command.draw_indexed_instanced(6);
 
 			command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::Common);

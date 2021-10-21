@@ -7,13 +7,13 @@
 #include"root_signature.hpp"
 #include"pipeline_state.hpp"
 #include"descriptor_heap.hpp"
-#include"resource/constant_buffer_resource.hpp"
-#include"resource/vertex_buffer_resource.hpp"
-#include"resource/index_buffer_resource.hpp"
-#include"resource/shader_resource.hpp"
+#include"resource/buffer_resource.hpp"
+#include"resource/texture_resource.hpp"
+#include"resource/mapped_resource.hpp"
+#include"resource/allow_render_target_texture_resource.hpp"
+#include"resource/allow_depth_stencil_texture_resource.hpp"
 #include"OffLoader.hpp"
 #include"utility.hpp"
-#include"resource/texture_upload_buffer_resource.hpp"
 
 #include<vector>
 #include<cmath>
@@ -133,16 +133,16 @@ namespace test007
 		for (std::size_t i = 0; i < FRAME_BUFFER_NUM; i++)
 			rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(i), 0, 0);
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> depthBuffer{};
-		depthBuffer.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { {1.f} });
+		allow_depth_stencil_texture_2D_resource<format<component_type::FLOAT, 32, 1>> depthBuffer{};
+		depthBuffer.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, 1.f, 0);
 
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.initialize(device, 1);
 		depthStencilDescriptorHeap.push_back_texture2D_DSV(device, depthBuffer, 0);
 
 
-		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
-		sceneDataConstantBuffer.initialize(device);
+		buffer_resource<SceneData,resource_heap_property::UPLOAD> sceneDataConstantBuffer{};
+		sceneDataConstantBuffer.initialize(device, 1);
 
 
 		shader groundVS{};
@@ -171,36 +171,32 @@ namespace test007
 		);
 
 
-		constant_buffer_resource<GroundData> groundDataConstantBuffer{};
-		groundDataConstantBuffer.initialize(device);
+		buffer_resource<GroundData,resource_heap_property::UPLOAD> groundDataConstantBuffer{};
+		groundDataConstantBuffer.initialize(device, 1);
 
 		auto groundDataMappedResource = map(groundDataConstantBuffer);
-		groundDataMappedResource.reference() = { XMMatrixIdentity() };
+		*groundDataMappedResource.begin() = { XMMatrixIdentity() };
 		
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_UNORDERED_ACCESS> heightMapResource{};
-		heightMapResource.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1);
+		texture_2D_resource<format<component_type::FLOAT, 32, 1>> heightMapResource{};
+		heightMapResource.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, true);
 
-		shader_resource<format<component_type::UINT, 32, 1>, resource_flag::ALLOW_UNORDERED_ACCESS> elapsedTimeMapResource{};
-		elapsedTimeMapResource.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1);
+		texture_2D_resource<format<component_type::UINT, 32, 1>> elapsedTimeMapResource{};
+		elapsedTimeMapResource.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, true);
 
-		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>, resource_flag::ALLOW_UNORDERED_ACCESS> normalMapResource{};
-		normalMapResource.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1);
+		texture_2D_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> normalMapResource{};
+		normalMapResource.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, true);
 
 
-		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> groundDepthTextureResource{};
+		texture_2D_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> groundDepthTextureResource{};
 		{
 			int x, y, n;
 			std::uint8_t* data = stbi_load("../../Assets/Snow_001_SD/Snow_001_DISP.png", &x, &y, &n, 4);
 
-			texture_upload_buffer_resource<format<component_type::UINT, 8, 4>> uploadResource{};
-			uploadResource.initialize(device, x, y);
-
+			buffer_resource<format<component_type::UINT, 8, 1>,resource_heap_property::UPLOAD> uploadResource{};
+			uploadResource.initialize(device, x * y * 4);
 			auto mappedUploadResource = map(uploadResource);
-			for (std::uint32_t i = 0; i < y; i++)
-				for (std::uint32_t j = 0; j < x; j++)
-					for (std::uint32_t k = 0; k < 4; k++)
-						mappedUploadResource.reference(j, i, k) = data[(j + i * y) * 4 + k];
+			std::copy(&data[0], &data[x * y * 4], mappedUploadResource.begin());
 
 			groundDepthTextureResource.initialize(device, x, y, 1, 1);
 
@@ -216,19 +212,15 @@ namespace test007
 			stbi_image_free(data);
 		}
 
-		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> groundNormalTextureResource{};
+		texture_2D_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> groundNormalTextureResource{};
 		{
 			int x, y, n;
 			std::uint8_t* data = stbi_load("../../Assets/Snow_001_SD/Snow_001_NORM.jpg", &x, &y, &n, 4);
 
-			texture_upload_buffer_resource<format<component_type::UINT, 8, 4>> uploadResource{};
-			uploadResource.initialize(device, x, y);
-
+			buffer_resource<format<component_type::UINT, 8, 1>, resource_heap_property::UPLOAD> uploadResource{};
+			uploadResource.initialize(device, x * y * 4);
 			auto mappedUploadResource = map(uploadResource);
-			for (std::uint32_t i = 0; i < y; i++)
-				for (std::uint32_t j = 0; j < x; j++)
-					for (std::uint32_t k = 0; k < 4; k++)
-						mappedUploadResource.reference(j, i, k) = data[(j + i * y) * 4 + k];
+			std::copy(&data[0], &data[x * y * 4], mappedUploadResource.begin());
 
 			groundNormalTextureResource.initialize(device, x, y, 1, 1);
 
@@ -256,29 +248,30 @@ namespace test007
 
 		auto [vertexList, indexList] = GetGroundPatch();
 
-		vertex_buffer_resource<VertexLayout1> vertexBuffer{};
+		buffer_resource<VertexLayout1, resource_heap_property::UPLOAD> vertexBuffer{};
 		vertexBuffer.initialize(device, vertexList.size());
 
 		auto vertexBufferMappedResource = map(vertexBuffer);
-		for (std::uint32_t i = 0; i < vertexList.size(); i++)
-		{
+		auto posIter = vertexBufferMappedResource.begin<0>();
+		auto uvIter = vertexBufferMappedResource.begin<1>();
+		for (std::uint32_t i = 0; i < vertexList.size(); i++) {
 			for (std::uint32_t j = 0; j < 3; j++)
-				vertexBufferMappedResource.reference<0>(i, j) = vertexList[i][j];
+				(*posIter)[j] = vertexList[i][j];
 			for (std::uint32_t j = 0; j < 2; j++)
-				vertexBufferMappedResource.reference<1>(i, j) = vertexList[i][j + 3];
+				(*uvIter)[j] = vertexList[i][j + 3];
+			posIter++;
+			uvIter++;
 		}
 
-
-		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
+		buffer_resource<format<component_type::UINT, 32, 1>, resource_heap_property::UPLOAD> indexBuffer{};
 		indexBuffer.initialize(device, indexList.size());
 
 		auto indexBufferMappedResource = map(indexBuffer);
-		for (std::uint32_t i = 0; i < indexList.size(); i++)
-			indexBufferMappedResource.reference(i) = indexList[i];
+		std::copy(indexList.begin(), indexList.end(), indexBufferMappedResource.begin());
 
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_RENDER_TARGET> groundDepthShaderResource{};
-		groundDepthShaderResource.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, { {0.f} });
+		allow_render_target_texture_2D_resource<format<component_type::FLOAT, 32, 1>> groundDepthShaderResource{};
+		groundDepthShaderResource.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, { 0.f });
 
 		descriptor_heap_CBV_SRV_UAV computeHeightDescriptorHeap{};
 		computeHeightDescriptorHeap.initialize(device, 3);
@@ -316,8 +309,8 @@ namespace test007
 		computeNormalPipelineState.initialize(device, computeNormalRootSignature, computeNormalCS);
 
 
-		vertex_buffer_resource<VertexLayout2> sphereVertexBuffer{};
-		index_buffer_resource<format<component_type::UINT,32,1>> sphereIndexBuffer{};
+		buffer_resource<VertexLayout2,resource_heap_property::UPLOAD> sphereVertexBuffer{};
+		buffer_resource<format<component_type::UINT,32,1>,resource_heap_property::UPLOAD> sphereIndexBuffer{};
 		std::size_t sphereFaceNum{};
 		{
 			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/sphere.off");
@@ -325,15 +318,21 @@ namespace test007
 
 			sphereVertexBuffer.initialize(device, vertexList.size());
 			auto sphereVertexBufferMappedResource = map(sphereVertexBuffer);
-			XMFLOAT3 tmpFloat3;
-			for (std::uint32_t i = 0; i < vertexList.size(); i++)
+			auto vertexListIter = vertexList.begin();
+			for (auto iter = sphereVertexBufferMappedResource.begin<0>(); iter != sphereVertexBufferMappedResource.end<0>(); iter++)
 			{
-				XMStoreFloat3(&tmpFloat3, normalList[i]);
-				for (std::uint32_t j = 0; j < 3; j++)
-					sphereVertexBufferMappedResource.reference<0>(i, j) = vertexList[i][j];
-				sphereVertexBufferMappedResource.reference<1>(i, 0) = tmpFloat3.x;
-				sphereVertexBufferMappedResource.reference<1>(i, 1) = tmpFloat3.y;
-				sphereVertexBufferMappedResource.reference<1>(i, 2) = tmpFloat3.z;
+				for (std::size_t i = 0; i < 3; i++)
+					(*iter)[i] = (*vertexListIter)[i];
+				vertexListIter++;
+			}
+			XMFLOAT3 tmpFloat3;
+			auto normalListIter = normalList.begin();
+			for (auto iter = sphereVertexBufferMappedResource.begin<1>(); iter != sphereVertexBufferMappedResource.end<1>(); iter++)
+			{
+				XMStoreFloat3(&tmpFloat3, *normalListIter++);
+				(*iter)[0] = tmpFloat3.x;
+				(*iter)[1] = tmpFloat3.y;
+				(*iter)[2] = tmpFloat3.z;
 			}
 
 			sphereFaceNum = faceList.size();
@@ -341,15 +340,19 @@ namespace test007
 			sphereIndexBuffer.initialize(device, faceList.size() * 3);
 
 			auto sphereIndexBufferMappedResource = map(sphereIndexBuffer);
-			for (std::uint32_t i = 0; i < faceList.size(); i++)
-				for (std::uint32_t j = 0; j < 3; j++)
-					sphereIndexBufferMappedResource.reference(i * 3 + j) = faceList[i][j];
+			auto indexMappedIter = sphereIndexBufferMappedResource.begin();
+			for (std::size_t i = 0; i < faceList.size(); i++)
+			{
+				(*indexMappedIter++) = faceList[i][0];
+				(*indexMappedIter++) = faceList[i][1];
+				(*indexMappedIter++) = faceList[i][2];
+			}
 
 		}
 
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> groundDepthBuffer{};
-		groundDepthBuffer.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, { {1.f} });
+		allow_depth_stencil_texture_2D_resource<format<component_type::FLOAT, 32, 1>> groundDepthBuffer{};
+		groundDepthBuffer.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, 1.f, 0);
 
 		descriptor_heap_DSV groundDepthStencilDescriptorHeap{};
 		groundDepthStencilDescriptorHeap.initialize(device, 1);
@@ -372,11 +375,11 @@ namespace test007
 		shader sphereDepthPS{};
 		sphereDepthPS.initialize(L"Shader/Sphere/DepthPixelShader.hlsl", "main", "ps_5_1");
 
-		constant_buffer_resource<SphereData> sphereDataConstantBuffer{};
-		sphereDataConstantBuffer.initialize(device);
+		buffer_resource<SphereData,resource_heap_property::UPLOAD> sphereDataConstantBuffer{};
+		sphereDataConstantBuffer.initialize(device, 1);
 
-		constant_buffer_resource<XMMATRIX> upCameraMatrixConstantBuffer{};
-		upCameraMatrixConstantBuffer.initialize(device);
+		buffer_resource<XMMATRIX,resource_heap_property::UPLOAD> upCameraMatrixConstantBuffer{};
+		upCameraMatrixConstantBuffer.initialize(device, 1);
 
 		root_signature sphereRootSignature{};
 		sphereRootSignature.initialize(device,
@@ -404,7 +407,7 @@ namespace test007
 
 		constexpr std::size_t SNOW_NUM = 8000;
 		constexpr float SNOW_RANGE = 8.f;
-		vertex_buffer_resource<format_tuple<format<component_type::FLOAT,32,3>>> snowVertexBuffer{};
+		buffer_resource<format_tuple<format<component_type::FLOAT, 32, 3>>, resource_heap_property::UPLOAD> snowVertexBuffer{};
 		{
 			std::random_device seed_gen;
 			std::default_random_engine engine(seed_gen());
@@ -412,28 +415,24 @@ namespace test007
 
 			snowVertexBuffer.initialize(device, SNOW_NUM);
 			auto snowVertexBufferMappedResource = map(snowVertexBuffer);
-			for (std::uint32_t i = 0; i < SNOW_NUM; i++)
-				for (std::uint32_t j = 0; j < 3; j++)
-					snowVertexBufferMappedResource.reference(i, j) = dist(engine);
+			for (auto& v : snowVertexBufferMappedResource)
+				for (std::size_t i = 0; i < 3; i++)
+					v[i] = dist(engine);
 		}
 
-		constant_buffer_resource<SnowData> snowDataConstantBuffer{};
-		snowDataConstantBuffer.initialize(device);
+		buffer_resource<SnowData,resource_heap_property::UPLOAD> snowDataConstantBuffer{};
+		snowDataConstantBuffer.initialize(device, 1);
 
 
-		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> snowTextureShader{};
+		texture_2D_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> snowTextureShader{};
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/snow.png", &textureWidth, &textureHeight, &n, 4);
 
-			texture_upload_buffer_resource<format<component_type::UINT, 8, 4>> uploadResource{};
-			uploadResource.initialize(device, textureWidth, textureHeight);
-
+			buffer_resource<format<component_type::UINT, 8, 1>, resource_heap_property::UPLOAD> uploadResource{};
+			uploadResource.initialize(device, textureWidth* textureHeight * 4);
 			auto mappedUploadResource = map(uploadResource);
-			for (std::uint32_t i = 0; i < textureHeight; i++)
-				for (std::uint32_t j = 0; j < textureWidth; j++)
-					for (std::uint32_t k = 0; k < 4; k++)
-						mappedUploadResource.reference(j, i, k) = data[(j + i * textureWidth) * 4 + k];
+			std::copy(&data[0], &data[textureWidth * textureHeight * 4], mappedUploadResource.begin());
 
 			snowTextureShader.initialize(device, textureWidth, textureHeight, 1, 1);
 
@@ -497,7 +496,7 @@ namespace test007
 		XMFLOAT3 lightDir{ -1.f,1.f,0.f };
 
 		auto sceneDataMappedResource = map(sceneDataConstantBuffer);
-		sceneDataMappedResource.reference() = { view,proj,eye,0.f,lightDir };
+		*sceneDataMappedResource.begin() = { view,proj,eye,0.f,lightDir };
 
 
 		XMFLOAT3 upPos{ 0.f,0.f,0.f };
@@ -507,17 +506,17 @@ namespace test007
 		auto upCamera = XMMatrixLookAtLH(XMLoadFloat3(&upPos), XMLoadFloat3(&upTarget), XMLoadFloat3(&upUp)) * XMMatrixOrthographicLH(GROUND_EDGE, GROUND_EDGE, -100.f, 100.f);
 		
 		auto upCameraMatrixMappedResource = map(upCameraMatrixConstantBuffer);
-		upCameraMatrixMappedResource.reference() = upCamera;
+		*upCameraMatrixMappedResource.begin() = upCamera;
 
 		XMFLOAT4 snowMove{};
 
 		auto sphereDataMappedResource = map(sphereDataConstantBuffer);
 
 		auto snowDataMappedResource = map(snowDataConstantBuffer);
-		snowDataMappedResource.reference().center = {};
-		snowDataMappedResource.reference().range = SNOW_RANGE;
-		snowDataMappedResource.reference().rangeR = 1 / SNOW_RANGE;
-		snowDataMappedResource.reference().size = 0.05f;
+		snowDataMappedResource.begin()->center = {};
+		snowDataMappedResource.begin()->range = SNOW_RANGE;
+		snowDataMappedResource.begin()->rangeR = 1 / SNOW_RANGE;
+		snowDataMappedResource.begin()->size = 0.05f;
 
 		std::size_t cnt = 0;
 		auto time = std::chrono::system_clock::now();
@@ -536,12 +535,12 @@ namespace test007
 
 			auto m1 = XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(30.f, 0.f, 0.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(0.f, 0.f, 15.f);
 			auto m2 = XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(-30.f, 0.f, 0.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(0.f, 0.f, -15.f);
-			sphereDataMappedResource.reference() = { m1,m2 };
+			*sphereDataMappedResource.begin() = { m1,m2 };
 
 			snowMove.y -= 0.02f;
 			if (snowMove.y < -SNOW_RANGE)
 				snowMove.y += SNOW_RANGE * 2.f;
-			snowDataMappedResource.reference().move = snowMove;
+			snowDataMappedResource.begin()->move = snowMove;
 
 			cnt++;
 

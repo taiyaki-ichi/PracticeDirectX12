@@ -7,11 +7,11 @@
 #include"root_signature.hpp"
 #include"pipeline_state.hpp"
 #include"descriptor_heap.hpp"
-#include"resource/constant_buffer_resource.hpp"
-#include"resource/shader_resource.hpp"
-#include"resource/vertex_buffer_resource.hpp"
-#include"resource/index_buffer_resource.hpp"
-#include"resource/texture_upload_buffer_resource.hpp"
+#include"resource/texture_resource.hpp"
+#include"resource/allow_render_target_texture_resource.hpp"
+#include"resource/allow_depth_stencil_texture_resource.hpp"
+#include"resource/buffer_resource.hpp"
+#include"resource/mapped_resource.hpp"
 
 #include<vector>
 #include<cmath>
@@ -129,31 +129,26 @@ namespace test005
 			{ "POSITION","TEXCOOD" }, true, false, primitive_topology::PATCH
 		);
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> depthStencilBufferResource{};
-		depthStencilBufferResource.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { {1.f} });
+		allow_depth_stencil_texture_2D_resource<format<component_type::FLOAT, 32, 1>> depthStencilBufferResource{};
+		depthStencilBufferResource.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, 1.f, 0);
 
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.initialize(device, 1);
 		depthStencilDescriptorHeap.push_back_texture2D_DSV(device, depthStencilBufferResource, 0);
 
 
-		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
-		sceneDataConstantBuffer.initialize(device);
+		buffer_resource<SceneData,resource_heap_property::UPLOAD> sceneDataConstantBuffer{};
+		sceneDataConstantBuffer.initialize(device, 1);
 
-		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> heightMapTextureResource{};
+		texture_2D_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> heightMapTextureResource{};
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/heightmap.png", &textureWidth, &textureHeight, &n, 4);
 
-			texture_upload_buffer_resource<format<component_type::UINT, 8, 4>> uploadResource{};
-			uploadResource.initialize(device, textureWidth, textureHeight);
-
+			buffer_resource<format<component_type::UINT, 8, 1>,resource_heap_property::UPLOAD> uploadResource{};
+			uploadResource.initialize(device, textureWidth * textureHeight * 4);
 			auto mappedUploadResource = map(uploadResource);
-			for (std::uint32_t i = 0; i < textureHeight; i++)
-				for (std::uint32_t j = 0; j < textureWidth; j++)
-					for (std::uint32_t k = 0; k < 4; k++)
-						mappedUploadResource.reference(j, i, k) = data[(j + i * textureWidth) * 4 + k];
-
+			std::copy(&data[0], &data[textureWidth * textureHeight * 4], mappedUploadResource.begin());
 
 			heightMapTextureResource.initialize(device, textureWidth, textureHeight, 1, 1);
 
@@ -169,19 +164,15 @@ namespace test005
 			stbi_image_free(data);
 		}
 
-		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> normalMapTextureResource{};
+		texture_2D_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> normalMapTextureResource{};
 		{
 			int textureWidth, textureHeight, n;
 			std::uint8_t* data = stbi_load("../../Assets/normalmap.png", &textureWidth, &textureHeight, &n, 4);
 
-			texture_upload_buffer_resource<format<component_type::UINT, 8, 4>> uploadResource{};
-			uploadResource.initialize(device, textureWidth, textureHeight);
-
+			buffer_resource<format<component_type::UINT, 8, 1>,resource_heap_property::UPLOAD> uploadResource{};
+			uploadResource.initialize(device, textureWidth * textureHeight * 4);
 			auto mappedUploadResource = map(uploadResource);
-			for (std::uint32_t i = 0; i < textureHeight; i++)
-				for (std::uint32_t j = 0; j < textureWidth; j++)
-					for (std::uint32_t k = 0; k < 4; k++)
-						mappedUploadResource.reference(j, i, k) = data[(j + i * textureWidth) * 4 + k];
+			std::copy(&data[0], &data[textureWidth * textureHeight * 4], mappedUploadResource.begin());
 
 			normalMapTextureResource.initialize(device, textureWidth, textureHeight, 1, 1);
 
@@ -206,23 +197,26 @@ namespace test005
 
 		auto [vertexList, indexList] = GetGroundPatch();
 
-		vertex_buffer_resource<VertexFormatTuple> vertexBuffer{};
+		buffer_resource<VertexFormatTuple,resource_heap_property::UPLOAD> vertexBuffer{};
 		vertexBuffer.initialize(device, vertexList.size());
 
 		auto vertexBufferMappedResource = map(vertexBuffer);
+		auto posIter = vertexBufferMappedResource.begin<0>();
+		auto uvIter = vertexBufferMappedResource.begin<1>();
 		for (std::uint32_t i = 0; i < vertexList.size(); i++) {
 			for (std::uint32_t j = 0; j < 3; j++)
-				vertexBufferMappedResource.reference<0>(i, j) = vertexList[i][j];
+				(*posIter)[j] = vertexList[i][j];
 			for (std::uint32_t j = 0; j < 2; j++)
-				vertexBufferMappedResource.reference<1>(i, j) = vertexList[i][j + 3];
+				(*uvIter)[j] = vertexList[i][j + 3];
+			posIter++;
+			uvIter++;
 		}
 
-		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
+		buffer_resource<format<component_type::UINT, 32, 1>,resource_heap_property::UPLOAD> indexBuffer{};
 		indexBuffer.initialize(device, indexList.size());
 
 		auto indexBufferMappedResource = map(indexBuffer);
-		for (std::uint32_t i = 0; i < indexList.size(); i++)
-			indexBufferMappedResource.reference(i) = indexList[i];
+		std::copy(indexList.begin(), indexList.end(), indexBufferMappedResource.begin());
 
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
@@ -242,7 +236,7 @@ namespace test005
 		);
 
 		auto sceneDataMappedResource = map(sceneDataConstantBuffer);
-		sceneDataMappedResource.reference() = { view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) };
+		*sceneDataMappedResource.begin() = { view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) };
 
 
 		std::size_t cnt = 0;
@@ -253,8 +247,8 @@ namespace test005
 			XMFLOAT3 t{ eye.x + 10.f,-1.f,0 };
 			auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&t), XMLoadFloat3(&up));
 
-			sceneDataMappedResource.reference().eye = eye;
-			sceneDataMappedResource.reference().view = view;
+			sceneDataMappedResource.begin()->eye = eye;
+			sceneDataMappedResource.begin()->view = view;
 
 			cnt++;
 

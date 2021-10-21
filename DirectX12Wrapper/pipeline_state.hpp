@@ -4,7 +4,6 @@
 #include"shader.hpp"
 #include"device.hpp"
 #include"primitive_topology.hpp"
-#include"resource/vertex_buffer_resource.hpp"
 #include<d3d12.h>
 #include<dxgi1_6.h>
 #include<vector>

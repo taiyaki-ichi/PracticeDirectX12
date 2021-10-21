@@ -15,6 +15,9 @@ namespace OffLoader
 	template<typename Container>
 	void GetElement(std::string& line,Container&);
 
+	template<typename VertexType,typename IndexType>
+	inline std::pair<std::vector<VertexType>, std::vector<IndexType>> LoadTriangularMeshFromOffFile2(const char* fileName);
+
 	//
 	//
 	//
@@ -78,4 +81,49 @@ namespace OffLoader
 		for (std::size_t i = 0; i < c.size(); i++)
 			ss >> c[i];
 	}
+
+	template<typename VertexType, typename IndexType>
+	inline std::pair<std::vector<VertexType>, std::vector<IndexType>> LoadTriangularMeshFromOffFile2(const char* fileName)
+	{
+		std::ifstream is{ fileName };
+		if (!is)
+			throw "";
+
+		char magic[3];
+		is.read(magic, sizeof(magic));
+		if (!std::equal(std::begin(magic), std::end(magic), "OFF"))
+			throw "";
+
+		std::size_t vertexSize, faceSize, hoge;
+		is >> vertexSize;
+		is >> faceSize;
+		//
+		is >> hoge;
+
+		std::vector<VertexType> vertexList{};
+		vertexList.reserve(vertexSize * 3);
+		VertexType tmpVertexElement{};
+		for (std::size_t i = 0; i < vertexSize * 3; i++) {
+			is >> tmpVertexElement;
+			vertexList.emplace_back(tmpVertexElement);
+		}
+
+
+		std::vector<IndexType> indexList{};
+		indexList.reserve(faceSize * 3);
+		IndexType tmpIndexElement{};
+		for (std::size_t i = 0; i < faceSize; i++) {
+			is >> tmpIndexElement;
+			if (tmpIndexElement != 3)
+				throw "";
+			for (std::size_t j = 0; j < 3; j++) {
+				is >> tmpIndexElement;
+				indexList.emplace_back(tmpIndexElement);
+			}
+		}
+
+		return { std::move(vertexList),std::move(indexList) };
+	}
+
+
 }

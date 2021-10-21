@@ -5,11 +5,10 @@
 #include"shader.hpp"
 #include"root_signature.hpp"
 #include"pipeline_state.hpp"
-#include"resource/shader_resource.hpp"
 #include"descriptor_heap.hpp"
-#include"resource/vertex_buffer_resource.hpp"
-#include"resource/index_buffer_resource.hpp"
-#include"resource/texture_upload_buffer_resource.hpp"
+#include"resource/buffer_resource.hpp"
+#include"resource/texture_resource.hpp"
+#include"resource/mapped_resource.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include<stb_image.h>
@@ -58,18 +57,14 @@ namespace test006
 		computePipelineState.initialize(device, computeRootsignature, cs);
 
 		int x, y, n;
-		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> textureResource{};
+		texture_2D_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> textureResource{};
 		{
 			std::uint8_t* data = stbi_load("../../Assets/icon.png", &x, &y, &n, 4);
 
-			texture_upload_buffer_resource<format<component_type::UINT, 8, 4>> uploadResource{};
-			uploadResource.initialize(device, x, y);
-
+			buffer_resource<format<component_type::UINT, 8, 1>,resource_heap_property::UPLOAD> uploadResource{};
+			uploadResource.initialize(device, x * y * 4);
 			auto mappedUploadResource = map(uploadResource);
-			for (std::uint32_t i = 0; i < y; i++)
-				for (std::uint32_t j = 0; j < x; j++)
-					for (std::uint32_t k = 0; k < 4; k++)
-						mappedUploadResource.reference(j, i, k) = data[(j + i * y) * 4 + k];
+			std::copy(&data[0], &data[x * y * 4], mappedUploadResource.begin());
 
 			textureResource.initialize(device, x, y, 1, 1);
 
@@ -85,8 +80,8 @@ namespace test006
 			stbi_image_free(data);
 		}
 
-		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>, resource_flag::ALLOW_UNORDERED_ACCESS> float4ShaderResource{};
-		float4ShaderResource.initialize(device, x, y, 1, 0);
+		texture_2D_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> float4ShaderResource{};
+		float4ShaderResource.initialize(device, x, y, 1, 0, true);
 
 		descriptor_heap_CBV_SRV_UAV computeDescriptorHeap{};
 		computeDescriptorHeap.initialize(device, 2);
@@ -121,23 +116,27 @@ namespace test006
 			0,1,2,2,1,3
 		};
 
-		vertex_buffer_resource<VertexLayout> vertexBuffer{};
+		buffer_resource<VertexLayout, resource_heap_property::UPLOAD> vertexBuffer{};
 		vertexBuffer.initialize(device, vertex.size());
 
 		auto vertexBufferMappedResource = map(vertexBuffer);
+		auto posIter = vertexBufferMappedResource.begin<0>();
+		auto uvIter = vertexBufferMappedResource.begin<1>();
 		for (std::uint32_t i = 0; i < vertex.size(); i++) {
 			for (std::uint32_t j = 0; j < 3; j++)
-				vertexBufferMappedResource.reference<0>(i, j) = vertex[i][j];
+				(*posIter)[j] = vertex[i][j];
 			for (std::uint32_t j = 0; j < 2; j++)
-				vertexBufferMappedResource.reference<1>(i, j) = vertex[i][j + 3];
+				(*uvIter)[j] = vertex[i][j + 3];
+			posIter++;
+			uvIter++;
 		}
 
-		index_buffer_resource<format<component_type::UINT,32,1>> indexBuffer{};
+
+		buffer_resource<format<component_type::UINT, 32, 1>, resource_heap_property::UPLOAD> indexBuffer{};
 		indexBuffer.initialize(device, index.size());
 
 		auto indexBufferMappedResource = map(indexBuffer);
-		for (std::uint32_t i = 0; i < index.size(); i++)
-			indexBufferMappedResource.reference(i) = index[i];
+		std::copy(index.begin(), index.end(), indexBufferMappedResource.begin());
 
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 		descriptorHeap.initialize(device, 1);

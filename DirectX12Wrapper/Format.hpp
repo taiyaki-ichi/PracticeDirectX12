@@ -55,6 +55,10 @@ namespace DX12
 		template<std::size_t I>
 		using value_type = typename convert_type<format_type<I>::component_type, format_type<I>::component_size>::type;
 	
+
+		//
+		//メンバ関数でなく通常の関数として実装する
+		//
 		template<std::size_t I>
 		static constexpr DXGI_FORMAT get_dxgi_format();
 
@@ -74,6 +78,7 @@ namespace DX12
 		static constexpr std::uint32_t get_formats_num() { return 0; };
 	};
 
+
 	//0-3bitでnum、4-6でsize、残りがtype
 	inline constexpr std::uint32_t get_format_hash(component_type type, std::uint32_t size, std::uint32_t num);
 	
@@ -83,13 +88,35 @@ namespace DX12
 	//DepthStencilのDescriptorHeapにViewを作る時に使用
 	inline constexpr std::optional<DXGI_FORMAT> get_depth_stencil_dxgi_format(component_type componentType, std::uint8_t componentSize, std::uint8_t componentNum);
 
+	template<typename Format>
+	inline constexpr std::optional<DXGI_FORMAT> get_resource_format();
+
+	//formatかどうかの判定
+	template<typename>
+	struct is_format {
+		static constexpr bool value = false;
+	};
+	template<component_type ComponentType, std::uint32_t ComponentSize, std::uint8_t ComponentNum>
+	struct is_format<format<ComponentType, ComponentSize, ComponentNum>> {
+		static constexpr bool value = true;
+	};
+
+	//format_tupleかどうかの判定
+	template<typename>
+	struct is_format_tuple {
+		static constexpr bool value = false;
+	};
+	template<typename... Formats>
+	struct is_format_tuple<format_tuple<Formats...>> {
+		static constexpr bool value = true;
+	};
 
 
 	//
 	//
 	//
 
-
+	
 	template<>
 	struct convert_type<component_type::FLOAT,32> {
 		using type = float;
@@ -114,7 +141,10 @@ namespace DX12
 	template<typename Format>
 	inline constexpr std::uint32_t get_format_stride()
 	{
-		return Format::component_size / 8 * Format::component_num;
+		if constexpr (is_format_tuple<Format>::value)
+			return Format::get_formats_stride();
+		else
+			return Format::component_size / 8 * Format::component_num;
 	}
 
 	template<std::size_t Index, typename HeadFormat, typename... TaisFormats>
@@ -225,5 +255,14 @@ namespace DX12
 			return DXGI_FORMAT_D32_FLOAT;
 		}
 		return std::nullopt;
+	}
+
+	template<typename Format>
+	inline constexpr std::optional<DXGI_FORMAT> get_resource_format()
+	{
+		if constexpr (std::is_same_v<Format, unknow_format>)
+			return DXGI_FORMAT_UNKNOWN;
+		else
+			return get_dxgi_format(component_type::TYPELSEE, Format::component_size, Format::component_num);
 	}
 }

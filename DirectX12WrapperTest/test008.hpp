@@ -4,11 +4,13 @@
 #include"command.hpp"
 #include"swap_chain.hpp"
 #include"descriptor_heap.hpp"
-#include"resource/vertex_buffer_resource.hpp"
 #include"root_signature.hpp"
 #include"pipeline_state.hpp"
-#include"resource/constant_buffer_resource.hpp"
-#include"resource/shader_resource.hpp"
+#include"resource/buffer_resource.hpp"
+#include"resource/texture_resource.hpp"
+#include"resource/mapped_resource.hpp"
+#include"resource/allow_render_target_texture_resource.hpp"
+#include"resource/allow_depth_stencil_texture_resource.hpp"
 
 #include<array>
 
@@ -70,8 +72,8 @@ namespace test008
 		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(0), 0, 0);
 		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(1), 0, 0);
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> depthBuffer{};
-		depthBuffer.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { {1.f} });
+		allow_depth_stencil_texture_2D_resource<format<component_type::FLOAT, 32, 1>> depthBuffer{};
+		depthBuffer.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, 1.f, 0);
 
 		descriptor_heap_DSV dsvDescriptorHeap{};
 		dsvDescriptorHeap.initialize(device, 1);
@@ -79,8 +81,8 @@ namespace test008
 
 
 		//‹¤—L‚·‚éSceneData‚ÌConstantBuffer
-		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
-		sceneDataConstantBuffer.initialize(device);
+		buffer_resource<SceneData,resource_heap_property::UPLOAD> sceneDataConstantBuffer{};
+		sceneDataConstantBuffer.initialize(device, 1);
 
 
 
@@ -88,8 +90,8 @@ namespace test008
 		//ShadowMap
 		//
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> shadowMap{};
-		shadowMap.initialize(device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, 1, 1, { {1.f} });
+		allow_depth_stencil_texture_2D_resource<format<component_type::FLOAT, 32, 1>> shadowMap{};
+		shadowMap.initialize(device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, 1, 1, 1.f, 0);
 
 		descriptor_heap_DSV shadowMapDescriptorHeap{};
 		shadowMapDescriptorHeap.initialize(device, 1);
@@ -100,7 +102,7 @@ namespace test008
 		//Ground
 		//
 
-		vertex_buffer_resource<format_tuple<format<component_type::FLOAT, 32, 3>>> groundVertexBuffer{};
+		buffer_resource<format_tuple<format<component_type::FLOAT, 32, 3>>,resource_heap_property::UPLOAD> groundVertexBuffer{};
 		{
 			std::array<std::array<float, 3>, 4> vertex{ {
 				{-1.f,0.f,-1.f},
@@ -110,12 +112,16 @@ namespace test008
 				} };
 			groundVertexBuffer.initialize(device, vertex.size());
 			auto groundVertexBufferMappedResource = map(groundVertexBuffer);
-			for (std::uint32_t i = 0; i < vertex.size(); i++)
-				for (std::uint32_t j = 0; j < 3; j++)
-					groundVertexBufferMappedResource.reference(i, j) = vertex[i][j];
+			auto vertexIter = vertex.begin();
+			for (auto& v : groundVertexBufferMappedResource)
+			{
+				for (std::size_t i = 0; i < 3; i++)
+					v[i] = (*vertexIter)[i];
+				vertexIter++;
+			}
 		}
 
-		index_buffer_resource<format<component_type::UINT,32,1>> groundIndexBuffer{};
+		buffer_resource<format<component_type::UINT,32,1>,resource_heap_property::UPLOAD> groundIndexBuffer{};
 		std::uint32_t groundIndexNum{};
 		{
 			std::array<std::uint32_t, 6> index{
@@ -123,14 +129,13 @@ namespace test008
 			};
 			groundIndexBuffer.initialize(device, index.size());
 			auto groundIndexBufferMappedResource = map(groundIndexBuffer);
-			for (std::uint32_t i = 0; i < index.size(); i++)
-				groundIndexBufferMappedResource.reference(i) = index[i];
+			std::copy(index.begin(), index.end(), groundIndexBufferMappedResource.begin());
 
 			groundIndexNum = index.size();
 		}
 
-		constant_buffer_resource<GroundData> groundDataConstantBuffer{};
-		groundDataConstantBuffer.initialize(device);
+		buffer_resource<GroundData,resource_heap_property::UPLOAD> groundDataConstantBuffer{};
+		groundDataConstantBuffer.initialize(device, 1);
 
 		descriptor_heap_CBV_SRV_UAV groundDescriptorHeap{};
 		groundDescriptorHeap.initialize(device, 3);
@@ -172,8 +177,8 @@ namespace test008
 		//Bunny
 		//
 
-		vertex_buffer_resource<format_tuple<format<component_type::FLOAT,32,3>, format<component_type::FLOAT, 32, 3>>> bunnyVertexBuffer{};
-		index_buffer_resource<format<component_type::UINT,32,1>> bunnyIndexBuffer{};
+		buffer_resource<format_tuple<format<component_type::FLOAT,32,3>, format<component_type::FLOAT, 32, 3>>,resource_heap_property::UPLOAD> bunnyVertexBuffer{};
+		buffer_resource<format<component_type::UINT,32,1>,resource_heap_property::UPLOAD> bunnyIndexBuffer{};
 		std::uint32_t bunnyIndexNum{};
 		{
 			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/bun_zipper.off");
@@ -181,29 +186,40 @@ namespace test008
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
 			bunnyVertexBuffer.initialize(device, vertexList.size());
-			auto bunnyVertexBufferMappedResource = map(bunnyVertexBuffer);
-
+			auto sphereVertexBufferMappedResource = map(bunnyVertexBuffer);
+			auto vertexListIter = vertexList.begin();
+			for (auto iter = sphereVertexBufferMappedResource.begin<0>(); iter != sphereVertexBufferMappedResource.end<0>(); iter++)
+			{
+				for (std::size_t i = 0; i < 3; i++)
+					(*iter)[i] = (*vertexListIter)[i];
+				vertexListIter++;
+			}
 			XMFLOAT3 tmpFloat3;
-			for (std::size_t i = 0; i < vertexList.size(); i++) {
-				XMStoreFloat3(&tmpFloat3, normalList[i]);
-				for (std::uint32_t j = 0; j < 3; j++)
-					bunnyVertexBufferMappedResource.reference<0>(i, j) = vertexList[i][j];
-				bunnyVertexBufferMappedResource.reference<1>(i, 0) = tmpFloat3.x;
-				bunnyVertexBufferMappedResource.reference<1>(i, 1) = tmpFloat3.y;
-				bunnyVertexBufferMappedResource.reference<1>(i, 2) = tmpFloat3.z;
+			auto normalListIter = normalList.begin();
+			for (auto iter = sphereVertexBufferMappedResource.begin<1>(); iter != sphereVertexBufferMappedResource.end<1>(); iter++)
+			{
+				XMStoreFloat3(&tmpFloat3, *normalListIter++);
+				(*iter)[0] = tmpFloat3.x;
+				(*iter)[1] = tmpFloat3.y;
+				(*iter)[2] = tmpFloat3.z;
 			}
 
 			bunnyIndexNum = faceList.size() * 3;
 
 			bunnyIndexBuffer.initialize(device, faceList.size() * 3);
-			auto bunnyIndexBufferMappedResource = map(bunnyIndexBuffer);
-			for (std::uint32_t i = 0; i < faceList.size(); i++)
-				for (std::uint32_t j = 0; j < 3; j++)
-					bunnyIndexBufferMappedResource.reference(i * 3 + j) = faceList[i][j];
+
+			auto sphereIndexBufferMappedResource = map(bunnyIndexBuffer);
+			auto indexMappedIter = sphereIndexBufferMappedResource.begin();
+			for (std::size_t i = 0; i < faceList.size(); i++)
+			{
+				(*indexMappedIter++) = faceList[i][0];
+				(*indexMappedIter++) = faceList[i][1];
+				(*indexMappedIter++) = faceList[i][2];
+			}
 		}
 
-		constant_buffer_resource<BunnyData> bunnyDataConstantBuffer{};
-		bunnyDataConstantBuffer.initialize(device);
+		buffer_resource<BunnyData,resource_heap_property::UPLOAD> bunnyDataConstantBuffer{};
+		bunnyDataConstantBuffer.initialize(device, 1);
 
 		descriptor_heap_CBV_SRV_UAV bunnyDescriptorHeap{};
 		bunnyDescriptorHeap.initialize(device, 3);
@@ -265,10 +281,10 @@ namespace test008
 		XMMATRIX shadowMapViewProj = XMMatrixLookAtLH(lightPos, XMLoadFloat3(&target), XMLoadFloat3(&up)) * XMMatrixOrthographicLH(100, 100, -100.f, 200.f);
 
 		auto sceneDataMappedResource = map(sceneDataConstantBuffer);
-		sceneDataMappedResource.reference() = { view,proj,{eye.x,eye.y,eye.z,0.f}, {lightDir.x,lightDir.y,lightDir.z,0.f},shadowMapViewProj };
+		*sceneDataMappedResource.begin() = { view,proj,{eye.x,eye.y,eye.z,0.f}, {lightDir.x,lightDir.y,lightDir.z,0.f},shadowMapViewProj };
 
 		auto groundDataMappedResource = map(groundDataConstantBuffer);
-		groundDataMappedResource.reference() = { XMMatrixScaling(100.f,100.f,100.f) };
+		*groundDataMappedResource.begin() = { XMMatrixScaling(100.f,100.f,100.f) };
 
 		auto bunnyDataMappedResource = map(bunnyDataConstantBuffer);
 
@@ -279,7 +295,7 @@ namespace test008
 			//update
 			//
 			for (std::size_t i = 0; i < BUNNY_NUM; i++)
-				bunnyDataMappedResource.reference().world[i] = XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(30.f, 0.f, 40.f - i * 40.f);
+				bunnyDataMappedResource.begin()->world[i] = XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(30.f, 0.f, 40.f - i * 40.f);
 
 			cnt++;
 

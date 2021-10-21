@@ -1,5 +1,5 @@
 #pragma once
-#include"resource.hpp"
+#include"resource_state.hpp"
 
 namespace DX12
 {
@@ -27,10 +27,7 @@ namespace DX12
 		resource_state get_state() const noexcept;
 		void set_state(resource_state) noexcept;
 
-		static constexpr resource_dimention dimention = resource_dimention::TEXTURE_2D;
 		using format = Format;
-		static constexpr resource_heap_property heap_property = resource_heap_property::DEFAULT;//
-		static constexpr D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;//
 	};
 
 	//

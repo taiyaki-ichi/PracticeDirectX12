@@ -177,14 +177,16 @@ namespace DX12
 	template<typename Resource>
 	inline void descriptor_heap_CBV_SRV_UAV::push_back_CBV(device& device, Resource& resource)
 	{
-		push_back_view(device, resource, create_CBV, resource.get_size());
+		//
+		auto desc = resource.get()->GetDesc();
+		push_back_view(device, resource, create_CBV, desc.Width);
 	}
 
 	template<typename Resource>
 	inline void descriptor_heap_CBV_SRV_UAV::push_back_texture2D_SRV(device& device, Resource& resource, 
 		std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSline, float resourceMinLODClamp)
 	{
-		static_assert(!(Resource::flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE));
+		//static_assert(!(Resource::flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE));
 		static_assert(get_dxgi_format(Resource::format::component_type, Resource::format::component_size, Resource::format::component_num));
 
 		push_back_view(device, resource, create_texture2D_SRV<Resource::format::component_type, Resource::format::component_size, Resource::format::component_num>, mipLevels, mostDetailedMip, planeSline, resourceMinLODClamp);
@@ -194,7 +196,7 @@ namespace DX12
 	inline void DX12::descriptor_heap_CBV_SRV_UAV::push_back_texture2D_array_SRV(device& device, Resource& resource,
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSlice, float resourceMinLODClamp)
 	{
-		static_assert(!(Resource::flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE));
+		//static_assert(!(Resource::flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE));
 		static_assert(get_dxgi_format(Resource::format::component_type, Resource::format::component_size, Resource::format::component_num));
 
 		push_back_view(device, resource, create_texture2D_array_SRV<Resource::format::component_type, Resource::format::component_size, Resource::format::component_num>,
@@ -205,7 +207,7 @@ namespace DX12
 	inline void descriptor_heap_CBV_SRV_UAV::push_back_texture_cube_array_SRV(device& device, Resource& resource,
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipLevels, std::uint32_t mostDetailedMip, std::uint32_t planeSlice, float resourceMinLODClamp)
 	{
-		static_assert(!(Resource::flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE));
+		//static_assert(!(Resource::flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE));
 		static_assert(get_dxgi_format(Resource::format::component_type, Resource::format::component_size, Resource::format::component_num));
 
 		push_back_view(device, resource, create_texture_cube_SRV<Resource::format::component_type, Resource::format::component_size, Resource::format::component_num>,
@@ -215,7 +217,7 @@ namespace DX12
 	template<typename Resource>
 	inline void descriptor_heap_CBV_SRV_UAV::push_back_texture2D_UAV(device& device, Resource& resource, std::uint32_t mipSlice, std::uint32_t planeSlice)
 	{
-		static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+		//static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 		static_assert(get_dxgi_format(Resource::format::component_type, Resource::format::component_size, Resource::format::component_num));
 
 		//とりあえずCounterResourceはnullptrで
@@ -226,7 +228,7 @@ namespace DX12
 	inline void descriptor_heap_CBV_SRV_UAV::push_back_texture2D_array_UAV(device& device, Resource& resource, 
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice, std::uint32_t planeSlice)
 	{
-		static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+		//static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 		static_assert(get_dxgi_format(Resource::format::component_type, Resource::format::component_size, Resource::format::component_num));
 
 		//とりあえずCounterResourceはnullptrで
@@ -249,7 +251,7 @@ namespace DX12
 	template<typename Resource>
 	inline void descriptor_heap_DSV::push_back_texture2D_DSV(device& device, Resource& resource, std::uint32_t mipSlice)
 	{
-		static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+		//static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 		//ここのフォーマットのstaticassert
 
 		push_back_view(device, resource, create_texture2D_DSV<Resource::format::component_type, Resource::format::component_size, Resource::format::component_num>, mipSlice);
@@ -259,7 +261,7 @@ namespace DX12
 	inline void descriptor_heap_DSV::push_back_texture2D_array_DSV(device& device, Resource& resource, 
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice)
 	{
-		static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+		//static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 		//
 		//
 
@@ -282,7 +284,7 @@ namespace DX12
 	template<typename Resource>
 	inline void descriptor_heap_RTV::push_back_texture2D_RTV(device& device, Resource& resource, std::uint32_t mipSlice, std::uint32_t planeSlice)
 	{
-		static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+		//static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 		static_assert(get_dxgi_format(Resource::format::component_type, Resource::format::component_size, Resource::format::component_num));
 
 		push_back_view(device, resource, create_texture2D_RTV<Resource::format::component_type, Resource::format::component_size, Resource::format::component_num>, mipSlice, planeSlice);
@@ -292,7 +294,7 @@ namespace DX12
 	inline void descriptor_heap_RTV::push_back_texture2D_array_RTV(device& device, Resource& resource, 
 		std::uint32_t arraySize, std::uint32_t firstArraySlice, std::uint32_t mipSlice, std::uint32_t planeSlice)
 	{
-		static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+		//static_assert(Resource::flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 		static_assert(get_dxgi_format(Resource::format::component_type, Resource::format::component_size, Resource::format::component_num));
 
 		push_back_view(device, resource, create_texture2D_array_RTV<Resource::format::component_type, Resource::format::component_size, Resource::format::component_num>, 

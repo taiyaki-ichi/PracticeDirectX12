@@ -4,10 +4,10 @@
 #include"command.hpp"
 #include"swap_chain.hpp"
 #include"descriptor_heap.hpp"
-#include"resource/vertex_buffer_resource.hpp"
 #include"root_signature.hpp"
 #include"pipeline_state.hpp"
 #include"resource/mapped_resource.hpp"
+#include"resource/buffer_resource.hpp"
 
 #include<array>
 
@@ -43,30 +43,30 @@ namespace test001
 
 		using VertexFormatTuple = format_tuple<format<component_type::FLOAT, 32, 3>>;
 
-		vertex_buffer_resource<VertexFormatTuple> vertexBuffer{};
+		buffer_resource<VertexFormatTuple,resource_heap_property::UPLOAD> vertexBuffer{};
 		vertexBuffer.initialize(device, 3);
 
 		auto vertexMappedResource = map(vertexBuffer);
-		vertexMappedResource.initialize(vertexBuffer);
+		auto iter = vertexMappedResource.begin();
+		(*iter)[0] = -0.8f;
+		(*iter)[1] = -0.8f;
+		(*iter)[2] = 0.f;
+		iter++;
 
-		vertexMappedResource.reference(0, 0) = -0.8f;
-		vertexMappedResource.reference(0, 1) = -0.8f;
-		vertexMappedResource.reference(0, 2) = 0.f;
+		(*iter)[0] = -0.8f;
+		(*iter)[1] = 0.8f;
+		(*iter)[2] = 0.f;
 
-		vertexMappedResource.reference(1, 0) = -0.8f;
-		vertexMappedResource.reference(1, 1) = 0.8f;
-		vertexMappedResource.reference(1, 2) = 0.f;
-
-		vertexMappedResource.reference(2, 0) = 0.8f;
-		vertexMappedResource.reference(2, 1) = -0.8f;
-		vertexMappedResource.reference(2, 2) = 0.f;
+		iter++;
+		(*iter)[0] = 0.8f;
+		(*iter)[1] = -0.8f;
+		(*iter)[2] = 0.f;
 
 
 		root_signature rootSignature{};
 		rootSignature.initialize(device, {}, {});
 
 		shader vertexShader{};
-
 		vertexShader.initialize(L"Shader/VertexShader001.hlsl", "main", "vs_5_0");
 
 		shader pixelShader{};
@@ -100,6 +100,7 @@ namespace test001
 			command.set_graphics_root_signature(rootSignature);
 
 			command.set_vertex_buffer(vertexBuffer);
+
 			command.draw_instanced(3);
 
 			command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::Common);

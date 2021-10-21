@@ -2,8 +2,6 @@
 #include"device.hpp"
 #include"swap_chain.hpp"
 #include"pipeline_state.hpp"
-#include"resource/vertex_buffer_resource.hpp"
-#include"resource/index_buffer_resource.hpp"
 #include"descriptor_heap.hpp"
 #include<array>
 #include<algorithm>
@@ -39,6 +37,9 @@ namespace DX12
 		template<typename SrcResource,typename DstResource>
 		void copy_texture(device&,SrcResource& srcResource, DstResource& dstResource);
 
+		template<typename SrcResource,typename DstResource>
+		void copy_resource(SrcResource& srcResource, DstResource& dstResource);
+
 		void execute();
 		void dispatch(std::uint32_t threadGroupCountX, std::uint32_t threadGroupCountY, std::uint32_t threadGroupCountZ);
 
@@ -69,11 +70,13 @@ namespace DX12
 		void set_scissor_rect(const D3D12_RECT& rect);
 		void set_scissor_rect(std::initializer_list<D3D12_RECT>);
 
-		template<typename... Formats>
-		void set_vertex_buffer(vertex_buffer_resource<Formats...>&);
 
-		template<typename Format>
-		void set_index_buffer(index_buffer_resource<Format>&);
+		template<typename Resource>
+		void set_vertex_buffer(Resource&);
+
+		template<typename Resource>
+		void set_index_buffer(Resource&);
+
 
 		void set_graphics_root_signature(root_signature&);
 		void set_compute_root_signature(root_signature&);
@@ -91,8 +94,10 @@ namespace DX12
 		template<typename Resource>
 		void barrior(Resource&, resource_state);
 
+		//
 		void clear_render_target_view(D3D12_CPU_DESCRIPTOR_HANDLE, const std::array<float, 4>&);
 		void clear_depth_view(D3D12_CPU_DESCRIPTOR_HANDLE, float);
+		
 
 		ID3D12CommandQueue* get_queue() noexcept;
 		ID3D12GraphicsCommandList* get_list() noexcept;
@@ -188,6 +193,13 @@ namespace DX12
 		dstLocation.SubresourceIndex = 0;
 
 		list_ptr->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
+	}
+
+	template<std::size_t FrameLatencyNum>
+	template<typename SrcResource, typename DstResource>
+	inline void command<FrameLatencyNum>::copy_resource(SrcResource& srcResource, DstResource& dstResource)
+	{
+		list_ptr->CopyResource(dstResource.get(), srcResource.get());
 	}
 
 	template<std::size_t FrameLatencyNum>
@@ -298,17 +310,25 @@ namespace DX12
 	}
 
 	template<std::size_t FrameLatencyNum>
-	template<typename... Formats>
-	inline void command<FrameLatencyNum>::set_vertex_buffer(vertex_buffer_resource<Formats...>& vbr)
+	template<typename Resource>
+	inline void command<FrameLatencyNum>::set_vertex_buffer(Resource& r)
 	{
-		list_ptr->IASetVertexBuffers(0, 1, &vbr.get_view());
+		D3D12_VERTEX_BUFFER_VIEW vbv{};
+		vbv.BufferLocation = r.get()->GetGPUVirtualAddress();
+		vbv.SizeInBytes = get_format_stride<typename Resource::value_type>() * r.get_num();
+		vbv.StrideInBytes = get_format_stride<typename Resource::value_type>();
+		list_ptr->IASetVertexBuffers(0, 1, &vbv);
 	}
 
 	template<std::size_t FrameLatencyNum>
-	template<typename Format>
-	inline void command<FrameLatencyNum>::set_index_buffer(index_buffer_resource<Format>& ibr)
+	template<typename Resource>
+	inline void command<FrameLatencyNum>::set_index_buffer(Resource& r)
 	{
-		list_ptr->IASetIndexBuffer(&ibr.get_view());
+		D3D12_INDEX_BUFFER_VIEW ibv{};
+		ibv.BufferLocation = r.get()->GetGPUVirtualAddress();
+		ibv.Format = get_dxgi_format(Resource::value_type::component_type, Resource::value_type::component_size, Resource::value_type::component_num).value();
+		ibv.SizeInBytes = Resource::value_type::component_size / 8 * r.get_num();
+		list_ptr->IASetIndexBuffer(&ibv);
 	}
 
 	template<std::size_t FrameLatencyNum>

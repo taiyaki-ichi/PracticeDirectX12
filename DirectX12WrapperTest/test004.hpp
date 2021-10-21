@@ -6,10 +6,10 @@
 #include"swap_chain.hpp"
 #include"OffLoader.hpp"
 #include"utility.hpp"
-#include"resource/vertex_buffer_resource.hpp"
-#include"resource/index_buffer_resource.hpp"
-#include"resource/shader_resource.hpp"
-#include"resource/constant_buffer_resource.hpp"
+#include"resource/buffer_resource.hpp"
+#include"resource/mapped_resource.hpp"
+#include"resource/allow_render_target_texture_resource.hpp"
+#include"resource/allow_depth_stencil_texture_resource.hpp"
 
 #include<array>
 #include<DirectXMath.h>
@@ -52,8 +52,8 @@ namespace test004
 	{
 		std::size_t faceNum{};
 
-		vertex_buffer_resource<MeshVertexFormatTuple> vertexBuffer{};
-		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
+		buffer_resource<MeshVertexFormatTuple,resource_heap_property::UPLOAD> vertexBuffer{};
+		buffer_resource<format<component_type::UINT, 32, 1>,resource_heap_property::UPLOAD> indexBuffer{};
 
 
 	public:
@@ -64,24 +64,34 @@ namespace test004
 
 			vertexBuffer.initialize(device, vertexList.size());
 			auto vertexMappedResource = map(vertexBuffer);
+			auto vertexListIter = vertexList.begin();
+			for (auto iter = vertexMappedResource.begin<0>(); iter != vertexMappedResource.end<0>(); iter++)
+			{
+				for (std::size_t i = 0; i < 3; i++)
+					(*iter)[i] = (*vertexListIter)[i];
+				vertexListIter++;
+			}
 
 			XMFLOAT3 tmpFloat3;
-			for (std::size_t i = 0; i < vertexList.size(); i++) {
-				XMStoreFloat3(&tmpFloat3, normalList[i]);
-				for (std::uint32_t j = 0; j < 3; j++)
-					vertexMappedResource.reference<0>(i, j) = vertexList[i][j];
-				vertexMappedResource.reference<1>(i, 0) = tmpFloat3.x;
-				vertexMappedResource.reference<1>(i, 1) = tmpFloat3.y;
-				vertexMappedResource.reference<1>(i, 2) = tmpFloat3.z;
-
+			auto normalListIter = normalList.begin();
+			for (auto iter = vertexMappedResource.begin<1>(); iter != vertexMappedResource.end<1>(); iter++)
+			{
+				XMStoreFloat3(&tmpFloat3, *normalListIter++);
+				(*iter)[0] = tmpFloat3.x;
+				(*iter)[1] = tmpFloat3.y;
+				(*iter)[2] = tmpFloat3.z;
 			}
 
 			indexBuffer.initialize(device, faceList.size() * 3);
 			auto indexMappedResource = map(indexBuffer);
 
-			for (std::uint32_t i = 0; i < faceList.size(); i++)
-				for (std::uint32_t j = 0; j < 3; j++)
-					indexMappedResource.reference(i * 3 + j) = faceList[i][j];
+			auto indexMappedIter = indexMappedResource.begin();
+			for (std::size_t i = 0; i < faceList.size(); i++)
+			{
+				(*indexMappedIter++) = faceList[i][0];
+				(*indexMappedIter++) = faceList[i][1];
+				(*indexMappedIter++) = faceList[i][2];
+			}
 
 			faceNum = faceList.size();
 		}
@@ -101,14 +111,14 @@ namespace test004
 	template<std::size_t ColorObjectNum>
 	class ColorObjectModel
 	{
-		std::array<constant_buffer_resource<ColorObjectData>, ColorObjectNum> colorBunnyDataConstantBuffer{};
+		std::array<buffer_resource<ColorObjectData,resource_heap_property::UPLOAD>, ColorObjectNum> colorBunnyDataConstantBuffer{};
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 
 	public:
-		void initialize(device& device, constant_buffer_resource<SceneData>& sceneDataConstantBuffer, constant_buffer_resource<CubemapSceneData>& cubemapSceneDataConstantBuffer)
+		void initialize(device& device, buffer_resource<SceneData,resource_heap_property::UPLOAD>& sceneDataConstantBuffer, buffer_resource<CubemapSceneData,resource_heap_property::UPLOAD>& cubemapSceneDataConstantBuffer)
 		{
 			for (std::size_t i = 0; i < ColorObjectNum; i++)
-				colorBunnyDataConstantBuffer[i].initialize(device);
+				colorBunnyDataConstantBuffer[i].initialize(device, 1);
 
 			descriptorHeap.initialize(device, 2 + ColorObjectNum);
 			descriptorHeap.push_back_CBV(device, sceneDataConstantBuffer);
@@ -121,7 +131,7 @@ namespace test004
 		void MapColorBunnyData(T&& t, std::size_t i)
 		{
 			auto tmp = map(colorBunnyDataConstantBuffer[i]);
-			tmp.reference() = std::forward<T>(t);
+			*tmp.begin() = std::forward<T>(t);
 		}
 
 		void SetDescriptorHeap(command<FRAME_LATENCY_NUM>& cl, std::size_t i)
@@ -189,17 +199,17 @@ namespace test004
 
 	class MirrorObjectModel
 	{
-		constant_buffer_resource<XMMATRIX> worldConstantBuffer{};
-		shader_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>, resource_flag::ALLOW_RENDER_TARGET> cubemapShaderResource{};
+		buffer_resource<XMMATRIX,resource_heap_property::UPLOAD> worldConstantBuffer{};
+		allow_render_target_texture_2D_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> cubemapShaderResource{};
 
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 
 	public:
 		static constexpr std::array<float, 4> CUBEMAP_CLEAR_VALUE{ 0.5f,0.5f,0.5f,1.f };
 
-		void initialize(device& device, constant_buffer_resource<SceneData>& sceneConstantBufferResource)
+		void initialize(device& device, buffer_resource<SceneData,resource_heap_property::UPLOAD>& sceneConstantBufferResource)
 		{
-			worldConstantBuffer.initialize(device);
+			worldConstantBuffer.initialize(device, 1);
 
 			cubemapShaderResource.initialize(device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, 6, 1, { {0.5f,0.5f,0.5f,1.f} });
 
@@ -212,7 +222,7 @@ namespace test004
 		template<typename T>
 		void MapWorld(T&& t) {
 			auto tmp = map(worldConstantBuffer);
-			tmp.reference() = std::forward<T>(t);
+			*tmp.begin() = std::forward<T>(t);
 		}
 
 		auto& GetCubemapShaderResource() {
@@ -311,11 +321,11 @@ namespace test004
 		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(1), 0, 0);
 
 
-		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
-		sceneDataConstantBuffer.initialize(device);
+		buffer_resource<SceneData,resource_heap_property::UPLOAD> sceneDataConstantBuffer{};
+		sceneDataConstantBuffer.initialize(device, 1);
 
-		constant_buffer_resource<CubemapSceneData> cubemapSceneDataConstant{};
-		cubemapSceneDataConstant.initialize(device);
+		buffer_resource<CubemapSceneData,resource_heap_property::UPLOAD> cubemapSceneDataConstant{};
+		cubemapSceneDataConstant.initialize(device, 1);
 
 
 		Mesh bunnyMesh{};
@@ -354,16 +364,16 @@ namespace test004
 		MirrorObjectRenderer mirrorObjectRenderer{};
 		mirrorObjectRenderer.initialize(device);
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> cubemapDepthBuffer{};
-		cubemapDepthBuffer.initialize(device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, 6, 1, { {1.f} });
+		allow_depth_stencil_texture_2D_resource<format<component_type::FLOAT, 32, 1>> cubemapDepthBuffer{};
+		cubemapDepthBuffer.initialize(device, CUBE_MAP_EDGE, CUBE_MAP_EDGE, 6, 1, 1.f, 0);
 
 		descriptor_heap_RTV cubemapRtvDescriptorHeap{};
 		cubemapRtvDescriptorHeap.initialize(device, 1);
 		cubemapRtvDescriptorHeap.push_back_texture2D_array_RTV(device, mirrorObjectModel.GetCubemapShaderResource(), 6, 0, 0, 0);
 
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> depthBuffer{};
-		depthBuffer.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { {1.f} });
+		allow_depth_stencil_texture_2D_resource<format<component_type::FLOAT, 32, 1>> depthBuffer{};
+		depthBuffer.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, 1.f, 0);
 
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.initialize(device, 2);
@@ -393,7 +403,7 @@ namespace test004
 		XMFLOAT3 mirrorPos{ 0.f, 0.f, 0.f };
 
 		auto sceneDataMappedResource = map(sceneDataConstantBuffer);
-		sceneDataMappedResource.reference() = { view,proj,lightDir,eye };
+		*sceneDataMappedResource.begin() = { view,proj,lightDir,eye };
 
 		auto cubemapSceneDataMappedResource = map(cubemapSceneDataConstant);
 
@@ -404,7 +414,7 @@ namespace test004
 				colorObjectModel.MapColorBunnyData(ColorObjectData{ colorObjectWorlds[i] ,colorObjectColors[i] }, i);
 			}
 
-			cubemapSceneDataMappedResource.reference() = GetCubemapSceneData(mirrorPos);
+			*cubemapSceneDataMappedResource.begin() = GetCubemapSceneData(mirrorPos);
 
 			mirrorObjectModel.MapWorld(XMMatrixScaling(3.f, 3.f, 3.f) * XMMatrixTranslation(mirrorPos.x, mirrorPos.y, mirrorPos.z));
 

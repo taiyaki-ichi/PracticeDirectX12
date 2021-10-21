@@ -5,10 +5,9 @@
 #include"swap_chain.hpp"
 #include"root_signature.hpp"
 #include"pipeline_state.hpp"
-#include"resource/vertex_buffer_resource.hpp"
-#include"resource/index_buffer_resource.hpp"
-#include"resource/constant_buffer_resource.hpp"
-#include"resource/shader_resource.hpp"
+#include"resource/buffer_resource.hpp"
+#include"resource/mapped_resource.hpp"
+#include"resource/allow_depth_stencil_texture_resource.hpp"
 
 #include"OffLoader.hpp"
 
@@ -52,25 +51,43 @@ namespace test003
 		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(0), 0, 0);
 		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(1), 0, 0);
 
-		auto [vertex, face] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/bunny.off");
+		auto [vertex, index] = OffLoader::LoadTriangularMeshFromOffFile2<float, std::uint32_t>("../../Assets/bunny.off");
 		
-		vertex_buffer_resource<VertexFormatTuple> vertexBuffer{};
-		vertexBuffer.initialize(device, vertex.size());
+		buffer_resource<format<component_type::FLOAT, 32, 3>, resource_heap_property::DEFAULT> vertexBuffer{};
+		vertexBuffer.initialize(device, vertex.size() / 3);
+		{
+			buffer_resource<format<component_type::FLOAT, 32, 1>,resource_heap_property::UPLOAD> uploadVertexBuffer{};
+			uploadVertexBuffer.initialize(device, vertex.size());
+			auto mappedVertexBuffer = map(uploadVertexBuffer);
+			std::copy(vertex.begin(), vertex.end(), mappedVertexBuffer.begin());
 
-		auto vertexMappedResource = map(vertexBuffer);
-		for (std::uint32_t i = 0; i < vertex.size(); i++)
-			for (std::uint32_t j = 0; j < 3; j++)
-				vertexMappedResource.reference(i, j) = vertex[i][j];
+			command.reset(0);
+			command.barrior(vertexBuffer, resource_state::CopyDest);
+			command.copy_resource(uploadVertexBuffer, vertexBuffer);
+			command.barrior(vertexBuffer, resource_state::Common);
+			command.close();
+			command.execute();
+			command.fence(0);
+			command.wait(0);
+		}
 
-		
-		index_buffer_resource<format<component_type::UINT, 32, 1>> indexBuffer{};
-		indexBuffer.initialize(device, face.size() * 3);
+		buffer_resource<format<component_type::UINT, 32, 1>, resource_heap_property::DEFAULT> indexBuffer{};
+		indexBuffer.initialize(device, index.size());
+		{
+			buffer_resource<format<component_type::UINT, 32, 1>, resource_heap_property::UPLOAD> uploadIndexBuffer{};
+			uploadIndexBuffer.initialize(device, index.size());
+			auto mappedIndexBuffer = map(uploadIndexBuffer);
+			std::copy(index.begin(), index.end(), mappedIndexBuffer.begin());
 
-		auto indexMappedResource = map(indexBuffer);
-		for (std::uint32_t i = 0; i < face.size(); i++)
-			for (std::uint32_t j = 0; j < 3; j++)
-				indexMappedResource.reference(i * 3 + j) = face[i][j];
-
+			command.reset(0);
+			command.barrior(indexBuffer, resource_state::CopyDest);
+			command.copy_resource(uploadIndexBuffer, indexBuffer);
+			command.barrior(indexBuffer, resource_state::Common);
+			command.close();
+			command.execute();
+			command.fence(0);
+			command.wait(0);
+		}
 
 		root_signature rootSignature{};
 		rootSignature.initialize(device, { {descriptor_range_type::CBV} }, {});
@@ -100,8 +117,8 @@ namespace test003
 			{ "POSITION" }, true, false, primitive_topology::TRIANGLE
 		);
 
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> depthBuffer{};
-		depthBuffer.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { { 1.f } });
+		allow_depth_stencil_texture_2D_resource<format<component_type::FLOAT, 32, 1>> depthBuffer{};
+		depthBuffer.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, 1.f, 0);
 		
 		descriptor_heap_DSV depthStencilDescriptorHeap{};
 		depthStencilDescriptorHeap.initialize(device, 1);
@@ -122,11 +139,11 @@ namespace test003
 			100.f
 		);
 		
-		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
-		sceneDataConstantBuffer.initialize(device);
+		buffer_resource<SceneData,resource_heap_property::UPLOAD> sceneDataConstantBuffer{};
+		sceneDataConstantBuffer.initialize(device, 1);
 
 		auto sceneDataMappedResource = map(sceneDataConstantBuffer);
-		sceneDataMappedResource.reference() = { view,proj };
+		*sceneDataMappedResource.begin() = { view,proj };
 
 		
 		//SceneDataをシェーダに渡す用
@@ -142,7 +159,7 @@ namespace test003
 			eye.z = len * std::sin(cnt / 60.0);
 			auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
 
-			sceneDataMappedResource.reference().view = view;
+			sceneDataMappedResource.begin()->view = view;
 
 			cnt++;
 
@@ -171,7 +188,7 @@ namespace test003
 				command.set_descriptor_heap(descriptorHeap);
 				command.set_graphics_root_descriptor_table(0, descriptorHeap.get_GPU_handle());
 
-				command.draw_indexed_instanced(face.size() * 3);
+				command.draw_indexed_instanced(index.size());
 			}
 
 			//法線の描写
@@ -185,7 +202,7 @@ namespace test003
 				command.set_descriptor_heap(descriptorHeap);
 				command.set_graphics_root_descriptor_table(0, descriptorHeap.get_GPU_handle());
 
-				command.draw_indexed_instanced(face.size() * 3);
+				command.draw_indexed_instanced(index.size());
 			}
 
 			command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::Common);

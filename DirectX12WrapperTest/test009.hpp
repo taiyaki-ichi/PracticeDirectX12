@@ -1,65 +1,59 @@
 #pragma once
-#include"window.hpp"
+#include"Window.hpp"
 #include"device.hpp"
 #include"command.hpp"
-#include"swap_chain.hpp"
 #include"descriptor_heap.hpp"
-#include"resource/vertex_buffer_resource.hpp"
-#include"root_signature.hpp"
-#include"pipeline_state.hpp"
-#include"resource/constant_buffer_resource.hpp"
-#include"resource/shader_resource.hpp"
-
-#include<array>
+#include"resource/buffer_resource.hpp"
+#include"resource/texture_resource.hpp"
+#include"resource/mapped_resource.hpp"
+#include"resource/allow_render_target_texture_resource.hpp"
+#include"resource/allow_depth_stencil_texture_resource.hpp"
 
 #include<DirectXMath.h>
+#include<cmath>
 
-#include"OffLoader.hpp"
-#include"utility.hpp"
-
-//分散シャドウマップ
+//mipmap
 namespace test009
 {
-	using namespace DirectX;
 	using namespace DX12;
+	using namespace DirectX;
 
-	constexpr std::size_t WINDOW_WIDTH = 1024;
-	constexpr std::size_t WINDOW_HEIGHT = 768;
-
-	struct SceneData
+	struct ComputeData
 	{
-		XMMATRIX view;
-		XMMATRIX proj;
-		XMFLOAT4 eye;
-		XMFLOAT4 lightDir;
-		XMMATRIX lightDepthViewProj;
+		std::uint32_t srcMipLevel;
+		std::uint32_t numMipLevels;
+		std::uint32_t srcDimention;
+		bool isSRGB;
+		std::array<float, 2> texelSize;
 	};
 
-	struct GroundData
+	struct GroundData 
 	{
+		DirectX::XMMATRIX view;
+		DirectX::XMMATRIX proj;
 		XMMATRIX world;
 	};
 
-	using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
-
-	using BunnyVertexFormatTuple = format_tuple<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 3>>;
-
-	constexpr std::uint32_t BUNNY_NUM = 3;
-
-	struct BunnyData {
-		std::array<XMMATRIX, BUNNY_NUM> world;
-	};
-
-	constexpr std::uint32_t SHADOW_MAP_EDGE = 1024;
-
-	struct ShadowMapData
+	std::uint32_t get_src_dimention(int x, int y)
 	{
-		float width;
-		float height;
-	};
+		if (x % 2 == 0 && y % 2 == 0)
+			return 0;
+		else if (y % 2 == 0)
+			return 1;
+		else if (x % 2 == 0)
+			return 2;
+		else
+			return 3;
+	}
 
 	inline int main()
 	{
+		constexpr std::size_t WINDOW_WIDTH = 1024;
+		constexpr std::size_t WINDOW_HEIGHT = 768;
+
+		using FrameBufferFormat = format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>;
+		constexpr std::uint32_t FRAME_BUFFER_NUM = 2;
+
 		auto hwnd = create_simple_window(L"test", WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		device device{};
@@ -68,343 +62,279 @@ namespace test009
 		command<2> command{};
 		command.initialize(device);
 
-		swap_chain<FrameBufferFormat, 2> swapChain{};
+		swap_chain<FrameBufferFormat, FRAME_BUFFER_NUM> swapChain{};
 		swapChain.initialize(command, hwnd);
 
 		descriptor_heap_RTV rtvDescriptorHeap{};
-		rtvDescriptorHeap.initialize(device, 2);
-		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(0), 0, 0);
-		rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(1), 0, 0);
-
-
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> depthBuffer{};
-		depthBuffer.initialize(device, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, { {1.f} });
-
-		descriptor_heap_DSV dsvDescriptorHeap{};
-		dsvDescriptorHeap.initialize(device, 1);
-		dsvDescriptorHeap.push_back_texture2D_DSV(device, depthBuffer, 0);
-
-
-		//共有するSceneDataのConstantBuffer
-		constant_buffer_resource<SceneData> sceneDataConstantBuffer{};
-		sceneDataConstantBuffer.initialize(device);
+		rtvDescriptorHeap.initialize(device, FRAME_BUFFER_NUM);
+		for (std::size_t i = 0; i < FRAME_BUFFER_NUM; i++)
+			rtvDescriptorHeap.push_back_texture2D_RTV(device, swapChain.get_frame_buffer(i), 0, 0);
 
 
 
-		//
-		//ShadowMap
-		//
+		constexpr std::uint32_t TEXTURE_WIDTH = 1024; 
+		constexpr std::uint32_t TEXTURE_HEIGHT = 1024;
 
+		constexpr std::uint32_t MIP_LEVEL = 9;
 
-		//float
-		shader_resource<format<component_type::FLOAT, 32, 2>, resource_flag::ALLOW_RENDER_TARGET> shadowMap{};
-		shadowMap.initialize(device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, 1, 1, { {1.f,1.f} });
+		constexpr std::uint32_t RECT_EDGE = 32;
 
-		//float
-		shader_resource<format<component_type::FLOAT, 32, 2>, resource_flag::ALLOW_UNORDERED_ACCESS> gaussianBlurShadowMap{};
-		gaussianBlurShadowMap.initialize(device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, 1, 1);
-
-		constant_buffer_resource<ShadowMapData> shadowMapDataConstantBuffer{};
-		shadowMapDataConstantBuffer.initialize(device);
-
-		auto shadowMapDataMappedResource = map(shadowMapDataConstantBuffer);
-		shadowMapDataMappedResource.reference() = { SHADOW_MAP_EDGE,SHADOW_MAP_EDGE };
-
-		shader_resource<format<component_type::FLOAT, 32, 1>, resource_flag::ALLOW_DEPTH_STENCIL> shadowMapDepthBuffer{};
-		shadowMapDepthBuffer.initialize(device, SHADOW_MAP_EDGE, SHADOW_MAP_EDGE, 1, 1, { {1.f} });
-
-		descriptor_heap_DSV shadowMapDSVDescriptorHeap{};
-		shadowMapDSVDescriptorHeap.initialize(device, 1);
-		shadowMapDSVDescriptorHeap.push_back_texture2D_DSV(device, shadowMapDepthBuffer, 0);
-
-		descriptor_heap_RTV shadowMapRTVDescriptorHeap{};
-		shadowMapRTVDescriptorHeap.initialize(device, 1);
-		shadowMapRTVDescriptorHeap.push_back_texture2D_RTV(device, shadowMap, 0, 0);
-
-		descriptor_heap_CBV_SRV_UAV computeGaussianBlurDescriptorHeap{};
-		computeGaussianBlurDescriptorHeap.initialize(device, 3);
-		computeGaussianBlurDescriptorHeap.push_back_texture2D_SRV(device, shadowMap, 1, 0, 0, 0.f);
-		computeGaussianBlurDescriptorHeap.push_back_texture2D_UAV(device, gaussianBlurShadowMap, 0, 0);
-		computeGaussianBlurDescriptorHeap.push_back_CBV(device, shadowMapDataConstantBuffer);
-
-		shader computeGaussianCS{};
-		computeGaussianCS.initialize(L"Shader/ComputeShader004.hlsl", "main", "cs_5_1");
-
-		root_signature computeGaussianBlurRootSignature{};
-		computeGaussianBlurRootSignature.initialize(device, { {descriptor_range_type::SRV,descriptor_range_type::UAV,descriptor_range_type::CBV} }, {});
-
-		compute_pipeline_state computeGaussianBlurPipelineState{};
-		computeGaussianBlurPipelineState.initialize(device, computeGaussianBlurRootSignature, computeGaussianCS);
-
-
-		//
-		//Ground
-		//
-
-		vertex_buffer_resource<format_tuple<format<component_type::FLOAT,32,3>>> groundVertexBuffer{};
+		texture_2D_resource<format<component_type::UNSIGNED_NORMALIZE_FLOAT, 8, 4>> textureResource{};
 		{
-			std::array<std::array<float, 3>, 4> vertex{ {
-				{-1.f,0.f,-1.f},
-				{-1.f,0.f,1.f},
-				{1.f,0.f,-1.f},
-				{1.f,0.f,1.f}
-				} };
-			groundVertexBuffer.initialize(device, vertex.size());
-			auto tmp = map(groundVertexBuffer);
-			for (std::uint32_t i = 0; i < vertex.size(); i++)
-				for (std::uint32_t j = 0; j < 3; j++)
-					tmp.reference(i, j) = vertex[i][j];
+			buffer_resource<format<component_type::UINT, 8, 1>,resource_heap_property::UPLOAD> uploadResource{};
+			uploadResource.initialize(device, TEXTURE_WIDTH * TEXTURE_HEIGHT * 4);
+
+			auto mappedUploadResource = map(uploadResource);
+			for (std::uint32_t i = 0; i < TEXTURE_HEIGHT; i++)
+				for (std::uint32_t j = 0; j < TEXTURE_WIDTH; j++)
+					for (std::uint32_t k = 0; k < 3; k++)
+						//mappedUploadResource.reference(j, i, k) = (i / RECT_EDGE % 2 == j / RECT_EDGE % 2) ? 255 : 0;
+						*(mappedUploadResource.begin() + k + j * 4 + i * 4 * TEXTURE_WIDTH) = (i / RECT_EDGE % 2 == j / RECT_EDGE % 2) ? 255 : 0;
+
+			for (std::uint32_t i = 0; i < TEXTURE_HEIGHT; i++)
+				for (std::uint32_t j = 0; j < TEXTURE_WIDTH; j++)
+					*(mappedUploadResource.begin() + 3 + j * 4 + i * 4 * TEXTURE_WIDTH) = 255;
+
+			textureResource.initialize(device, TEXTURE_WIDTH, TEXTURE_HEIGHT, 1, MIP_LEVEL, true);
+
+			command.reset(0);
+			command.barrior(textureResource, resource_state::CopyDest);
+			command.copy_texture(device, uploadResource, textureResource);
+			command.barrior(textureResource, resource_state::PixcelShaderResource);
+			command.close();
+			command.execute();
+			command.fence(0);
+			command.wait(0);
 		}
 
-		index_buffer_resource<format<component_type::UINT, 32, 1>> groundIndexBuffer{};
-		std::uint32_t groundIndexNum{};
-		{
-			std::array<std::uint32_t, 6> index{
-				0,1,2,2,1,3
-			};
-			groundIndexBuffer.initialize(device, index.size());
+		
+		buffer_resource<ComputeData, resource_heap_property::UPLOAD> computeDataConstantBuffer{};
+		computeDataConstantBuffer.initialize(device, 1);
+	
 
-			auto tmp = map(groundIndexBuffer);
-			for (std::uint32_t i = 0; i < index.size(); i++)
-				tmp.reference(i) = index[i];
-			groundIndexNum = index.size();
-		}
+		descriptor_heap_CBV_SRV_UAV computeDescriptorHeap{};
+		computeDescriptorHeap.initialize(device, 2 + MIP_LEVEL);
 
-		constant_buffer_resource<GroundData> groundDataConstantBuffer{};
-		groundDataConstantBuffer.initialize(device);
+		shader cs{};
+		cs.initialize(L"Shader/ComputeShader005.hlsl", "main", "cs_5_1");
 
-		descriptor_heap_CBV_SRV_UAV groundDescriptorHeap{};
-		groundDescriptorHeap.initialize(device, 3);
-		groundDescriptorHeap.push_back_CBV(device, sceneDataConstantBuffer);
-		groundDescriptorHeap.push_back_CBV(device, groundDataConstantBuffer);
-		groundDescriptorHeap.push_back_texture2D_SRV(device, gaussianBlurShadowMap, 1, 0, 0, 0.f);
+		root_signature computeRootSignature{};
+		computeRootSignature.initialize(device, { {descriptor_range_type::SRV,descriptor_range_type::CBV,
+				descriptor_range_type::UAV,descriptor_range_type::UAV,descriptor_range_type::UAV,descriptor_range_type::UAV} },
+			{ static_sampler_desc::clamp_liner() });
 
-		root_signature groundRootSignature{};
-		groundRootSignature.initialize(device,
-			{ {descriptor_range_type::CBV,descriptor_range_type::CBV,descriptor_range_type::SRV} },
-			{ static_sampler_desc::clamp_point() }
-		);
-
-		shader groundVS{};
-		groundVS.initialize(L"Shader/Ground4/VertexShader.hlsl", "main", "vs_5_1");
-
-		shader groundPS{};
-		groundPS.initialize(L"Shader/Ground4/PixelShader.hlsl", "main", "ps_5_1");
-
-		shader groundShadowMapVS{};
-		groundShadowMapVS.initialize(L"Shader/Ground4/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
-
-		shader groundShadowMapPS{};
-		groundShadowMapPS.initialize(L"Shader/Ground4/ShadowMapPixelShader.hlsl", "main", "ps_5_1");
-
-		graphics_pipeline_state<format_tuple<format<component_type::FLOAT,32,3>>,format_tuple<FrameBufferFormat>> groundPipelineState{};
-		groundPipelineState.initialize(device, groundRootSignature, { &groundVS,&groundPS },
-			{ "POSITION",},true, false, primitive_topology::TRIANGLE
-		);
-
-		graphics_pipeline_state<format_tuple<format<component_type::FLOAT, 32, 3>>, format_tuple<format<component_type::FLOAT, 32, 2>>> groundShadowMapPipelineState{};
-		groundShadowMapPipelineState.initialize(device, groundRootSignature, { &groundShadowMapVS,&groundShadowMapPS },
-			{ "POSITION" }, true, false, primitive_topology::TRIANGLE
-		);
-
-
+		compute_pipeline_state computePipelineState{};
+		computePipelineState.initialize(device, computeRootSignature, cs);
 
 		//
-		//Bunny
-		//
-		vertex_buffer_resource<BunnyVertexFormatTuple> bunnyVertexBuffer{};
-		index_buffer_resource<format<component_type::UINT,32,1>> bunnyIndexBuffer{};
-		std::uint32_t bunnyIndexNum{};
 		{
-			auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/bun_zipper.off");
-			//auto [vertexList, faceList] = OffLoader::LoadTriangularMeshFromOffFile<std::array<float, 3>, std::array<std::uint32_t, 3>>("../../Assets/sphere.off");
-			auto normalList = GetVertexNormal(vertexList, faceList);
+			computeDescriptorHeap.push_back_texture2D_SRV(device, textureResource, 1, 0, 0, 0.f);
+			computeDescriptorHeap.push_back_CBV(device, computeDataConstantBuffer);
+			for (std::uint32_t i = 0; i < 4; i++)
+				computeDescriptorHeap.push_back_texture2D_UAV(device, textureResource, i + 1, 0);
 
-			bunnyVertexBuffer.initialize(device, vertexList.size());
-			auto bunnyVertexBufferMappedResource = map(bunnyVertexBuffer);
+			auto tmp = map(computeDataConstantBuffer);
 
-			XMFLOAT3 tmpFloat3;
-			for (std::size_t i = 0; i < vertexList.size(); i++) {
-				XMStoreFloat3(&tmpFloat3, normalList[i]);
-				for (std::uint32_t j = 0; j < 3; j++)
-					bunnyVertexBufferMappedResource.reference<0>(i, j) = vertexList[i][j];
-				bunnyVertexBufferMappedResource.reference<1>(i, 0) = tmpFloat3.x;
-				bunnyVertexBufferMappedResource.reference<1>(i, 1) = tmpFloat3.y;
-				bunnyVertexBufferMappedResource.reference<1>(i, 2) = tmpFloat3.z;
-			}
+			tmp.begin()->numMipLevels = 4;
+			tmp.begin()->srcMipLevel = 0;
+			tmp.begin()->srcDimention = get_src_dimention(TEXTURE_WIDTH, TEXTURE_HEIGHT);
+			tmp.begin()->isSRGB = true;
+			tmp.begin()->texelSize = { 1.f / static_cast<float>(TEXTURE_WIDTH) * 2.f,1.f / static_cast<float>(TEXTURE_HEIGHT) * 2.f };
 
-			bunnyIndexNum = faceList.size() * 3;
+			command.reset(0);
 
-			bunnyIndexBuffer.initialize(device, faceList.size() * 3);
-			auto bunnyIndexBufferMappedResource = map(bunnyIndexBuffer);
-			for (std::uint32_t i = 0; i < faceList.size(); i++)
-				for (std::uint32_t j = 0; j < 3; j++)
-					bunnyIndexBufferMappedResource.reference(i * 3 + j) = faceList[i][j];
+			command.set_compute_root_signature(computeRootSignature);
+			command.set_descriptor_heap(computeDescriptorHeap);
+			command.set_compute_root_descriptor_table(0, computeDescriptorHeap.get_GPU_handle());
+			command.set_pipeline_state(computePipelineState);
+			command.dispatch(TEXTURE_WIDTH / 8 + 1, TEXTURE_HEIGHT / 8 + 1, 1);
+
+			command.close();
+			command.execute();
+
+			command.fence(0);
+			command.wait(0);
 		}
+		
+		computeDescriptorHeap.reset();
+		
+		{
+			computeDescriptorHeap.push_back_texture2D_SRV(device, textureResource, 1, 0, 0, 0.f);
+			computeDescriptorHeap.push_back_CBV(device, computeDataConstantBuffer);
+			for (std::uint32_t i = 0; i < 4; i++)
+				computeDescriptorHeap.push_back_texture2D_UAV(device, textureResource, i + 5, 0);
 
-		constant_buffer_resource<BunnyData> bunnyDataConstantBuffer{};
-		bunnyDataConstantBuffer.initialize(device);
+			auto tmp = map(computeDataConstantBuffer);
 
-		descriptor_heap_CBV_SRV_UAV bunnyDescriptorHeap{};
-		bunnyDescriptorHeap.initialize(device, 3);
-		bunnyDescriptorHeap.push_back_CBV(device, sceneDataConstantBuffer);
-		bunnyDescriptorHeap.push_back_CBV(device, bunnyDataConstantBuffer);
-		bunnyDescriptorHeap.push_back_texture2D_SRV(device, gaussianBlurShadowMap, 1, 0, 0, 0.f);
+			tmp.begin()->numMipLevels = 4;
+			tmp.begin()->srcMipLevel = 4;
+			tmp.begin()->srcDimention = get_src_dimention(TEXTURE_WIDTH / std::powf(2.f, 4.f), TEXTURE_HEIGHT / std::powf(2.f, 4.f));
+			tmp.begin()->isSRGB = true;
+			tmp.begin()->texelSize = { 1.f / static_cast<float>(TEXTURE_WIDTH) * std::powf(2.f,4.f),1.f / static_cast<float>(TEXTURE_HEIGHT) * std::powf(2.f,4.f) };
 
-		root_signature bunnyRootSignature{};
-		bunnyRootSignature.initialize(device,
-			{ {descriptor_range_type::CBV,descriptor_range_type::CBV,descriptor_range_type::SRV} },
-			{ static_sampler_desc::clamp_point() }
-		);
+			command.reset(0);
 
-		shader bunnyVS{};
-		bunnyVS.initialize(L"Shader/Bunny2/VertexShader.hlsl", "main", "vs_5_1");
+			command.set_compute_root_signature(computeRootSignature);
+			command.set_descriptor_heap(computeDescriptorHeap);
+			command.set_compute_root_descriptor_table(0, computeDescriptorHeap.get_GPU_handle());
+			command.set_pipeline_state(computePipelineState);
+			command.dispatch(TEXTURE_WIDTH / std::powf(2.f, 3.f) / 8 + 1, TEXTURE_HEIGHT / std::powf(2.f, 3.f) / 8 + 1, 1);
 
-		shader bunnyPS{};
-		bunnyPS.initialize(L"Shader/Bunny2/PixelShader.hlsl", "main", "ps_5_1");
+			command.close();
+			command.execute();
 
-		shader bunnyShadowMapVS{};
-		bunnyShadowMapVS.initialize(L"Shader/Bunny2/ShadowMapVertexShader.hlsl", "main", "vs_5_1");
+			command.fence(0);
+			command.wait(0);
+		}
+		//
 
-		shader bunnyShadowMapPS{};
-		bunnyShadowMapPS.initialize(L"Shader/Bunny2/ShadowMapPixelShader.hlsl", "main", "ps_5_1");
 
-		graphics_pipeline_state<BunnyVertexFormatTuple,format_tuple<FrameBufferFormat>> bunnyPipelineState{};
-		bunnyPipelineState.initialize(device, bunnyRootSignature, { &bunnyVS,&bunnyPS },
-			{ "POSITION","NORMAL" }, true, false, primitive_topology::TRIANGLE
-		);
+		using VertexFormat = format_tuple<format<component_type::FLOAT, 32, 3>, format<component_type::FLOAT, 32, 2>>;
 
-		graphics_pipeline_state<BunnyVertexFormatTuple,format_tuple<format<component_type::FLOAT,32,2>>> bunnyShadowMapPipelineState{};
-		bunnyShadowMapPipelineState.initialize(device, bunnyRootSignature, { &bunnyShadowMapVS ,&bunnyShadowMapPS },
-			{ "POSITION","NORMAL" }, true, false, primitive_topology::TRIANGLE
-		);
+		buffer_resource<VertexFormat,resource_heap_property::UPLOAD> vertexBuffer{};
+		vertexBuffer.initialize(device, 4);
+
+		auto vertexMappedResource = map(vertexBuffer);
+		auto iter0 = vertexMappedResource.begin<0>();
+		auto iter1 = vertexMappedResource.begin<1>();
+
+		/*
+		vertexMappedResource.reference<0>(0, 0) = -1.f;
+		vertexMappedResource.reference<0>(0, 1) = 0.f;
+		vertexMappedResource.reference<0>(0, 2) = -1.f;
+		vertexMappedResource.reference<1>(0, 0) = 0.f;
+		vertexMappedResource.reference<1>(0, 1) = 1.f;
+
+		vertexMappedResource.reference<0>(1, 0) = -1.f;
+		vertexMappedResource.reference<0>(1, 1) = 0.f;
+		vertexMappedResource.reference<0>(1, 2) = 1.f;
+		vertexMappedResource.reference<1>(1, 0) = 0.f;
+		vertexMappedResource.reference<1>(1, 1) = 0.f;
+
+		vertexMappedResource.reference<0>(2, 0) = 1.f;
+		vertexMappedResource.reference<0>(2, 1) = 0.f;
+		vertexMappedResource.reference<0>(2, 2) = -1.f;
+		vertexMappedResource.reference<1>(2, 0) = 1.f;
+		vertexMappedResource.reference<1>(2, 1) = 1.f;
+
+		vertexMappedResource.reference<0>(3, 0) = 1.f;
+		vertexMappedResource.reference<0>(3, 1) = 0.f;
+		vertexMappedResource.reference<0>(3, 2) = 1.f;
+		vertexMappedResource.reference<1>(3, 0) = 1.f;
+		vertexMappedResource.reference<1>(3, 1) = 0.f;
+		*/
+
+		(*iter0)[0] = -1.f;
+		(*iter0)[1] = 0.f;
+		(*iter0)[2] = -1.f;
+		(*iter1)[0] = 0.f;
+		(*iter1)[1] = 1.f;
+		iter0++;
+		iter1++;
+
+		(*iter0)[0] = -1.f;
+		(*iter0)[1] = 0.f;
+		(*iter0)[2] = 1.f;
+		(*iter1)[0] = 0.f;
+		(*iter1)[1] = 0.f;
+		iter0++;
+		iter1++;
+
+		(*iter0)[0] = 1.f;
+		(*iter0)[1] = 0.f;
+		(*iter0)[2] = -1.f;
+		(*iter1)[0] = 1.f;
+		(*iter1)[1] = 1.f;
+		iter0++;
+		iter1++;
+
+		(*iter0)[0] = 1.f;
+		(*iter0)[1] = 0.f;
+		(*iter0)[2] = 1.f;
+		(*iter1)[0] = 1.f;
+		(*iter1)[1] = 0.f;
+		iter0++;
+		iter1++;
+
+
+		buffer_resource<format<component_type::UINT, 32, 1>,resource_heap_property::UPLOAD> indexBuffer{};
+		indexBuffer.initialize(device, 6);
+
+		auto indexMappedResource = map(indexBuffer);
+		auto indexIter = indexMappedResource.begin();
+		(*indexIter++) = 0;
+		(*indexIter++) = 1;
+		(*indexIter++) = 2;
+		(*indexIter++) = 2;
+		(*indexIter++) = 1;
+		(*indexIter++) = 3;
+
+
+		buffer_resource<GroundData,resource_heap_property::UPLOAD> groundDataConstantBuffer{};
+		groundDataConstantBuffer.initialize(device, 1);
+
+		shader vertexShader{};
+		vertexShader.initialize(L"Shader/Ground5/VertexShader.hlsl", "main", "vs_5_1");
+
+		shader pixelShader{};
+		pixelShader.initialize(L"Shader/Ground5/PixelShader.hlsl", "main", "ps_5_1");
+
+		root_signature rootSignature{};
+		rootSignature.initialize(device, { {descriptor_range_type::SRV,descriptor_range_type::CBV} },
+			{ static_sampler_desc::wrap_anisotropic() });
+
+		graphics_pipeline_state<VertexFormat,format_tuple<FrameBufferFormat>> graphicsPipelineState{};
+		graphicsPipelineState.initialize(device, rootSignature, { &vertexShader,&pixelShader },
+			{ "POSITION", "TEXCOOD" }, false, false, primitive_topology::TRIANGLE);
+
+		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
+		descriptorHeap.initialize(device, 2);
+		descriptorHeap.push_back_texture2D_SRV(device, textureResource, MIP_LEVEL, 0, 0, 0.f);
+		descriptorHeap.push_back_CBV(device, groundDataConstantBuffer);
+
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
 		D3D12_RECT scissorRect{ 0,0,static_cast<LONG>(WINDOW_WIDTH),static_cast<LONG>(WINDOW_HEIGHT) };
 
-		D3D12_VIEWPORT shadowMapViewport{ 0,0, static_cast<float>(SHADOW_MAP_EDGE),static_cast<float>(SHADOW_MAP_EDGE),0.f,1.f };
-		D3D12_RECT shadowMapScissorRect{ 0,0,static_cast<LONG>(SHADOW_MAP_EDGE),static_cast<LONG>(SHADOW_MAP_EDGE) };
-
-		XMFLOAT3 eye{ 50, 20.f, 0.f };
-		XMFLOAT3 target{ 0,0,0 };
+		float len = 1.f;
+		XMFLOAT3 eye{ 0,len,len };
+		XMFLOAT3 target{ 0,0.1,0 };
 		XMFLOAT3 up{ 0,1,0 };
 		auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
-		auto proj = XMMatrixPerspectiveFovLH(
+		auto proj = DirectX::XMMatrixPerspectiveFovLH(
 			DirectX::XM_PIDIV2,
 			static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT),
-			0.1f,
-			500.f
+			0.01f,
+			100.f
 		);
-		XMFLOAT3 lightDir{ 0.1f,1.f,1.f };
 
-		auto lightPos = XMLoadFloat3(&target) + XMVector3Normalize(XMLoadFloat3(&lightDir))
-			* XMVector3Length(XMVectorSubtract(XMLoadFloat3(&target), XMLoadFloat3(&eye))).m128_f32[0];
-
-		XMMATRIX shadowMapViewProj = XMMatrixLookAtLH(lightPos, XMLoadFloat3(&target), XMLoadFloat3(&up)) * XMMatrixOrthographicLH(100, 100, -100.f, 100.f);
-
-		auto sceneDataMappedResource = map(sceneDataConstantBuffer);
-		sceneDataMappedResource.reference() = { view,proj,{eye.x,eye.y,eye.z,0.f}, {lightDir.x,lightDir.y,lightDir.z,0.f},shadowMapViewProj };
 
 		auto groundDataMappedResource = map(groundDataConstantBuffer);
-		groundDataMappedResource.reference() = { XMMatrixScaling(100.f,100.f,100.f) };
+		groundDataMappedResource.begin()->view = view;
+		groundDataMappedResource.begin()->proj = proj;
+		groundDataMappedResource.begin()->world = XMMatrixScaling(10, 10, 10);
 
-		auto bunnyDataMappedResource = map(bunnyDataConstantBuffer);
 
-		std::size_t cnt = 0;
 		while (update_window())
 		{
-			//
-			//update
-			//
-			for (std::size_t i = 0; i < BUNNY_NUM; i++)
-				bunnyDataMappedResource.reference().world[i] = XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(30.f, 0.f, 40.f - i * 40.f);
-
-			cnt++;
-
 			auto backBufferIndex = swapChain.get_current_back_buffer_index();
-
 			command.reset(backBufferIndex);
 
-
-			//
-			//ShadowMap
-			//
-
-			command.barrior(shadowMap, resource_state::RenderTarget);
-			command.barrior(shadowMapDepthBuffer, resource_state::DepthWrite);
-
-			command.clear_depth_view(shadowMapDSVDescriptorHeap.get_CPU_handle(), 1.f);
-			command.clear_render_target_view(shadowMapRTVDescriptorHeap.get_CPU_handle(), { 1,1 });
-			command.set_render_target({ {shadowMapRTVDescriptorHeap.get_CPU_handle()} }, shadowMapDSVDescriptorHeap.get_CPU_handle());
-			command.set_viewport(shadowMapViewport);
-			command.set_scissor_rect(shadowMapScissorRect);
-
-			command.set_descriptor_heap(bunnyDescriptorHeap);
-			command.set_graphics_root_signature(bunnyRootSignature);
-			command.set_graphics_root_descriptor_table(0, bunnyDescriptorHeap.get_GPU_handle());
-			command.set_pipeline_state(bunnyShadowMapPipelineState);
-			command.set_vertex_buffer(bunnyVertexBuffer);
-			command.set_index_buffer(bunnyIndexBuffer);
-			command.set_primitive_topology(primitive_topology::TRIANGLE_LIST);
-			command.draw_indexed_instanced(bunnyIndexNum, BUNNY_NUM);
-
-			command.set_descriptor_heap(groundDescriptorHeap);
-			command.set_graphics_root_signature(groundRootSignature);
-			command.set_graphics_root_descriptor_table(0, groundDescriptorHeap.get_GPU_handle());
-			command.set_pipeline_state(groundShadowMapPipelineState);
-			command.set_vertex_buffer(groundVertexBuffer);
-			command.set_index_buffer(groundIndexBuffer);
-			command.set_primitive_topology(primitive_topology::TRIANGLE_LIST);
-			command.draw_indexed_instanced(groundIndexNum);
-
-			command.barrior(shadowMap, resource_state::PixcelShaderResource);
-
-
-			//
-			//GaussianBlur
-			//
-
-			command.barrior(gaussianBlurShadowMap, resource_state::UnorderedAccessResource);
-			command.set_compute_root_signature(computeGaussianBlurRootSignature);
-			command.set_descriptor_heap(computeGaussianBlurDescriptorHeap);
-			command.set_compute_root_descriptor_table(0, computeGaussianBlurDescriptorHeap.get_GPU_handle());
-			command.set_pipeline_state(computeGaussianBlurPipelineState);
-			command.dispatch(SHADOW_MAP_EDGE / 8 + 1, SHADOW_MAP_EDGE / 8 + 1, 1);
-			command.barrior(gaussianBlurShadowMap, resource_state::PixcelShaderResource);
-
-
-			//
-			//BackBuffer
-			//
-
-			command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::RenderTarget);
-			command.barrior(depthBuffer, resource_state::DepthWrite);
-
-			command.clear_render_target_view(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.5,0.5,0.5,1.0 });
-			command.clear_depth_view(dsvDescriptorHeap.get_CPU_handle(), 1.f);
-			command.set_render_target({ {rtvDescriptorHeap.get_CPU_handle(backBufferIndex)} }, dsvDescriptorHeap.get_CPU_handle());
 			command.set_viewport(viewport);
 			command.set_scissor_rect(scissorRect);
 
-			command.set_descriptor_heap(bunnyDescriptorHeap);
-			command.set_graphics_root_signature(bunnyRootSignature);
-			command.set_graphics_root_descriptor_table(0, bunnyDescriptorHeap.get_GPU_handle());
-			command.set_pipeline_state(bunnyPipelineState);
-			command.set_vertex_buffer(bunnyVertexBuffer);
-			command.set_index_buffer(bunnyIndexBuffer);
+			command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::RenderTarget);
+			command.clear_render_target_view(rtvDescriptorHeap.get_CPU_handle(backBufferIndex), { 0.,0.,0.,1.0 });
+			command.set_render_target({ {rtvDescriptorHeap.get_CPU_handle(backBufferIndex)} });
+
+			command.set_pipeline_state(graphicsPipelineState);
 			command.set_primitive_topology(primitive_topology::TRIANGLE_LIST);
-			command.draw_indexed_instanced(bunnyIndexNum, BUNNY_NUM);
-
-			command.set_descriptor_heap(groundDescriptorHeap);
-			command.set_graphics_root_signature(groundRootSignature);
-			command.set_graphics_root_descriptor_table(0, groundDescriptorHeap.get_GPU_handle());
-			command.set_pipeline_state(groundPipelineState);
-			command.set_vertex_buffer(groundVertexBuffer);
-			command.set_index_buffer(groundIndexBuffer);
-			command.set_primitive_topology(primitive_topology::TRIANGLE_LIST);
-			command.draw_indexed_instanced(groundIndexNum);
-
-
+			command.set_graphics_root_signature(rootSignature);
+			command.set_descriptor_heap(descriptorHeap);
+			command.set_graphics_root_descriptor_table(0, descriptorHeap.get_GPU_handle());
+			command.set_vertex_buffer(vertexBuffer);
+			command.set_index_buffer(indexBuffer);
+			command.draw_indexed_instanced(6);
 			command.barrior(swapChain.get_frame_buffer(backBufferIndex), resource_state::Common);
 
 			command.close();
@@ -418,6 +348,9 @@ namespace test009
 
 		command.wait_all(device);
 
+		
 		return 0;
 	}
+
+
 }
