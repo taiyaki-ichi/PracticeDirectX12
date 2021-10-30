@@ -6,8 +6,9 @@
 #include"root_signature.hpp"
 #include"pipeline_state.hpp"
 #include"resource/buffer_resource.hpp"
-#include"resource/mapped_resource.hpp"
 #include"resource/allow_depth_stencil_texture_resource.hpp"
+
+#include"resource/map_stream.hpp"
 
 #include"OffLoader.hpp"
 
@@ -58,8 +59,9 @@ namespace test003
 		{
 			buffer_resource<format<component_type::FLOAT, 32, 1>,resource_heap_property::UPLOAD> uploadVertexBuffer{};
 			uploadVertexBuffer.initialize(device, vertex.size());
-			auto mappedVertexBuffer = map(uploadVertexBuffer);
-			std::copy(vertex.begin(), vertex.end(), mappedVertexBuffer.begin());
+			auto stream = map(uploadVertexBuffer);
+			for (auto& v : vertex)
+				stream << v;
 
 			command.reset(0);
 			command.barrior(vertexBuffer, resource_state::CopyDest);
@@ -76,8 +78,9 @@ namespace test003
 		{
 			buffer_resource<format<component_type::UINT, 32, 1>, resource_heap_property::UPLOAD> uploadIndexBuffer{};
 			uploadIndexBuffer.initialize(device, index.size());
-			auto mappedIndexBuffer = map(uploadIndexBuffer);
-			std::copy(index.begin(), index.end(), mappedIndexBuffer.begin());
+			auto stream = map(uploadIndexBuffer);
+			for (auto& i : index)
+				stream << i;
 
 			command.reset(0);
 			command.barrior(indexBuffer, resource_state::CopyDest);
@@ -142,10 +145,8 @@ namespace test003
 		buffer_resource<SceneData,resource_heap_property::UPLOAD> sceneDataConstantBuffer{};
 		sceneDataConstantBuffer.initialize(device, 1);
 
-		auto sceneDataMappedResource = map(sceneDataConstantBuffer);
-		*sceneDataMappedResource.begin() = { view,proj };
+		SceneData sceneData{ view,proj };
 
-		
 		//SceneDataをシェーダに渡す用
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 		descriptorHeap.initialize(device, 1);
@@ -159,7 +160,9 @@ namespace test003
 			eye.z = len * std::sin(cnt / 60.0);
 			auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
 
-			sceneDataMappedResource.begin()->view = view;
+			sceneData.view = view;
+			auto sceneDataMapStream = map(sceneDataConstantBuffer);
+			sceneDataMapStream << sceneData;
 
 			cnt++;
 

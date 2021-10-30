@@ -6,11 +6,13 @@
 #include"descriptor_heap.hpp"
 #include"root_signature.hpp"
 #include"pipeline_state.hpp"
-#include"resource/mapped_resource.hpp"
 #include"resource/buffer_resource.hpp"
+#include"resource/map_stream.hpp"
 
 #include<array>
+#include<sstream>
 
+#include<iostream>
 
 //ƒ|ƒŠƒSƒ“‚Ì•`ŽÊ‚Ì•`ŽÊ‚ð‚·‚é
 namespace test001
@@ -46,21 +48,12 @@ namespace test001
 		buffer_resource<VertexFormatTuple,resource_heap_property::UPLOAD> vertexBuffer{};
 		vertexBuffer.initialize(device, 3);
 
-		auto vertexMappedResource = map(vertexBuffer);
-		auto iter = vertexMappedResource.begin();
-		(*iter)[0] = -0.8f;
-		(*iter)[1] = -0.8f;
-		(*iter)[2] = 0.f;
-		iter++;
+		auto s = map(vertexBuffer);
+		s << -0.8f << -0.8f << -0.f;
+		s << -0.8f << 0.8f << 0.f;
+		s << 0.8f << -0.8f << 0.f;
 
-		(*iter)[0] = -0.8f;
-		(*iter)[1] = 0.8f;
-		(*iter)[2] = 0.f;
-
-		iter++;
-		(*iter)[0] = 0.8f;
-		(*iter)[1] = -0.8f;
-		(*iter)[2] = 0.f;
+		vertexBuffer.get()->Unmap(0, nullptr);
 
 
 		root_signature rootSignature{};

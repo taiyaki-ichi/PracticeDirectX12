@@ -5,9 +5,10 @@
 #include"descriptor_heap.hpp"
 #include"resource/buffer_resource.hpp"
 #include"resource/texture_resource.hpp"
-#include"resource/mapped_resource.hpp"
 #include"resource/allow_render_target_texture_resource.hpp"
 #include"resource/allow_depth_stencil_texture_resource.hpp"
+
+#include"resource/map_stream.hpp"
 
 #include<DirectXMath.h>
 #include<cmath>
@@ -84,16 +85,15 @@ namespace test009
 			buffer_resource<format<component_type::UINT, 8, 1>,resource_heap_property::UPLOAD> uploadResource{};
 			uploadResource.initialize(device, TEXTURE_WIDTH * TEXTURE_HEIGHT * 4);
 
-			auto mappedUploadResource = map(uploadResource);
+			auto stream = map(uploadResource);
 			for (std::uint32_t i = 0; i < TEXTURE_HEIGHT; i++)
 				for (std::uint32_t j = 0; j < TEXTURE_WIDTH; j++)
+				{
 					for (std::uint32_t k = 0; k < 3; k++)
-						//mappedUploadResource.reference(j, i, k) = (i / RECT_EDGE % 2 == j / RECT_EDGE % 2) ? 255 : 0;
-						*(mappedUploadResource.begin() + k + j * 4 + i * 4 * TEXTURE_WIDTH) = (i / RECT_EDGE % 2 == j / RECT_EDGE % 2) ? 255 : 0;
-
-			for (std::uint32_t i = 0; i < TEXTURE_HEIGHT; i++)
-				for (std::uint32_t j = 0; j < TEXTURE_WIDTH; j++)
-					*(mappedUploadResource.begin() + 3 + j * 4 + i * 4 * TEXTURE_WIDTH) = 255;
+						stream << std::uint8_t((i / RECT_EDGE % 2 == j / RECT_EDGE % 2) ? 255 : 0);
+					stream << std::uint8_t(255);
+				}
+			
 
 			textureResource.initialize(device, TEXTURE_WIDTH, TEXTURE_HEIGHT, 1, MIP_LEVEL, true);
 
@@ -133,13 +133,14 @@ namespace test009
 			for (std::uint32_t i = 0; i < 4; i++)
 				computeDescriptorHeap.push_back_texture2D_UAV(device, textureResource, i + 1, 0);
 
-			auto tmp = map(computeDataConstantBuffer);
-
-			tmp.begin()->numMipLevels = 4;
-			tmp.begin()->srcMipLevel = 0;
-			tmp.begin()->srcDimention = get_src_dimention(TEXTURE_WIDTH, TEXTURE_HEIGHT);
-			tmp.begin()->isSRGB = true;
-			tmp.begin()->texelSize = { 1.f / static_cast<float>(TEXTURE_WIDTH) * 2.f,1.f / static_cast<float>(TEXTURE_HEIGHT) * 2.f };
+			auto stream = map(computeDataConstantBuffer);
+			ComputeData computeData{};
+			computeData.numMipLevels = 4;
+			computeData.srcMipLevel = 0;
+			computeData.srcDimention = get_src_dimention(TEXTURE_WIDTH, TEXTURE_HEIGHT);
+			computeData.isSRGB = true;
+			computeData.texelSize = { 1.f / static_cast<float>(TEXTURE_WIDTH) * 2.f,1.f / static_cast<float>(TEXTURE_HEIGHT) * 2.f };
+			stream << computeData;
 
 			command.reset(0);
 
@@ -164,13 +165,14 @@ namespace test009
 			for (std::uint32_t i = 0; i < 4; i++)
 				computeDescriptorHeap.push_back_texture2D_UAV(device, textureResource, i + 5, 0);
 
-			auto tmp = map(computeDataConstantBuffer);
-
-			tmp.begin()->numMipLevels = 4;
-			tmp.begin()->srcMipLevel = 4;
-			tmp.begin()->srcDimention = get_src_dimention(TEXTURE_WIDTH / std::powf(2.f, 4.f), TEXTURE_HEIGHT / std::powf(2.f, 4.f));
-			tmp.begin()->isSRGB = true;
-			tmp.begin()->texelSize = { 1.f / static_cast<float>(TEXTURE_WIDTH) * std::powf(2.f,4.f),1.f / static_cast<float>(TEXTURE_HEIGHT) * std::powf(2.f,4.f) };
+			auto stream = map(computeDataConstantBuffer);
+			ComputeData computeData{};
+			computeData.numMipLevels = 4;
+			computeData.srcMipLevel = 0;
+			computeData.srcDimention = get_src_dimention(TEXTURE_WIDTH, TEXTURE_HEIGHT);
+			computeData.isSRGB = true;
+			computeData.texelSize = { 1.f / static_cast<float>(TEXTURE_WIDTH) * 2.f,1.f / static_cast<float>(TEXTURE_HEIGHT) * 2.f };
+			stream << computeData;
 
 			command.reset(0);
 
@@ -194,80 +196,18 @@ namespace test009
 		buffer_resource<VertexFormat,resource_heap_property::UPLOAD> vertexBuffer{};
 		vertexBuffer.initialize(device, 4);
 
-		auto vertexMappedResource = map(vertexBuffer);
-		auto iter0 = vertexMappedResource.begin<0>();
-		auto iter1 = vertexMappedResource.begin<1>();
-
-		/*
-		vertexMappedResource.reference<0>(0, 0) = -1.f;
-		vertexMappedResource.reference<0>(0, 1) = 0.f;
-		vertexMappedResource.reference<0>(0, 2) = -1.f;
-		vertexMappedResource.reference<1>(0, 0) = 0.f;
-		vertexMappedResource.reference<1>(0, 1) = 1.f;
-
-		vertexMappedResource.reference<0>(1, 0) = -1.f;
-		vertexMappedResource.reference<0>(1, 1) = 0.f;
-		vertexMappedResource.reference<0>(1, 2) = 1.f;
-		vertexMappedResource.reference<1>(1, 0) = 0.f;
-		vertexMappedResource.reference<1>(1, 1) = 0.f;
-
-		vertexMappedResource.reference<0>(2, 0) = 1.f;
-		vertexMappedResource.reference<0>(2, 1) = 0.f;
-		vertexMappedResource.reference<0>(2, 2) = -1.f;
-		vertexMappedResource.reference<1>(2, 0) = 1.f;
-		vertexMappedResource.reference<1>(2, 1) = 1.f;
-
-		vertexMappedResource.reference<0>(3, 0) = 1.f;
-		vertexMappedResource.reference<0>(3, 1) = 0.f;
-		vertexMappedResource.reference<0>(3, 2) = 1.f;
-		vertexMappedResource.reference<1>(3, 0) = 1.f;
-		vertexMappedResource.reference<1>(3, 1) = 0.f;
-		*/
-
-		(*iter0)[0] = -1.f;
-		(*iter0)[1] = 0.f;
-		(*iter0)[2] = -1.f;
-		(*iter1)[0] = 0.f;
-		(*iter1)[1] = 1.f;
-		iter0++;
-		iter1++;
-
-		(*iter0)[0] = -1.f;
-		(*iter0)[1] = 0.f;
-		(*iter0)[2] = 1.f;
-		(*iter1)[0] = 0.f;
-		(*iter1)[1] = 0.f;
-		iter0++;
-		iter1++;
-
-		(*iter0)[0] = 1.f;
-		(*iter0)[1] = 0.f;
-		(*iter0)[2] = -1.f;
-		(*iter1)[0] = 1.f;
-		(*iter1)[1] = 1.f;
-		iter0++;
-		iter1++;
-
-		(*iter0)[0] = 1.f;
-		(*iter0)[1] = 0.f;
-		(*iter0)[2] = 1.f;
-		(*iter1)[0] = 1.f;
-		(*iter1)[1] = 0.f;
-		iter0++;
-		iter1++;
+		auto vertexBufferStream = map(vertexBuffer);
+		vertexBufferStream << -1.f << 0.f << -1.f << 0.f << 1.f;
+		vertexBufferStream << -1.f << 0.f << 1.f << 0.f << 0.f;
+		vertexBufferStream << 1.f << 0.f << -1.f << 1.f << 1.f;
+		vertexBufferStream << 1.f << 0.f << 1.f << 1.f << 0.f;
 
 
 		buffer_resource<format<component_type::UINT, 32, 1>,resource_heap_property::UPLOAD> indexBuffer{};
 		indexBuffer.initialize(device, 6);
 
-		auto indexMappedResource = map(indexBuffer);
-		auto indexIter = indexMappedResource.begin();
-		(*indexIter++) = 0;
-		(*indexIter++) = 1;
-		(*indexIter++) = 2;
-		(*indexIter++) = 2;
-		(*indexIter++) = 1;
-		(*indexIter++) = 3;
+		auto indexBufferStream = map(indexBuffer);
+		indexBufferStream << 0 << 1 << 2 << 2 << 1 << 3;
 
 
 		buffer_resource<GroundData,resource_heap_property::UPLOAD> groundDataConstantBuffer{};
@@ -308,12 +248,12 @@ namespace test009
 			100.f
 		);
 
-
-		auto groundDataMappedResource = map(groundDataConstantBuffer);
-		groundDataMappedResource.begin()->view = view;
-		groundDataMappedResource.begin()->proj = proj;
-		groundDataMappedResource.begin()->world = XMMatrixScaling(10, 10, 10);
-
+		auto groundDataStream = map(groundDataConstantBuffer);
+		GroundData groundData{};
+		groundData.view = view;
+		groundData.proj = proj;
+		groundData.world = XMMatrixScaling(10, 10, 10);
+		groundDataStream << groundData;
 
 		while (update_window())
 		{

@@ -8,7 +8,8 @@
 #include"pipeline_state.hpp"
 #include"resource/buffer_resource.hpp"
 #include"resource/texture_resource.hpp"
-#include"resource/mapped_resource.hpp"
+
+#include"resource/map_stream.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include<stb_image.h>
@@ -49,59 +50,19 @@ namespace test002
 		buffer_resource<VertexFormat,resource_heap_property::UPLOAD> vertexBuffer{};
 		vertexBuffer.initialize(device, 4);
 
-		auto vertexMappedResource = map(vertexBuffer);
-		{
-			auto iter = vertexMappedResource.begin<0>();
-			(*iter)[0] = -0.8f;
-			(*iter)[1] = -0.8f;
-			(*iter)[2] = 0.f;
-			iter++;
+		auto vertexMapStream = map(vertexBuffer);
+		vertexMapStream << -0.8f << -0.8f << 0.f << 0.f << 1.f;
+		vertexMapStream << -0.8f << 0.8f << 0.f << 0.f << 0.f;
+		vertexMapStream << 0.8f << -0.8f << 0.f << 1.f << 1.f;
+		vertexMapStream << 0.8f << 0.8f << 0.f << 1.f << 0.f;
 
-			(*iter)[0] = -0.8f;
-			(*iter)[1] = 0.8f;
-			(*iter)[2] = 0.f;
-			iter++;
-
-			(*iter)[0] = 0.8f;
-			(*iter)[1] = -0.8f;
-			(*iter)[2] = 0.f;
-			iter++;
-
-			(*iter)[0] = 0.8f;
-			(*iter)[1] = 0.8f;
-			(*iter)[2] = 0.f;
-		}
-		{
-			auto iter = vertexMappedResource.begin<1>();
-			(*iter)[0] = 0.f;
-			(*iter)[1] = 1.f;
-			iter++;
-
-			(*iter)[0] = 0.f;
-			(*iter)[1] = 0.f;
-			iter++;
-
-			(*iter)[0] = 1.f;
-			(*iter)[1] = 1.f;
-			iter++;
-
-			(*iter)[0] = 1.f;
-			(*iter)[1] = 0.f;
-		}
 
 		buffer_resource<format<component_type::UINT, 32, 1>,resource_heap_property::UPLOAD> indexBuffer{};
 		indexBuffer.initialize(device, 6);
-		auto indexMappedResource = map(indexBuffer);
 
-		{
-			auto iter = indexMappedResource.begin();
-			(*iter++) = 0;
-			(*iter++) = 1;
-			(*iter++) = 2;
-			(*iter++) = 2;
-			(*iter++) = 1;
-			(*iter++) = 3;
-		}
+		auto indexMapStream = map(indexBuffer);
+		indexMapStream << 0u << 1u << 2u;
+		indexMapStream << 2u << 1u << 3u;
 
 		int x, y, n;
 		std::uint8_t* data = stbi_load("../../Assets/icon.png", &x, &y, &n, 0);
@@ -110,8 +71,9 @@ namespace test002
 		{
 			buffer_resource<format<component_type::UINT, 8, 1>,resource_heap_property::UPLOAD> uploadResource{};
 			uploadResource.initialize(device, x * y * 4);
-			auto mappedUploadResource = map(uploadResource);
-			std::copy(&data[0], &data[x * y * 4], mappedUploadResource.begin());
+			auto stream = map(uploadResource);
+			for (std::size_t i = 0; i < x * y * 4; i++)
+				stream << data[i];
 
 			textureResource.initialize(device, x, y, 1, 1);
 

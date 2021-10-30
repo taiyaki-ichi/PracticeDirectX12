@@ -8,9 +8,10 @@
 #include"pipeline_state.hpp"
 #include"resource/buffer_resource.hpp"
 #include"resource/texture_resource.hpp"
-#include"resource/mapped_resource.hpp"
 #include"resource/allow_render_target_texture_resource.hpp"
 #include"resource/allow_depth_stencil_texture_resource.hpp"
+
+#include"resource/map_stream.hpp"
 
 #include<array>
 
@@ -111,14 +112,12 @@ namespace test008
 				{1.f,0.f,1.f}
 				} };
 			groundVertexBuffer.initialize(device, vertex.size());
-			auto groundVertexBufferMappedResource = map(groundVertexBuffer);
-			auto vertexIter = vertex.begin();
-			for (auto& v : groundVertexBufferMappedResource)
-			{
-				for (std::size_t i = 0; i < 3; i++)
-					v[i] = (*vertexIter)[i];
-				vertexIter++;
-			}
+
+			auto stream = map(groundVertexBuffer);
+			for (std::size_t i = 0; i < vertex.size(); i++)
+				for (std::size_t j = 0; j < 3; j++)
+					stream << vertex[i][j];
+
 		}
 
 		buffer_resource<format<component_type::UINT,32,1>,resource_heap_property::UPLOAD> groundIndexBuffer{};
@@ -128,8 +127,11 @@ namespace test008
 				0,1,2,2,1,3
 			};
 			groundIndexBuffer.initialize(device, index.size());
-			auto groundIndexBufferMappedResource = map(groundIndexBuffer);
-			std::copy(index.begin(), index.end(), groundIndexBufferMappedResource.begin());
+
+			auto stream = map(groundIndexBuffer);
+			for (std::size_t i = 0; i < index.size(); i++)
+				stream << index[i];
+				
 
 			groundIndexNum = index.size();
 		}
@@ -186,36 +188,25 @@ namespace test008
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
 			bunnyVertexBuffer.initialize(device, vertexList.size());
-			auto sphereVertexBufferMappedResource = map(bunnyVertexBuffer);
-			auto vertexListIter = vertexList.begin();
-			for (auto iter = sphereVertexBufferMappedResource.begin<0>(); iter != sphereVertexBufferMappedResource.end<0>(); iter++)
-			{
-				for (std::size_t i = 0; i < 3; i++)
-					(*iter)[i] = (*vertexListIter)[i];
-				vertexListIter++;
-			}
+
+			auto vertexStream = map(bunnyVertexBuffer);
 			XMFLOAT3 tmpFloat3;
-			auto normalListIter = normalList.begin();
-			for (auto iter = sphereVertexBufferMappedResource.begin<1>(); iter != sphereVertexBufferMappedResource.end<1>(); iter++)
+			for (std::size_t i = 0; i < vertexList.size(); i++)
 			{
-				XMStoreFloat3(&tmpFloat3, *normalListIter++);
-				(*iter)[0] = tmpFloat3.x;
-				(*iter)[1] = tmpFloat3.y;
-				(*iter)[2] = tmpFloat3.z;
+				for (std::size_t j = 0; j < 3; j++)
+					vertexStream << vertexList[i][j];
+				XMStoreFloat3(&tmpFloat3, normalList[i]);
+				vertexStream << tmpFloat3.x << tmpFloat3.y << tmpFloat3.z;
 			}
 
 			bunnyIndexNum = faceList.size() * 3;
 
 			bunnyIndexBuffer.initialize(device, faceList.size() * 3);
 
-			auto sphereIndexBufferMappedResource = map(bunnyIndexBuffer);
-			auto indexMappedIter = sphereIndexBufferMappedResource.begin();
+			auto indexStream = map(bunnyIndexBuffer);
 			for (std::size_t i = 0; i < faceList.size(); i++)
-			{
-				(*indexMappedIter++) = faceList[i][0];
-				(*indexMappedIter++) = faceList[i][1];
-				(*indexMappedIter++) = faceList[i][2];
-			}
+				for (std::size_t j = 0; j < 3; j++)
+					indexStream << faceList[i][j];
 		}
 
 		buffer_resource<BunnyData,resource_heap_property::UPLOAD> bunnyDataConstantBuffer{};
@@ -280,13 +271,16 @@ namespace test008
 
 		XMMATRIX shadowMapViewProj = XMMatrixLookAtLH(lightPos, XMLoadFloat3(&target), XMLoadFloat3(&up)) * XMMatrixOrthographicLH(100, 100, -100.f, 200.f);
 
-		auto sceneDataMappedResource = map(sceneDataConstantBuffer);
-		*sceneDataMappedResource.begin() = { view,proj,{eye.x,eye.y,eye.z,0.f}, {lightDir.x,lightDir.y,lightDir.z,0.f},shadowMapViewProj };
+		{
+			auto stream = map(sceneDataConstantBuffer);
+			stream << SceneData{ view,proj,{eye.x,eye.y,eye.z,0.f}, {lightDir.x,lightDir.y,lightDir.z,0.f},shadowMapViewProj };
+		}
 
-		auto groundDataMappedResource = map(groundDataConstantBuffer);
-		*groundDataMappedResource.begin() = { XMMatrixScaling(100.f,100.f,100.f) };
+		{
+			auto stream = map(groundDataConstantBuffer);
+			stream << XMMatrixScaling(100.f, 100.f, 100.f);
+		}
 
-		auto bunnyDataMappedResource = map(bunnyDataConstantBuffer);
 
 		std::size_t cnt = 0;
 		while (update_window())
@@ -294,8 +288,9 @@ namespace test008
 			//
 			//update
 			//
+			auto bunnyDataMapStream = map(bunnyDataConstantBuffer);
 			for (std::size_t i = 0; i < BUNNY_NUM; i++)
-				bunnyDataMappedResource.begin()->world[i] = XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(30.f, 0.f, 40.f - i * 40.f);
+				bunnyDataMapStream << XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(30.f, 0.f, 40.f - i * 40.f);
 
 			cnt++;
 

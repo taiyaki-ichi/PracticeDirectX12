@@ -11,7 +11,7 @@
 #include"resource/allow_render_target_texture_resource.hpp"
 #include"resource/allow_depth_stencil_texture_resource.hpp"
 #include"resource/buffer_resource.hpp"
-#include"resource/mapped_resource.hpp"
+#include"resource/map_stream.hpp"
 
 #include<vector>
 #include<cmath>
@@ -147,8 +147,10 @@ namespace test005
 
 			buffer_resource<format<component_type::UINT, 8, 1>,resource_heap_property::UPLOAD> uploadResource{};
 			uploadResource.initialize(device, textureWidth * textureHeight * 4);
-			auto mappedUploadResource = map(uploadResource);
-			std::copy(&data[0], &data[textureWidth * textureHeight * 4], mappedUploadResource.begin());
+
+			auto stream = map(uploadResource);
+			for (std::size_t i = 0; i < textureWidth * textureHeight * 4; i++)
+				stream << data[i];
 
 			heightMapTextureResource.initialize(device, textureWidth, textureHeight, 1, 1);
 
@@ -171,8 +173,10 @@ namespace test005
 
 			buffer_resource<format<component_type::UINT, 8, 1>,resource_heap_property::UPLOAD> uploadResource{};
 			uploadResource.initialize(device, textureWidth * textureHeight * 4);
-			auto mappedUploadResource = map(uploadResource);
-			std::copy(&data[0], &data[textureWidth * textureHeight * 4], mappedUploadResource.begin());
+
+			auto stream = map(uploadResource);
+			for (std::size_t i = 0; i < textureWidth * textureHeight * 4; i++)
+				stream << data[i];
 
 			normalMapTextureResource.initialize(device, textureWidth, textureHeight, 1, 1);
 
@@ -200,23 +204,17 @@ namespace test005
 		buffer_resource<VertexFormatTuple,resource_heap_property::UPLOAD> vertexBuffer{};
 		vertexBuffer.initialize(device, vertexList.size());
 
-		auto vertexBufferMappedResource = map(vertexBuffer);
-		auto posIter = vertexBufferMappedResource.begin<0>();
-		auto uvIter = vertexBufferMappedResource.begin<1>();
-		for (std::uint32_t i = 0; i < vertexList.size(); i++) {
-			for (std::uint32_t j = 0; j < 3; j++)
-				(*posIter)[j] = vertexList[i][j];
-			for (std::uint32_t j = 0; j < 2; j++)
-				(*uvIter)[j] = vertexList[i][j + 3];
-			posIter++;
-			uvIter++;
-		}
+		auto vertexMapStream = map(vertexBuffer);
+		for (std::size_t i = 0; i < vertexList.size(); i++)
+			for (std::size_t j = 0; j < 5; j++)
+				vertexMapStream << vertexList[i][j];
 
 		buffer_resource<format<component_type::UINT, 32, 1>,resource_heap_property::UPLOAD> indexBuffer{};
 		indexBuffer.initialize(device, indexList.size());
 
-		auto indexBufferMappedResource = map(indexBuffer);
-		std::copy(indexList.begin(), indexList.end(), indexBufferMappedResource.begin());
+		auto indexMapStream = map(indexBuffer);
+		for (std::size_t i = 0; i < indexList.size(); i++)
+			indexMapStream << indexList[i];
 
 
 		D3D12_VIEWPORT viewport{ 0,0, static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT),0.f,1.f };
@@ -235,9 +233,7 @@ namespace test005
 			500.f
 		);
 
-		auto sceneDataMappedResource = map(sceneDataConstantBuffer);
-		*sceneDataMappedResource.begin() = { view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) };
-
+		SceneData sceneData{ view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) };
 
 		std::size_t cnt = 0;
 		while (update_window())
@@ -247,8 +243,11 @@ namespace test005
 			XMFLOAT3 t{ eye.x + 10.f,-1.f,0 };
 			auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&t), XMLoadFloat3(&up));
 
-			sceneDataMappedResource.begin()->eye = eye;
-			sceneDataMappedResource.begin()->view = view;
+			sceneData.eye = eye;
+			sceneData.view = view;
+			//
+			auto sceneDataStream = map(sceneDataConstantBuffer);
+			sceneDataStream << sceneData;
 
 			cnt++;
 

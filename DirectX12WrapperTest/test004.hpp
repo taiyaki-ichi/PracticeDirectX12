@@ -7,9 +7,10 @@
 #include"OffLoader.hpp"
 #include"utility.hpp"
 #include"resource/buffer_resource.hpp"
-#include"resource/mapped_resource.hpp"
 #include"resource/allow_render_target_texture_resource.hpp"
 #include"resource/allow_depth_stencil_texture_resource.hpp"
+
+#include"resource/map_stream.hpp"
 
 #include<array>
 #include<DirectXMath.h>
@@ -63,35 +64,25 @@ namespace test004
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
 			vertexBuffer.initialize(device, vertexList.size());
-			auto vertexMappedResource = map(vertexBuffer);
-			auto vertexListIter = vertexList.begin();
-			for (auto iter = vertexMappedResource.begin<0>(); iter != vertexMappedResource.end<0>(); iter++)
+
+			auto vertexMapStream = map(vertexBuffer);
+			XMFLOAT3 tmpFloat3;
+			for (std::size_t i = 0; i < vertexList.size(); i++)
 			{
-				for (std::size_t i = 0; i < 3; i++)
-					(*iter)[i] = (*vertexListIter)[i];
-				vertexListIter++;
+				for (std::size_t j = 0; j < 3; j++)
+					vertexMapStream << vertexList[i][j];
+
+				XMStoreFloat3(&tmpFloat3, normalList[i]);
+				vertexMapStream << tmpFloat3.x << tmpFloat3.y << tmpFloat3.z;
 			}
 
-			XMFLOAT3 tmpFloat3;
-			auto normalListIter = normalList.begin();
-			for (auto iter = vertexMappedResource.begin<1>(); iter != vertexMappedResource.end<1>(); iter++)
-			{
-				XMStoreFloat3(&tmpFloat3, *normalListIter++);
-				(*iter)[0] = tmpFloat3.x;
-				(*iter)[1] = tmpFloat3.y;
-				(*iter)[2] = tmpFloat3.z;
-			}
 
 			indexBuffer.initialize(device, faceList.size() * 3);
-			auto indexMappedResource = map(indexBuffer);
 
-			auto indexMappedIter = indexMappedResource.begin();
+			auto indexMapStream = map(indexBuffer);
 			for (std::size_t i = 0; i < faceList.size(); i++)
-			{
-				(*indexMappedIter++) = faceList[i][0];
-				(*indexMappedIter++) = faceList[i][1];
-				(*indexMappedIter++) = faceList[i][2];
-			}
+				for (std::size_t j = 0; j < 3; j++)
+					indexMapStream << faceList[i][j];
 
 			faceNum = faceList.size();
 		}
@@ -131,7 +122,7 @@ namespace test004
 		void MapColorBunnyData(T&& t, std::size_t i)
 		{
 			auto tmp = map(colorBunnyDataConstantBuffer[i]);
-			*tmp.begin() = std::forward<T>(t);
+			tmp << std::forward<T>(t);
 		}
 
 		void SetDescriptorHeap(command<FRAME_LATENCY_NUM>& cl, std::size_t i)
@@ -222,7 +213,7 @@ namespace test004
 		template<typename T>
 		void MapWorld(T&& t) {
 			auto tmp = map(worldConstantBuffer);
-			*tmp.begin() = std::forward<T>(t);
+			tmp << std::forward<T>(t);
 		}
 
 		auto& GetCubemapShaderResource() {
@@ -402,10 +393,8 @@ namespace test004
 		XMFLOAT4 lightDir{ 1.f,1.f,1.f,1.f };
 		XMFLOAT3 mirrorPos{ 0.f, 0.f, 0.f };
 
-		auto sceneDataMappedResource = map(sceneDataConstantBuffer);
-		*sceneDataMappedResource.begin() = { view,proj,lightDir,eye };
-
-		auto cubemapSceneDataMappedResource = map(cubemapSceneDataConstant);
+		auto sceneDataStream = map(sceneDataConstantBuffer);
+		sceneDataStream << SceneData{ view,proj,lightDir,eye };
 
 		while (update_window())
 		{
@@ -414,7 +403,11 @@ namespace test004
 				colorObjectModel.MapColorBunnyData(ColorObjectData{ colorObjectWorlds[i] ,colorObjectColors[i] }, i);
 			}
 
+			/*
 			*cubemapSceneDataMappedResource.begin() = GetCubemapSceneData(mirrorPos);
+			* */
+			auto cubemapSceneDataStream = map(cubemapSceneDataConstant);
+			cubemapSceneDataStream << GetCubemapSceneData(mirrorPos);
 
 			mirrorObjectModel.MapWorld(XMMatrixScaling(3.f, 3.f, 3.f) * XMMatrixTranslation(mirrorPos.x, mirrorPos.y, mirrorPos.z));
 

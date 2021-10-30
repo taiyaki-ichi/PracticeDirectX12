@@ -8,7 +8,7 @@
 #include"descriptor_heap.hpp"
 #include"resource/buffer_resource.hpp"
 #include"resource/texture_resource.hpp"
-#include"resource/mapped_resource.hpp"
+#include"resource/map_stream.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include<stb_image.h>
@@ -63,8 +63,9 @@ namespace test006
 
 			buffer_resource<format<component_type::UINT, 8, 1>,resource_heap_property::UPLOAD> uploadResource{};
 			uploadResource.initialize(device, x * y * 4);
-			auto mappedUploadResource = map(uploadResource);
-			std::copy(&data[0], &data[x * y * 4], mappedUploadResource.begin());
+			auto stream = map(uploadResource);
+			for (std::size_t i = 0; i < x * y * 4; i++)
+				stream << data[i];
 
 			textureResource.initialize(device, x, y, 1, 1);
 
@@ -119,24 +120,17 @@ namespace test006
 		buffer_resource<VertexLayout, resource_heap_property::UPLOAD> vertexBuffer{};
 		vertexBuffer.initialize(device, vertex.size());
 
-		auto vertexBufferMappedResource = map(vertexBuffer);
-		auto posIter = vertexBufferMappedResource.begin<0>();
-		auto uvIter = vertexBufferMappedResource.begin<1>();
-		for (std::uint32_t i = 0; i < vertex.size(); i++) {
-			for (std::uint32_t j = 0; j < 3; j++)
-				(*posIter)[j] = vertex[i][j];
-			for (std::uint32_t j = 0; j < 2; j++)
-				(*uvIter)[j] = vertex[i][j + 3];
-			posIter++;
-			uvIter++;
-		}
-
+		auto vertexMapStream = map(vertexBuffer);
+		for (std::size_t i = 0; i < vertex.size(); i++)
+			for (std::size_t j = 0; j < 5; j++)
+				vertexMapStream << vertex[i][j];
 
 		buffer_resource<format<component_type::UINT, 32, 1>, resource_heap_property::UPLOAD> indexBuffer{};
 		indexBuffer.initialize(device, index.size());
 
-		auto indexBufferMappedResource = map(indexBuffer);
-		std::copy(index.begin(), index.end(), indexBufferMappedResource.begin());
+		auto indexMapStream = map(indexBuffer);
+		for (std::size_t i = 0; i < index.size(); i++)
+			indexMapStream << index[i];
 
 		descriptor_heap_CBV_SRV_UAV descriptorHeap{};
 		descriptorHeap.initialize(device, 1);

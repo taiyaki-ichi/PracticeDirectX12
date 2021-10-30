@@ -9,11 +9,12 @@
 #include"descriptor_heap.hpp"
 #include"resource/buffer_resource.hpp"
 #include"resource/texture_resource.hpp"
-#include"resource/mapped_resource.hpp"
 #include"resource/allow_render_target_texture_resource.hpp"
 #include"resource/allow_depth_stencil_texture_resource.hpp"
 #include"OffLoader.hpp"
 #include"utility.hpp"
+
+#include"resource/map_stream.hpp"
 
 #include<vector>
 #include<cmath>
@@ -174,9 +175,8 @@ namespace test007
 		buffer_resource<GroundData,resource_heap_property::UPLOAD> groundDataConstantBuffer{};
 		groundDataConstantBuffer.initialize(device, 1);
 
-		auto groundDataMappedResource = map(groundDataConstantBuffer);
-		*groundDataMappedResource.begin() = { XMMatrixIdentity() };
-		
+		auto groundDataMapStream = map(groundDataConstantBuffer);
+		groundDataMapStream << XMMatrixIdentity();
 
 		texture_2D_resource<format<component_type::FLOAT, 32, 1>> heightMapResource{};
 		heightMapResource.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, true);
@@ -195,8 +195,10 @@ namespace test007
 
 			buffer_resource<format<component_type::UINT, 8, 1>,resource_heap_property::UPLOAD> uploadResource{};
 			uploadResource.initialize(device, x * y * 4);
-			auto mappedUploadResource = map(uploadResource);
-			std::copy(&data[0], &data[x * y * 4], mappedUploadResource.begin());
+
+			auto stream = map(uploadResource);
+			for (std::size_t i = 0; i < x * y * 4; i++)
+				stream << data[i];
 
 			groundDepthTextureResource.initialize(device, x, y, 1, 1);
 
@@ -219,8 +221,10 @@ namespace test007
 
 			buffer_resource<format<component_type::UINT, 8, 1>, resource_heap_property::UPLOAD> uploadResource{};
 			uploadResource.initialize(device, x * y * 4);
-			auto mappedUploadResource = map(uploadResource);
-			std::copy(&data[0], &data[x * y * 4], mappedUploadResource.begin());
+
+			auto stream = map(uploadResource);
+			for (std::size_t i = 0; i < x * y * 4; i++)
+				stream << data[i];
 
 			groundNormalTextureResource.initialize(device, x, y, 1, 1);
 
@@ -251,23 +255,17 @@ namespace test007
 		buffer_resource<VertexLayout1, resource_heap_property::UPLOAD> vertexBuffer{};
 		vertexBuffer.initialize(device, vertexList.size());
 
-		auto vertexBufferMappedResource = map(vertexBuffer);
-		auto posIter = vertexBufferMappedResource.begin<0>();
-		auto uvIter = vertexBufferMappedResource.begin<1>();
-		for (std::uint32_t i = 0; i < vertexList.size(); i++) {
-			for (std::uint32_t j = 0; j < 3; j++)
-				(*posIter)[j] = vertexList[i][j];
-			for (std::uint32_t j = 0; j < 2; j++)
-				(*uvIter)[j] = vertexList[i][j + 3];
-			posIter++;
-			uvIter++;
-		}
+		auto vertexMapSream = map(vertexBuffer);
+		for (std::size_t i = 0; i < vertexList.size(); i++)
+			for (std::size_t j = 0; j < 5; j++)
+				vertexMapSream << vertexList[i][j];
 
 		buffer_resource<format<component_type::UINT, 32, 1>, resource_heap_property::UPLOAD> indexBuffer{};
 		indexBuffer.initialize(device, indexList.size());
 
-		auto indexBufferMappedResource = map(indexBuffer);
-		std::copy(indexList.begin(), indexList.end(), indexBufferMappedResource.begin());
+		auto indexMapStream = map(indexBuffer);
+		for (std::size_t i = 0; i < indexList.size(); i++)
+			indexMapStream << indexList[i];
 
 
 		allow_render_target_texture_2D_resource<format<component_type::FLOAT, 32, 1>> groundDepthShaderResource{};
@@ -317,37 +315,25 @@ namespace test007
 			auto normalList = GetVertexNormal(vertexList, faceList);
 
 			sphereVertexBuffer.initialize(device, vertexList.size());
-			auto sphereVertexBufferMappedResource = map(sphereVertexBuffer);
-			auto vertexListIter = vertexList.begin();
-			for (auto iter = sphereVertexBufferMappedResource.begin<0>(); iter != sphereVertexBufferMappedResource.end<0>(); iter++)
-			{
-				for (std::size_t i = 0; i < 3; i++)
-					(*iter)[i] = (*vertexListIter)[i];
-				vertexListIter++;
-			}
+
+			auto sphereVertexMapStream = map(sphereVertexBuffer);
 			XMFLOAT3 tmpFloat3;
-			auto normalListIter = normalList.begin();
-			for (auto iter = sphereVertexBufferMappedResource.begin<1>(); iter != sphereVertexBufferMappedResource.end<1>(); iter++)
+			for (std::size_t i = 0; i < vertexList.size(); i++)
 			{
-				XMStoreFloat3(&tmpFloat3, *normalListIter++);
-				(*iter)[0] = tmpFloat3.x;
-				(*iter)[1] = tmpFloat3.y;
-				(*iter)[2] = tmpFloat3.z;
+				for (std::size_t j = 0; j < 3; j++)
+					sphereVertexMapStream << vertexList[i][j];
+				XMStoreFloat3(&tmpFloat3, normalList[i]);
+				sphereVertexMapStream << tmpFloat3.x << tmpFloat3.y << tmpFloat3.z;
 			}
 
 			sphereFaceNum = faceList.size();
 
 			sphereIndexBuffer.initialize(device, faceList.size() * 3);
 
-			auto sphereIndexBufferMappedResource = map(sphereIndexBuffer);
-			auto indexMappedIter = sphereIndexBufferMappedResource.begin();
+			auto sphereIndexMapStream = map(sphereIndexBuffer);
 			for (std::size_t i = 0; i < faceList.size(); i++)
-			{
-				(*indexMappedIter++) = faceList[i][0];
-				(*indexMappedIter++) = faceList[i][1];
-				(*indexMappedIter++) = faceList[i][2];
-			}
-
+				for (std::size_t j = 0; j < 3; j++)
+					sphereIndexMapStream << faceList[i][j];
 		}
 
 
@@ -414,10 +400,10 @@ namespace test007
 			std::uniform_real_distribution<float> dist(-SNOW_RANGE, SNOW_RANGE);
 
 			snowVertexBuffer.initialize(device, SNOW_NUM);
-			auto snowVertexBufferMappedResource = map(snowVertexBuffer);
-			for (auto& v : snowVertexBufferMappedResource)
-				for (std::size_t i = 0; i < 3; i++)
-					v[i] = dist(engine);
+
+			auto stream = map(snowVertexBuffer);
+			for (std::size_t i = 0; i < SNOW_NUM * 3; i++)
+				stream << dist(engine);
 		}
 
 		buffer_resource<SnowData,resource_heap_property::UPLOAD> snowDataConstantBuffer{};
@@ -431,8 +417,10 @@ namespace test007
 
 			buffer_resource<format<component_type::UINT, 8, 1>, resource_heap_property::UPLOAD> uploadResource{};
 			uploadResource.initialize(device, textureWidth* textureHeight * 4);
-			auto mappedUploadResource = map(uploadResource);
-			std::copy(&data[0], &data[textureWidth * textureHeight * 4], mappedUploadResource.begin());
+
+			auto stream = map(uploadResource);
+			for (std::size_t i = 0; i < textureWidth * textureHeight * 4; i++)
+				stream << data[i];
 
 			snowTextureShader.initialize(device, textureWidth, textureHeight, 1, 1);
 
@@ -495,28 +483,24 @@ namespace test007
 		);
 		XMFLOAT3 lightDir{ -1.f,1.f,0.f };
 
-		auto sceneDataMappedResource = map(sceneDataConstantBuffer);
-		*sceneDataMappedResource.begin() = { view,proj,eye,0.f,lightDir };
-
+		SceneData sceneData{ view,proj,eye,0.f,lightDir };
+		auto sceneDataMapStream = map(sceneDataConstantBuffer);
+		sceneDataMapStream << sceneData;
 
 		XMFLOAT3 upPos{ 0.f,0.f,0.f };
 		XMFLOAT3 upTarget{ 0,1,0 };
 		XMFLOAT3 upUp{ 0,0,-1 };
 		//•½s“Š‰e
 		auto upCamera = XMMatrixLookAtLH(XMLoadFloat3(&upPos), XMLoadFloat3(&upTarget), XMLoadFloat3(&upUp)) * XMMatrixOrthographicLH(GROUND_EDGE, GROUND_EDGE, -100.f, 100.f);
-		
-		auto upCameraMatrixMappedResource = map(upCameraMatrixConstantBuffer);
-		*upCameraMatrixMappedResource.begin() = upCamera;
+		auto upCameraMapStream = map(upCameraMatrixConstantBuffer);
+		upCameraMapStream << upCamera;
 
-		XMFLOAT4 snowMove{};
 
-		auto sphereDataMappedResource = map(sphereDataConstantBuffer);
-
-		auto snowDataMappedResource = map(snowDataConstantBuffer);
-		snowDataMappedResource.begin()->center = {};
-		snowDataMappedResource.begin()->range = SNOW_RANGE;
-		snowDataMappedResource.begin()->rangeR = 1 / SNOW_RANGE;
-		snowDataMappedResource.begin()->size = 0.05f;
+		SnowData snowData{};
+		snowData.center = {};
+		snowData.range = SNOW_RANGE;
+		snowData.rangeR = 1 / SNOW_RANGE;
+		snowData.size = 0.05f;
 
 		std::size_t cnt = 0;
 		auto time = std::chrono::system_clock::now();
@@ -535,12 +519,16 @@ namespace test007
 
 			auto m1 = XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(30.f, 0.f, 0.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(0.f, 0.f, 15.f);
 			auto m2 = XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(-30.f, 0.f, 0.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(0.f, 0.f, -15.f);
-			*sphereDataMappedResource.begin() = { m1,m2 };
 
-			snowMove.y -= 0.02f;
-			if (snowMove.y < -SNOW_RANGE)
-				snowMove.y += SNOW_RANGE * 2.f;
-			snowDataMappedResource.begin()->move = snowMove;
+			auto sphereDataMapStream = map(sphereDataConstantBuffer);
+			sphereDataMapStream << m1 << m2;
+
+			snowData.move.y -= 0.02f;
+			if (snowData.move.y < -SNOW_RANGE)
+				snowData.move.y += SNOW_RANGE * 2.f;
+
+			auto snowDataMapStream = map(snowDataConstantBuffer);
+			snowDataMapStream << snowData;
 
 			cnt++;
 
