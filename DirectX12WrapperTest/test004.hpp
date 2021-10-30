@@ -122,7 +122,7 @@ namespace test004
 		void MapColorBunnyData(T&& t, std::size_t i)
 		{
 			auto tmp = map(colorBunnyDataConstantBuffer[i]);
-			tmp << std::forward<T>(t);
+			*tmp = std::forward<T>(t);
 		}
 
 		void SetDescriptorHeap(command<FRAME_LATENCY_NUM>& cl, std::size_t i)
@@ -213,7 +213,7 @@ namespace test004
 		template<typename T>
 		void MapWorld(T&& t) {
 			auto tmp = map(worldConstantBuffer);
-			tmp << std::forward<T>(t);
+			*tmp = std::forward<T>(t);
 		}
 
 		auto& GetCubemapShaderResource() {
@@ -393,8 +393,10 @@ namespace test004
 		XMFLOAT4 lightDir{ 1.f,1.f,1.f,1.f };
 		XMFLOAT3 mirrorPos{ 0.f, 0.f, 0.f };
 
-		auto sceneDataStream = map(sceneDataConstantBuffer);
-		sceneDataStream << SceneData{ view,proj,lightDir,eye };
+		auto sceneDataMapPointer = map(sceneDataConstantBuffer);
+		*sceneDataMapPointer = SceneData{ view,proj,lightDir,eye };
+
+		auto cubemapSceneDataStream = map(cubemapSceneDataConstant);
 
 		while (update_window())
 		{
@@ -403,11 +405,7 @@ namespace test004
 				colorObjectModel.MapColorBunnyData(ColorObjectData{ colorObjectWorlds[i] ,colorObjectColors[i] }, i);
 			}
 
-			/*
-			*cubemapSceneDataMappedResource.begin() = GetCubemapSceneData(mirrorPos);
-			* */
-			auto cubemapSceneDataStream = map(cubemapSceneDataConstant);
-			cubemapSceneDataStream << GetCubemapSceneData(mirrorPos);
+			*cubemapSceneDataStream = GetCubemapSceneData(mirrorPos);
 
 			mirrorObjectModel.MapWorld(XMMatrixScaling(3.f, 3.f, 3.f) * XMMatrixTranslation(mirrorPos.x, mirrorPos.y, mirrorPos.z));
 

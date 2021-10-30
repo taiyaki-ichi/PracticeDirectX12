@@ -175,8 +175,8 @@ namespace test007
 		buffer_resource<GroundData,resource_heap_property::UPLOAD> groundDataConstantBuffer{};
 		groundDataConstantBuffer.initialize(device, 1);
 
-		auto groundDataMapStream = map(groundDataConstantBuffer);
-		groundDataMapStream << XMMatrixIdentity();
+		auto groundDataMapPointer = map(groundDataConstantBuffer);
+		groundDataMapPointer->world = XMMatrixIdentity();
 
 		texture_2D_resource<format<component_type::FLOAT, 32, 1>> heightMapResource{};
 		heightMapResource.initialize(device, MAP_RESOURCE_EDGE_SIZE, MAP_RESOURCE_EDGE_SIZE, 1, 1, true);
@@ -484,23 +484,27 @@ namespace test007
 		XMFLOAT3 lightDir{ -1.f,1.f,0.f };
 
 		SceneData sceneData{ view,proj,eye,0.f,lightDir };
-		auto sceneDataMapStream = map(sceneDataConstantBuffer);
-		sceneDataMapStream << sceneData;
+		auto sceneDataMapPointer = map(sceneDataConstantBuffer);
+		*sceneDataMapPointer = sceneData;
 
 		XMFLOAT3 upPos{ 0.f,0.f,0.f };
 		XMFLOAT3 upTarget{ 0,1,0 };
 		XMFLOAT3 upUp{ 0,0,-1 };
 		//•½s“Š‰e
 		auto upCamera = XMMatrixLookAtLH(XMLoadFloat3(&upPos), XMLoadFloat3(&upTarget), XMLoadFloat3(&upUp)) * XMMatrixOrthographicLH(GROUND_EDGE, GROUND_EDGE, -100.f, 100.f);
-		auto upCameraMapStream = map(upCameraMatrixConstantBuffer);
-		upCameraMapStream << upCamera;
+		auto upCameraMapPointer = map(upCameraMatrixConstantBuffer);
+		*upCameraMapPointer = upCamera;
 
+		XMFLOAT4 snowMove{};
 
-		SnowData snowData{};
-		snowData.center = {};
-		snowData.range = SNOW_RANGE;
-		snowData.rangeR = 1 / SNOW_RANGE;
-		snowData.size = 0.05f;
+		auto sphereDataMapPointer = map(sphereDataConstantBuffer);
+		auto snowDataMapPointer = map(snowDataConstantBuffer);
+
+		snowDataMapPointer->center = {};
+		snowDataMapPointer->range = SNOW_RANGE;
+		snowDataMapPointer->rangeR = 1 / SNOW_RANGE;
+		snowDataMapPointer->size = 0.05f;
+
 
 		std::size_t cnt = 0;
 		auto time = std::chrono::system_clock::now();
@@ -520,15 +524,14 @@ namespace test007
 			auto m1 = XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(30.f, 0.f, 0.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(0.f, 0.f, 15.f);
 			auto m2 = XMMatrixScaling(10.f, 10.f, 10.f) * XMMatrixTranslation(-30.f, 0.f, 0.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(0.f, 0.f, -15.f);
 
-			auto sphereDataMapStream = map(sphereDataConstantBuffer);
-			sphereDataMapStream << m1 << m2;
+			sphereDataMapPointer->world[0] = m1;
+			sphereDataMapPointer->world[1] = m2;
 
-			snowData.move.y -= 0.02f;
-			if (snowData.move.y < -SNOW_RANGE)
-				snowData.move.y += SNOW_RANGE * 2.f;
+			snowMove.y -= 0.02f;
+			if (snowMove.y < -SNOW_RANGE)
+				snowMove.y += SNOW_RANGE * 2.f;
 
-			auto snowDataMapStream = map(snowDataConstantBuffer);
-			snowDataMapStream << snowData;
+			snowDataMapPointer->move = snowMove;
 
 			cnt++;
 

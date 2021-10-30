@@ -29,6 +29,7 @@ namespace DX12
 		std::uint32_t get_num() const noexcept;
 
 		using value_type = FormatOrFormatTupleOrStruct;
+		static constexpr resource_heap_property heap_property = HeapProperty;
 	};
 
 	//

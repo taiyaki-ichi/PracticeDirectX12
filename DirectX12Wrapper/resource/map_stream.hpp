@@ -9,13 +9,6 @@ namespace DX12
 
 	public:
 		map_ostream(void*);
-		virtual ~map_ostream() = default;
-
-		map_ostream(map_ostream&) = default;
-		map_ostream& operator=(map_ostream&) = default;
-
-		map_ostream(map_ostream&&) = default;
-		map_ostream& operator=(map_ostream&&) = default;
 
 		template<typename T>
 		map_ostream& operator<<(T const&);
@@ -27,21 +20,17 @@ namespace DX12
 
 	public:
 		map_istream(void*);
-		virtual ~map_istream() = default;
-
-		map_istream(map_istream&) = default;
-		map_istream& operator=(map_istream&) = default;
-
-		map_istream(map_istream&&) = default;
-		map_istream& operator=(map_istream&&) = default;
 
 		template<typename T>
 		map_istream& operator>>(T&);
 	};
 
-	//‰¼
+	//value_type‚ªFormat‚Ìê‡‚Ístream‚ğ
+	//struct‚Ìê‡‚Ípointer‚ğ•Ô‚·
 	template<typename T>
-	map_ostream map(T&);
+	auto map(T&);
+
+
 	
 	//
 	//
@@ -78,10 +67,27 @@ namespace DX12
 
 
 	template<typename T>
-	map_ostream map(T& t)
+	auto map(T& t)
 	{
+		static_assert(T::heap_property != resource_heap_property::DEFAULT);
+
 		void* ptr = nullptr;
 		t.get()->Map(0, nullptr, &ptr);
-		return { ptr };
+
+		if constexpr (is_format<typename T::value_type>::value || is_format_tuple<typename T::value_type>::value)
+		{
+			if constexpr (T::heap_property == resource_heap_property::UPLOAD)
+				return map_ostream{ ptr };
+			else if constexpr (T::heap_property == resource_heap_property::READ_BACK)
+				return map_istream{ ptr };
+		}
+		else
+		{
+			if constexpr (T::heap_property == resource_heap_property::UPLOAD)
+				return static_cast<typename T::value_type*>(ptr);
+			else if constexpr (T::heap_property == resource_heap_property::READ_BACK)
+				return static_cast<typename T::value_type const*>(ptr);
+		}
 	}
+
 }

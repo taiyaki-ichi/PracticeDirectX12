@@ -272,15 +272,16 @@ namespace test008
 		XMMATRIX shadowMapViewProj = XMMatrixLookAtLH(lightPos, XMLoadFloat3(&target), XMLoadFloat3(&up)) * XMMatrixOrthographicLH(100, 100, -100.f, 200.f);
 
 		{
-			auto stream = map(sceneDataConstantBuffer);
-			stream << SceneData{ view,proj,{eye.x,eye.y,eye.z,0.f}, {lightDir.x,lightDir.y,lightDir.z,0.f},shadowMapViewProj };
+			auto p = map(sceneDataConstantBuffer);
+			*p = { view,proj,{eye.x,eye.y,eye.z,0.f}, {lightDir.x,lightDir.y,lightDir.z,0.f},shadowMapViewProj };
 		}
 
 		{
-			auto stream = map(groundDataConstantBuffer);
-			stream << XMMatrixScaling(100.f, 100.f, 100.f);
+			auto p = map(groundDataConstantBuffer);
+			p->world = XMMatrixScaling(100.f, 100.f, 100.f);
 		}
 
+		auto bunnyDataMapPointer = map(bunnyDataConstantBuffer);
 
 		std::size_t cnt = 0;
 		while (update_window())
@@ -288,13 +289,10 @@ namespace test008
 			//
 			//update
 			//
-			auto bunnyDataMapStream = map(bunnyDataConstantBuffer);
 			for (std::size_t i = 0; i < BUNNY_NUM; i++)
-				bunnyDataMapStream << XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(30.f, 0.f, 40.f - i * 40.f);
+				bunnyDataMapPointer->world[i] = XMMatrixScaling(100.f, 100.f, 100.f) * XMMatrixRotationY(cnt / 60.f) * XMMatrixTranslation(30.f, 0.f, 40.f - i * 40.f);
 
 			cnt++;
-
-
 
 			auto backBufferIndex = swapChain.get_current_back_buffer_index();
 

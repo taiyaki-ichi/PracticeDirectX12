@@ -152,7 +152,9 @@ namespace test003
 		descriptorHeap.initialize(device, 1);
 		descriptorHeap.push_back_CBV(device, sceneDataConstantBuffer);
 
-		
+		auto sceneDataMapPointer = map(sceneDataConstantBuffer);
+		sceneDataMapPointer->proj = proj;
+
 		std::size_t cnt = 0;
 		while (update_window()) {
 
@@ -160,9 +162,7 @@ namespace test003
 			eye.z = len * std::sin(cnt / 60.0);
 			auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
 
-			sceneData.view = view;
-			auto sceneDataMapStream = map(sceneDataConstantBuffer);
-			sceneDataMapStream << sceneData;
+			sceneDataMapPointer->view = view;
 
 			cnt++;
 

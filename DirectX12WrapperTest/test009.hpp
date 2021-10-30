@@ -133,14 +133,12 @@ namespace test009
 			for (std::uint32_t i = 0; i < 4; i++)
 				computeDescriptorHeap.push_back_texture2D_UAV(device, textureResource, i + 1, 0);
 
-			auto stream = map(computeDataConstantBuffer);
-			ComputeData computeData{};
-			computeData.numMipLevels = 4;
-			computeData.srcMipLevel = 0;
-			computeData.srcDimention = get_src_dimention(TEXTURE_WIDTH, TEXTURE_HEIGHT);
-			computeData.isSRGB = true;
-			computeData.texelSize = { 1.f / static_cast<float>(TEXTURE_WIDTH) * 2.f,1.f / static_cast<float>(TEXTURE_HEIGHT) * 2.f };
-			stream << computeData;
+			auto mapPointer = map(computeDataConstantBuffer);
+			mapPointer->numMipLevels = 4;
+			mapPointer->srcDimention = 0;
+			mapPointer->srcDimention = get_src_dimention(TEXTURE_WIDTH, TEXTURE_HEIGHT);
+			mapPointer->isSRGB = true;
+			mapPointer->texelSize = { 1.f / static_cast<float>(TEXTURE_WIDTH) * 2.f,1.f / static_cast<float>(TEXTURE_HEIGHT) * 2.f };
 
 			command.reset(0);
 
@@ -165,14 +163,12 @@ namespace test009
 			for (std::uint32_t i = 0; i < 4; i++)
 				computeDescriptorHeap.push_back_texture2D_UAV(device, textureResource, i + 5, 0);
 
-			auto stream = map(computeDataConstantBuffer);
-			ComputeData computeData{};
-			computeData.numMipLevels = 4;
-			computeData.srcMipLevel = 0;
-			computeData.srcDimention = get_src_dimention(TEXTURE_WIDTH, TEXTURE_HEIGHT);
-			computeData.isSRGB = true;
-			computeData.texelSize = { 1.f / static_cast<float>(TEXTURE_WIDTH) * 2.f,1.f / static_cast<float>(TEXTURE_HEIGHT) * 2.f };
-			stream << computeData;
+			auto mapPointer = map(computeDataConstantBuffer);
+			mapPointer->numMipLevels = 4;
+			mapPointer->srcMipLevel = 4;
+			mapPointer->srcDimention = get_src_dimention(TEXTURE_WIDTH / std::powf(2.f, 3.f), TEXTURE_HEIGHT / std::powf(2.f, 3.f));
+			mapPointer->isSRGB = true;
+			mapPointer->texelSize = { 1.f / static_cast<float>(TEXTURE_WIDTH) * std::powf(2.f, 3.f),1.f / static_cast<float>(TEXTURE_HEIGHT) * std::powf(2.f, 3.f) };
 
 			command.reset(0);
 
@@ -248,12 +244,10 @@ namespace test009
 			100.f
 		);
 
-		auto groundDataStream = map(groundDataConstantBuffer);
-		GroundData groundData{};
-		groundData.view = view;
-		groundData.proj = proj;
-		groundData.world = XMMatrixScaling(10, 10, 10);
-		groundDataStream << groundData;
+		auto groundDataMapPointer = map(groundDataConstantBuffer);
+		groundDataMapPointer->view = view;
+		groundDataMapPointer->proj = proj;
+		groundDataMapPointer->world = XMMatrixScaling(10, 10, 10);
 
 		while (update_window())
 		{

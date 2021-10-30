@@ -233,7 +233,8 @@ namespace test005
 			500.f
 		);
 
-		SceneData sceneData{ view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) };
+		auto sceneDataMapPointer = map(sceneDataConstantBuffer);
+		*sceneDataMapPointer = { view,proj,XMMatrixIdentity(),eye,XMFLOAT4(16.f,100.f,4.f,0.f) };
 
 		std::size_t cnt = 0;
 		while (update_window())
@@ -243,11 +244,8 @@ namespace test005
 			XMFLOAT3 t{ eye.x + 10.f,-1.f,0 };
 			auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&t), XMLoadFloat3(&up));
 
-			sceneData.eye = eye;
-			sceneData.view = view;
-			//
-			auto sceneDataStream = map(sceneDataConstantBuffer);
-			sceneDataStream << sceneData;
+			sceneDataMapPointer->eye = eye;
+			sceneDataMapPointer->view = view;
 
 			cnt++;
 
